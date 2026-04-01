@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InCar Detailing - Employee Portal</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        select, button { padding: 10px; margin: 10px; font-size: 16px; }
+        button { cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }
+        .out-btn { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+
+    <h1>InCar Detailing</h1>
+    <h3>Employee Time Clock</h3>
+
+    <select id="employeeName">
+        <option value="Employee 1">Employee 1</option>
+        <option value="Employee 2">Employee 2</option>
+        <option value="Employee 3">Employee 3</option>
+        <option value="Employee 4">Employee 4</option>
+        <option value="Employee 5">Employee 5</option>
+        <option value="Employee 6">Employee 6</option>
+        <option value="Employee 7">Employee 7</option>
+    </select>
+
+    <br>
+    <button onclick="logTime('Clocked In')">Clock In</button>
+    <button class="out-btn" onclick="logTime('Clocked Out')">Clock Out</button>
+
+    <p id="statusMessage"></p>
+
+    <script type="module">
+        // Import Firebase tools
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // PASTE YOUR FIREBASE CONFIG HERE
+        const firebaseConfig = {
+    apiKey: "AIzaSyAiplwGT8bfv-lXp8T7UX0_GhCFpnBzxH4",
+    authDomain: "incar-detailing.firebaseapp.com",
+    projectId: "incar-detailing",
+    storageBucket: "incar-detailing.firebasestorage.app",
+    messagingSenderId: "323775979442",
+    appId: "1:323775979442:web:1573ce4526d13559718eab"
+  };
+
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to log the time
+        window.logTime = async function(action) {
+            const name = document.getElementById("employeeName").value;
+            const timestamp = new Date();
+
+            try {
+                await addDoc(collection(db, "timeLogs"), {
+                    employee: name,
+                    action: action,
+                    time: timestamp.toLocaleString()
+                });
+                document.getElementById("statusMessage").innerText = `${name} successfully ${action} at ${timestamp.toLocaleTimeString()}`;
+            } catch (e) {
+                console.error("Error adding document: ", e);
+            }
+        };
+    </script>
+</body>
+</html>
