@@ -2,65 +2,825 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manager Dashboard - InCar Detailing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Dashboard — InCar Detailing</title>
+
+    <!-- =============================================
+         FONTS: Montserrat for headers, Open Sans for body
+    ============================================= -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
+        /* =============================================
+           CSS VARIABLES — Identical token set to index.html
+           for visual consistency across both pages.
+        ============================================= */
+        :root {
+            --bg-primary:        #121212;
+            --bg-card:           #181818;
+            --bg-card-alt:       #1c1c1c;   /* Alternate row tint */
+            --bg-input:          #0f0f0f;
+
+            --text-main:         #E0E0E0;
+            --text-header:       #FFFFFF;
+            --text-muted:        #888888;
+            --text-label:        #B0B0B0;
+
+            --accent-silver:     #C0C0C0;
+            --accent-border:     #2a2a2a;
+            --accent-border-focus: #C0C0C0;
+
+            --btn-primary-bg:    #B0C4DE;   /* Light Steel Blue */
+            --btn-primary-text:  #121212;
+            --btn-primary-hover: #c8d8ec;
+
+            --status-success:    #4CAF50;
+            --status-error:      #F44336;
+
+            /* Clocked In badge — calm green */
+            --badge-in-bg:       rgba(76, 175, 80, 0.12);
+            --badge-in-text:     #6fcf74;
+            --badge-in-border:   rgba(76, 175, 80, 0.3);
+
+            /* Clocked Out badge — crimson */
+            --badge-out-bg:      rgba(220, 20, 60, 0.1);
+            --badge-out-text:    #e84a6f;
+            --badge-out-border:  rgba(220, 20, 60, 0.25);
+
+            --radius-card:       12px;
+            --radius-btn:        8px;
+            --radius-input:      8px;
+            --radius-badge:      20px;
+
+            --font-header:       'Montserrat', sans-serif;
+            --font-body:         'Open Sans', sans-serif;
+            --font-mono:         'Courier New', monospace;
+
+            --transition-speed:  0.3s;
+
+            --shadow-card:       0 8px 32px rgba(0, 0, 0, 0.6);
+            --shadow-btn:        0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        /* =============================================
+           RESET & BASE
+        ============================================= */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* =============================================
+           BODY — Same carbon-fiber texture as index.html
+        ============================================= */
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-primary);
+            background-image:
+                repeating-linear-gradient(
+                    45deg,
+                    rgba(255,255,255,0.015) 0px,
+                    rgba(255,255,255,0.015) 1px,
+                    transparent 1px,
+                    transparent 8px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    rgba(255,255,255,0.015) 0px,
+                    rgba(255,255,255,0.015) 1px,
+                    transparent 1px,
+                    transparent 8px
+                );
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 24px 60px;
+        }
+
+        /* =============================================
+           WRAPPER — Max-width container, centered
+        ============================================= */
+        .wrapper {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        /* =============================================
+           PAGE HEADER
+        ============================================= */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 36px;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .page-header-left .brand {
+            font-family: var(--font-header);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .page-header-left h1 {
+            font-family: var(--font-header);
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-header);
+            letter-spacing: -0.5px;
+        }
+
+        /* Back link in top-right */
+        .back-link {
+            font-family: var(--font-body);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: color var(--transition-speed) ease;
+        }
+
+        .back-link:hover {
+            color: var(--accent-silver);
+        }
+
+        /* =============================================
+           CARD — Reusable panel component
+        ============================================= */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            padding: 32px 36px;
+            margin-bottom: 24px;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        /* Stagger the second card's animation slightly */
+        .card:nth-child(2) { animation-delay: 0.1s; }
+        .card:nth-child(3) { animation-delay: 0.2s; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card title style */
+        .card-title {
+            font-family: var(--font-header);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--accent-border);
+        }
+
+        /* =============================================
+           PAYROLL CONTROLS — Week selector row
+        ============================================= */
+        .payroll-controls {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* Form group used inside payroll controls */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-label);
+        }
+
+        /* Week input styling */
+        input[type="week"] {
+            width: 100%;
+            padding: 12px 16px;
+            font-family: var(--font-body);
+            font-size: 14px;
+            color: var(--text-main);
+            background-color: var(--bg-input);
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-input);
+            appearance: none;
+            -webkit-appearance: none;
+            outline: none;
+            cursor: pointer;
+            transition: border-color var(--transition-speed) ease,
+                        box-shadow var(--transition-speed) ease;
+            /* Force text color in webkit (week input quirk) */
+            color-scheme: dark;
+        }
+
+        input[type="week"]:hover  { border-color: var(--accent-silver); }
+        input[type="week"]:focus  {
+            border-color: var(--accent-border-focus);
+            box-shadow: 0 0 0 3px rgba(192, 192, 192, 0.12);
+        }
+
+        /* "Calculate" button */
+        .btn-calculate {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 28px;
+            font-family: var(--font-header);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--btn-primary-text);
+            background-color: var(--btn-primary-bg);
+            border: none;
+            border-radius: var(--radius-btn);
+            cursor: pointer;
+            box-shadow: var(--shadow-btn);
+            transition: background-color var(--transition-speed) ease,
+                        transform var(--transition-speed) ease,
+                        box-shadow var(--transition-speed) ease;
+            white-space: nowrap;
+        }
+
+        .btn-calculate:hover {
+            background-color: var(--btn-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+        }
+
+        .btn-calculate:active { transform: translateY(0); }
+
+        /* =============================================
+           PAYROLL SUMMARY — Cards grid per employee
+        ============================================= */
+        #summarySection {
+            margin-top: 28px;
+            display: none; /* Hidden until a week is calculated */
+        }
+
+        .summary-week-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        /* Grid of employee hour cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        /* Individual employee summary tile */
+        .summary-tile {
+            background-color: #0f0f0f;
+            border: 1px solid var(--accent-border);
+            border-radius: 10px;
+            padding: 20px 18px;
+            text-align: center;
+            transition: border-color var(--transition-speed) ease,
+                        transform var(--transition-speed) ease;
+        }
+
+        .summary-tile:hover {
+            border-color: var(--accent-silver);
+            transform: translateY(-3px);
+        }
+
+        .summary-tile .tile-name {
+            font-family: var(--font-header);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .summary-tile .tile-hours {
+            font-family: var(--font-header);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-header);
+            line-height: 1;
+        }
+
+        .summary-tile .tile-unit {
+            font-family: var(--font-body);
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Highlight tile for highest hours (bonus detail) */
+        .summary-tile.highlight {
+            border-color: rgba(176, 196, 222, 0.35);
+        }
+
+        .summary-tile.highlight .tile-hours {
+            color: var(--btn-primary-bg);
+        }
+
+        /* Empty state message inside summary */
+        .summary-empty {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 16px 0;
+        }
+
+        /* =============================================
+           DETAILED LOGS TABLE
+        ============================================= */
+        .table-wrapper {
+            overflow-x: auto; /* Scroll horizontally on mobile */
+            border-radius: 8px;
+            border: 1px solid var(--accent-border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        /* Table header row */
+        thead tr {
+            background-color: #0f0f0f;
+        }
+
+        th {
+            font-family: var(--font-header);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid var(--accent-border);
+            white-space: nowrap;
+        }
+
+        /* Alternating row colors for dark-mode readability */
+        tbody tr:nth-child(odd)  { background-color: var(--bg-card); }
+        tbody tr:nth-child(even) { background-color: var(--bg-card-alt); }
+
+        tbody tr {
+            transition: background-color var(--transition-speed) ease;
+        }
+
+        tbody tr:hover {
+            background-color: #222222;
+        }
+
+        td {
+            padding: 13px 18px;
+            color: var(--text-main);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            vertical-align: middle;
+        }
+
+        /* Last row has no bottom border */
+        tbody tr:last-child td { border-bottom: none; }
+
+        /* Employee name cell — slightly brighter */
+        td.td-name {
+            font-family: var(--font-header);
+            font-weight: 600;
+            color: var(--text-header);
+            font-size: 13px;
+        }
+
+        /* Time cell — monospace for alignment */
+        td.td-time {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* =============================================
+           ACTION BADGE — Styled "Clocked In / Out" pill
+        ============================================= */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px 3px 8px;
+            border-radius: var(--radius-badge);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Green badge — Clocked In */
+        .badge-in {
+            background-color: var(--badge-in-bg);
+            color: var(--badge-in-text);
+            border-color: var(--badge-in-border);
+        }
+        .badge-in .badge-dot { background-color: var(--badge-in-text); }
+
+        /* Crimson badge — Clocked Out */
+        .badge-out {
+            background-color: var(--badge-out-bg);
+            color: var(--badge-out-text);
+            border-color: var(--badge-out-border);
+        }
+        .badge-out .badge-dot { background-color: var(--badge-out-text); }
+
+        /* =============================================
+           LOADING / EMPTY STATE
+        ============================================= */
+        .state-row td {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(192,192,192,0.2);
+            border-top-color: var(--accent-silver);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* =============================================
+           RESPONSIVE ADJUSTMENTS
+        ============================================= */
+        @media (max-width: 640px) {
+            .card { padding: 24px 20px; }
+            .page-header-left h1 { font-size: 20px; }
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
 
-    <h1>Manager Dashboard</h1>
-    <h3>Weekly Timesheet Records</h3>
+    <div class="wrapper">
 
-    <table>
-        <thead>
-            <tr>
-                <th>Employee Name</th>
-                <th>Action (In/Out)</th>
-                <th>Date & Time</th>
-            </tr>
-        </thead>
-        <tbody id="logTableBody">
-            </tbody>
-    </table>
+        <!-- =============================================
+             PAGE HEADER
+        ============================================= -->
+        <header class="page-header">
+            <div class="page-header-left">
+                <p class="brand">InCar Detailing</p>
+                <h1>Manager Dashboard</h1>
+            </div>
+            <a href="index.html" class="back-link">← Employee Portal</a>
+        </header>
 
+
+        <!-- =============================================
+             CARD 1: PAYROLL PANEL
+             Contains the week selector and the resulting
+             per-employee hours summary.
+        ============================================= -->
+        <section class="card" id="payrollCard">
+            <p class="card-title">Payroll Calculator</p>
+
+            <!-- Week Selector + Button -->
+            <div class="payroll-controls">
+                <div class="form-group">
+                    <label for="weekPicker">Select Pay Week</label>
+                    <input type="week" id="weekPicker">
+                </div>
+                <button class="btn-calculate" onclick="calculatePayroll()">
+                    &#9654; Calculate Hours
+                </button>
+            </div>
+
+            <!-- Summary Grid — shown after calculation -->
+            <div id="summarySection">
+                <p class="summary-week-label" id="summaryWeekLabel"></p>
+                <div class="summary-grid" id="summaryGrid">
+                    <!-- Tiles injected by JS -->
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =============================================
+             CARD 2: DETAILED LOG TABLE
+             Shows every individual clock-in/out entry.
+        ============================================= -->
+        <section class="card">
+            <p class="card-title">All Time Logs — Most Recent First</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Action</th>
+                            <th>Date &amp; Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                        <!-- Loading state shown while Firestore fetches -->
+                        <tr class="state-row">
+                            <td colspan="3">
+                                <span class="spinner"></span> Loading records…
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div><!-- /.wrapper -->
+
+
+    <!-- =============================================
+         JAVASCRIPT — Firebase + Payroll Logic
+    ============================================= -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // PASTE YOUR EXACT SAME FIREBASE CONFIG HERE
+        // --- Firebase Imports ---
+        import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore,
+                 collection,
+                 getDocs,
+                 orderBy,
+                 query }           from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // --- Firebase Configuration ---
         const firebaseConfig = {
-    apiKey: "AIzaSyAiplwGT8bfv-lXp8T7UX0_GhCFpnBzxH4",
-    authDomain: "incar-detailing.firebaseapp.com",
-    projectId: "incar-detailing",
-    storageBucket: "incar-detailing.firebasestorage.app",
-    messagingSenderId: "323775979442",
-    appId: "1:323775979442:web:1573ce4526d13559718eab"
-  };
+            apiKey:            "AIzaSyAiplwGT8bfv-lXp8T7UX0_GhCFpnBzxH4",
+            authDomain:        "incar-detailing.firebaseapp.com",
+            projectId:         "incar-detailing",
+            storageBucket:     "incar-detailing.firebasestorage.app",
+            messagingSenderId: "323775979442",
+            appId:             "1:323775979442:web:1573ce4526d13559718eab"
+        };
 
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const db  = getFirestore(app);
 
+        // -----------------------------------------------
+        // MODULE-LEVEL CACHE
+        // We load ALL logs once from Firestore and store
+        // them in this array. This way the payroll
+        // calculator can filter them instantly without
+        // making extra network requests.
+        // -----------------------------------------------
+        let allLogs = []; // Will hold every log object after initial load
+
+
+        // -----------------------------------------------
+        // loadLogs()
+        // Fetches all documents from the "timeLogs"
+        // collection, ordered by Firestore Timestamp
+        // (newest first). Populates the detail table AND
+        // fills the allLogs cache.
+        // -----------------------------------------------
         async function loadLogs() {
-            const q = query(collection(db, "timeLogs"), orderBy("time", "desc"));
-            const querySnapshot = await getDocs(q);
-            
             const tableBody = document.getElementById("logTableBody");
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const row = `<tr>
-                                <td>${data.employee}</td>
-                                <td>${data.action}</td>
-                                <td>${data.time}</td>
-                             </tr>`;
-                tableBody.innerHTML += row;
-            });
+
+            try {
+                // Query ordered by the Firestore Timestamp field we added in index.html.
+                // Falls back gracefully if older records don't have the "timestamp" field.
+                const q = query(
+                    collection(db, "timeLogs"),
+                    orderBy("timestamp", "desc")
+                );
+
+                const snapshot = await getDocs(q);
+
+                // Clear the loading spinner row
+                tableBody.innerHTML = "";
+
+                if (snapshot.empty) {
+                    // No records at all — show a friendly empty state
+                    tableBody.innerHTML = `
+                        <tr class="state-row">
+                            <td colspan="3">No records found. Employees haven't clocked in yet.</td>
+                        </tr>`;
+                    return;
+                }
+
+                // Loop over every document returned by Firestore
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+
+                    // Store the raw data in our cache for the payroll calculator.
+                    // We attach the Firestore Timestamp JS Date for easy comparison.
+                    allLogs.push({
+                        employee:  data.employee  || "Unknown",
+                        action:    data.action    || "",
+                        timeStr:   data.time      || "",   // Human-readable string for display
+                        // Convert Firestore Timestamp to a JS Date object.
+                        // If timestamp field is missing (old records), fall back to parsing the string.
+                        date: data.timestamp
+                                ? data.timestamp.toDate()
+                                : new Date(data.time)
+                    });
+
+                    // --- Render the table row ---
+
+                    // Build the action badge HTML based on action type
+                    const isIn = data.action === "Clocked In";
+                    const badgeClass = isIn ? "badge-in" : "badge-out";
+                    const badgeText  = isIn ? "Clocked In" : "Clocked Out";
+
+                    const badgeHTML = `
+                        <span class="badge ${badgeClass}">
+                            <span class="badge-dot"></span>${badgeText}
+                        </span>`;
+
+                    // Inject a <tr> into the table
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td class="td-name">${data.employee || "—"}</td>
+                        <td>${badgeHTML}</td>
+                        <td class="td-time">${data.time || "—"}</td>`;
+                    tableBody.appendChild(row);
+                });
+
+            } catch (e) {
+                console.error("Error loading logs:", e);
+                tableBody.innerHTML = `
+                    <tr class="state-row">
+                        <td colspan="3" style="color: var(--status-error);">
+                            Error loading records. Check your Firebase connection.
+                        </td>
+                    </tr>`;
+            }
         }
 
+
+        // -----------------------------------------------
+        // calculatePayroll()
+        // Called when the manager clicks "Calculate Hours".
+        //
+        // ALGORITHM:
+        //   1. Read the selected week from the <input type="week">
+        //   2. Determine the Monday–Sunday date range for that week
+        //   3. Filter allLogs to only entries within that range
+        //   4. For each employee, pair their "Clocked In" events
+        //      with the next matching "Clocked Out" event
+        //   5. Sum up all shift durations (Clock Out - Clock In)
+        //   6. Render one summary tile per employee
+        //
+        // NOTE: This is a simple sequential pairing algorithm.
+        // It assumes employees always clock in before clocking out.
+        // -----------------------------------------------
+        window.calculatePayroll = function() {
+            const weekInput = document.getElementById("weekPicker").value;
+
+            if (!weekInput) {
+                alert("Please select a week first.");
+                return;
+            }
+
+            // --- Step 1: Parse the week input ---
+            // The <input type="week"> returns a value like "2025-W23"
+            // We need to convert this to Monday 00:00 and Sunday 23:59
+
+            const [yearStr, weekStr] = weekInput.split("-W");
+            const year = parseInt(yearStr, 10);
+            const week = parseInt(weekStr, 10);
+
+            // Calculate the Monday of the selected ISO week.
+            // ISO week 1 is the week containing the first Thursday of January.
+            const jan4 = new Date(year, 0, 4);                 // Jan 4 is always in week 1
+            const jan4Day = (jan4.getDay() + 6) % 7;           // Monday=0 … Sunday=6
+            const monday = new Date(jan4);
+            monday.setDate(jan4.getDate() - jan4Day + (week - 1) * 7);
+            monday.setHours(0, 0, 0, 0);                        // Start of Monday
+
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            sunday.setHours(23, 59, 59, 999);                   // End of Sunday
+
+            // --- Step 2: Filter logs to this week ---
+            const weekLogs = allLogs.filter(log => log.date >= monday && log.date <= sunday);
+
+            // --- Step 3: Group logs by employee ---
+            // Result: { "Employee 1": [...logs], "Employee 2": [...logs], ... }
+            const byEmployee = {};
+            weekLogs.forEach(log => {
+                if (!byEmployee[log.employee]) byEmployee[log.employee] = [];
+                byEmployee[log.employee].push(log);
+            });
+
+            // --- Step 4: Calculate hours per employee ---
+            // For each employee, sort their events by date ascending,
+            // then iterate and pair In→Out, accumulating the minutes.
+            const results = {}; // { "Employee 1": totalMinutes, ... }
+
+            Object.entries(byEmployee).forEach(([name, logs]) => {
+                // Sort chronologically (oldest first) for correct pairing
+                logs.sort((a, b) => a.date - b.date);
+
+                let totalMinutes = 0;
+                let clockInTime  = null; // Holds the Date of the most recent Clock In
+
+                logs.forEach(log => {
+                    if (log.action === "Clocked In") {
+                        // Start a new shift
+                        clockInTime = log.date;
+
+                    } else if (log.action === "Clocked Out" && clockInTime !== null) {
+                        // End the shift: calculate duration in minutes
+                        const diffMs      = log.date - clockInTime;
+                        const diffMinutes = diffMs / (1000 * 60); // Convert ms → minutes
+                        totalMinutes     += diffMinutes;
+                        clockInTime       = null; // Reset so we don't double-count
+                    }
+                });
+
+                results[name] = totalMinutes;
+            });
+
+            // --- Step 5: Render the summary tiles ---
+            const summarySection  = document.getElementById("summarySection");
+            const summaryGrid     = document.getElementById("summaryGrid");
+            const summaryWeekLbl  = document.getElementById("summaryWeekLabel");
+
+            summaryGrid.innerHTML = ""; // Clear old tiles
+
+            // Format the label: "Week of Mon DD MMM – Sun DD MMM YYYY"
+            const fmtDate = d => d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+            summaryWeekLbl.textContent =
+                `Week of ${fmtDate(monday)} – ${fmtDate(sunday)}, ${year}`;
+
+            if (Object.keys(results).length === 0) {
+                summaryGrid.innerHTML = `<p class="summary-empty">No logs found for this week.</p>`;
+                summarySection.style.display = "block";
+                return;
+            }
+
+            // Find the highest hours to highlight the top performer
+            const maxMinutes = Math.max(...Object.values(results));
+
+            Object.entries(results).forEach(([name, minutes]) => {
+                // Convert minutes to decimal hours, rounded to 2 decimal places
+                const hours   = (minutes / 60).toFixed(2);
+                const isTop   = minutes === maxMinutes && maxMinutes > 0;
+
+                const tile = document.createElement("div");
+                tile.className = `summary-tile${isTop ? " highlight" : ""}`;
+                tile.innerHTML = `
+                    <p class="tile-name">${name}</p>
+                    <p class="tile-hours">${hours}</p>
+                    <p class="tile-unit">hrs this week</p>`;
+                summaryGrid.appendChild(tile);
+            });
+
+            // Reveal the summary section with a smooth display
+            summarySection.style.display = "block";
+        };
+
+        // --- Kick off the initial data load when the page is ready ---
         loadLogs();
+
     </script>
 </body>
 </html>

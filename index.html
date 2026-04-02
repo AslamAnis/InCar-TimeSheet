@@ -3,70 +3,551 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InCar Detailing - Employee Portal</title>
+    <title>InCar Detailing — Employee Portal</title>
+
+    <!-- =============================================
+         FONTS: Montserrat for headers, Open Sans for body
+         Loaded from Google Fonts for a premium feel
+    ============================================= -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        select, button { padding: 10px; margin: 10px; font-size: 16px; }
-        button { cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }
-        .out-btn { background-color: #dc3545; }
+        /* =============================================
+           CSS VARIABLES — Single source of truth for
+           all colors, fonts, and sizing tokens.
+           Change a value here and it updates everywhere.
+        ============================================= */
+        :root {
+            --bg-primary:        #121212;   /* Deep matte black page background */
+            --bg-card:           #181818;   /* Slightly lighter card surface */
+            --bg-card-hover:     #1e1e1e;   /* Subtle hover lift on card */
+            --bg-input:          #0f0f0f;   /* Even darker input background */
+
+            --text-main:         #E0E0E0;   /* Light gray body copy */
+            --text-header:       #FFFFFF;   /* Crisp white for headings */
+            --text-muted:        #888888;   /* Dimmed secondary text */
+            --text-label:        #B0B0B0;   /* Form label text */
+
+            --accent-silver:     #C0C0C0;   /* Silver — hover/selected states */
+            --accent-border:     #2a2a2a;   /* Subtle card/input borders */
+            --accent-border-focus: #C0C0C0; /* Silver border on focus */
+
+            --btn-in-bg:         #B0C4DE;   /* Light Steel Blue — Clock In */
+            --btn-in-text:       #121212;   /* Dark text on light button */
+            --btn-in-hover:      #c8d8ec;   /* Lighter on hover */
+
+            --btn-out-bg:        #DC143C;   /* Crimson — Clock Out */
+            --btn-out-text:      #FFFFFF;   /* White text on red */
+            --btn-out-hover:     #ff1f4f;   /* Brighter crimson on hover */
+
+            --status-success:    #4CAF50;   /* Subtle green for success */
+            --status-error:      #F44336;   /* Red for errors */
+
+            --radius-card:       12px;       /* Card corner rounding */
+            --radius-btn:        8px;        /* Button corner rounding */
+            --radius-input:      8px;        /* Input corner rounding */
+
+            --font-header:       'Montserrat', sans-serif;
+            --font-body:         'Open Sans', sans-serif;
+
+            --transition-speed:  0.3s;       /* Smooth transitions throughout */
+
+            --shadow-card:       0 8px 32px rgba(0, 0, 0, 0.6);
+            --shadow-btn:        0 4px 16px rgba(0, 0, 0, 0.5);
+            --shadow-btn-hover:  0 6px 24px rgba(0, 0, 0, 0.7);
+        }
+
+        /* =============================================
+           RESET & BASE STYLES
+        ============================================= */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* =============================================
+           BODY — Carbon-fiber texture background.
+           The SVG data-URI creates a subtle diagonal
+           weave pattern without any external image file.
+        ============================================= */
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-primary);
+            /* Subtle carbon-fiber diagonal weave pattern */
+            background-image:
+                repeating-linear-gradient(
+                    45deg,
+                    rgba(255,255,255,0.015) 0px,
+                    rgba(255,255,255,0.015) 1px,
+                    transparent 1px,
+                    transparent 8px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    rgba(255,255,255,0.015) 0px,
+                    rgba(255,255,255,0.015) 1px,
+                    transparent 1px,
+                    transparent 8px
+                );
+            color: var(--text-main);
+            min-height: 100vh;
+
+            /* Center the card both vertically and horizontally */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        /* =============================================
+           PAGE HEADER — Sits above the card
+        ============================================= */
+        .page-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .page-header .brand {
+            font-family: var(--font-header);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .page-header h1 {
+            font-family: var(--font-header);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-header);
+            letter-spacing: -0.5px;
+        }
+
+        /* A thin silver rule under the title for elegance */
+        .page-header .rule {
+            width: 48px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-silver), transparent);
+            margin: 16px auto 0;
+            border-radius: 2px;
+        }
+
+        /* =============================================
+           CARD — The main UI surface
+        ============================================= */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            padding: 40px 48px;
+            width: 100%;
+            max-width: 460px;
+            /* Subtle entry animation */
+            animation: fadeUp 0.5s ease both;
+        }
+
+        /* Entry animation: card rises gently from below */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =============================================
+           FORM GROUP — Label + Input wrapper
+        ============================================= */
+        .form-group {
+            margin-bottom: 28px;
+        }
+
+        .form-group label {
+            display: block;
+            font-family: var(--font-body);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-label);
+            margin-bottom: 10px;
+        }
+
+        /* =============================================
+           SELECT DROPDOWN — Premium dark styling.
+           The custom arrow is an inline SVG data-URI.
+        ============================================= */
+        select#employeeName {
+            width: 100%;
+            padding: 14px 18px;
+            font-family: var(--font-body);
+            font-size: 15px;
+            color: var(--text-main);
+            background-color: var(--bg-input);
+
+            /* Custom SVG chevron arrow */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C0C0C0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-input);
+            appearance: none; /* Remove the OS default arrow */
+            -webkit-appearance: none;
+            cursor: pointer;
+            transition: border-color var(--transition-speed) ease,
+                        box-shadow var(--transition-speed) ease;
+            outline: none;
+        }
+
+        select#employeeName:hover {
+            border-color: var(--accent-silver);
+        }
+
+        select#employeeName:focus {
+            border-color: var(--accent-border-focus);
+            box-shadow: 0 0 0 3px rgba(192, 192, 192, 0.12);
+        }
+
+        /* Ensure dropdown options use a dark bg (browser-dependent) */
+        select#employeeName option {
+            background-color: #1e1e1e;
+            color: var(--text-main);
+        }
+
+        /* =============================================
+           DIVIDER — "Select an action" label between
+           the dropdown and buttons
+        ============================================= */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section-divider span {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .section-divider::before,
+        .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--accent-border);
+        }
+
+        /* =============================================
+           BUTTON ROW — Two buttons side by side
+        ============================================= */
+        .button-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Base button styles shared by both */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px 20px;
+            font-family: var(--font-header);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border: none;
+            border-radius: var(--radius-btn);
+            cursor: pointer;
+            transition: background-color var(--transition-speed) ease,
+                        box-shadow var(--transition-speed) ease,
+                        transform var(--transition-speed) ease;
+            box-shadow: var(--shadow-btn);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle shine overlay on hover */
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0);
+            transition: background var(--transition-speed) ease;
+            border-radius: inherit;
+        }
+        .btn:hover::after {
+            background: rgba(255,255,255,0.07);
+        }
+
+        /* CLOCK IN — Light Steel Blue */
+        .btn-in {
+            background-color: var(--btn-in-bg);
+            color: var(--btn-in-text);
+        }
+
+        .btn-in:hover {
+            background-color: var(--btn-in-hover);
+            box-shadow: var(--shadow-btn-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-in:active {
+            transform: translateY(0);
+        }
+
+        /* CLOCK OUT — Crimson */
+        .btn-out {
+            background-color: var(--btn-out-bg);
+            color: var(--btn-out-text);
+        }
+
+        .btn-out:hover {
+            background-color: var(--btn-out-hover);
+            box-shadow: 0 6px 24px rgba(220, 20, 60, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-out:active {
+            transform: translateY(0);
+        }
+
+        /* Small icon inside buttons */
+        .btn-icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        /* =============================================
+           STATUS MESSAGE — Below the card
+        ============================================= */
+        .status-wrapper {
+            margin-top: 24px;
+            width: 100%;
+            max-width: 460px;
+            min-height: 52px; /* Reserve space so layout doesn't jump */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #statusMessage {
+            display: none; /* Hidden until there's a message */
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-align: center;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border-left: 3px solid currentColor;
+            width: 100%;
+            animation: fadeIn 0.4s ease both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Success variant */
+        #statusMessage.success {
+            display: block;
+            color: var(--status-success);
+            background-color: rgba(76, 175, 80, 0.08);
+        }
+
+        /* Error variant */
+        #statusMessage.error {
+            display: block;
+            color: var(--status-error);
+            background-color: rgba(244, 67, 54, 0.08);
+        }
+
+        /* =============================================
+           FOOTER LINK — Manager portal shortcut
+        ============================================= */
+        .footer-link {
+            margin-top: 32px;
+            font-family: var(--font-body);
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .footer-link a {
+            color: var(--accent-silver);
+            text-decoration: none;
+            transition: color var(--transition-speed) ease;
+        }
+
+        .footer-link a:hover {
+            color: var(--text-header);
+        }
+
+        /* =============================================
+           RESPONSIVE — Stack nicely on mobile
+        ============================================= */
+        @media (max-width: 520px) {
+            .card {
+                padding: 28px 24px;
+            }
+
+            /* Stack buttons vertically on very small screens */
+            .button-row {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <h1>InCar Detailing</h1>
-    <h3>Employee Time Clock</h3>
+    <!-- =============================================
+         PAGE HEADER — Brand name above the card
+    ============================================= -->
+    <header class="page-header">
+        <p class="brand">InCar Detailing</p>
+        <h1>Employee Time Clock</h1>
+        <div class="rule"></div>
+    </header>
 
-    <select id="employeeName">
-        <option value="Employee 1">Employee 1</option>
-        <option value="Employee 2">Employee 2</option>
-        <option value="Employee 3">Employee 3</option>
-        <option value="Employee 4">Employee 4</option>
-        <option value="Employee 5">Employee 5</option>
-        <option value="Employee 6">Employee 6</option>
-        <option value="Employee 7">Employee 7</option>
-    </select>
+    <!-- =============================================
+         MAIN CARD — The entire UI lives here
+    ============================================= -->
+    <main class="card" role="main">
 
-    <br>
-    <button onclick="logTime('Clocked In')">Clock In</button>
-    <button class="out-btn" onclick="logTime('Clocked Out')">Clock Out</button>
+        <!-- Employee Selector -->
+        <div class="form-group">
+            <label for="employeeName">Select Employee</label>
+            <select id="employeeName">
+                <option value="Employee 1">Employee 1</option>
+                <option value="Employee 2">Employee 2</option>
+                <option value="Employee 3">Employee 3</option>
+                <option value="Employee 4">Employee 4</option>
+                <option value="Employee 5">Employee 5</option>
+                <option value="Employee 6">Employee 6</option>
+                <option value="Employee 7">Employee 7</option>
+            </select>
+        </div>
 
-    <p id="statusMessage"></p>
+        <!-- Action Label -->
+        <div class="section-divider">
+            <span>Record Action</span>
+        </div>
 
+        <!-- Action Buttons -->
+        <div class="button-row">
+            <button class="btn btn-in" onclick="logTime('Clocked In')">
+                <span class="btn-icon">▶</span> Clock In
+            </button>
+            <button class="btn btn-out" onclick="logTime('Clocked Out')">
+                <span class="btn-icon">■</span> Clock Out
+            </button>
+        </div>
+
+    </main>
+
+    <!-- =============================================
+         STATUS MESSAGE — Rendered below the card.
+         JS adds .success or .error class to show it.
+    ============================================= -->
+    <div class="status-wrapper" role="status" aria-live="polite">
+        <p id="statusMessage"></p>
+    </div>
+
+    <!-- Manager portal shortcut -->
+    <p class="footer-link">Manager? <a href="manager.html">Open Dashboard →</a></p>
+
+
+    <!-- =============================================
+         JAVASCRIPT — Firebase logic
+         Using ES Modules (type="module") so we can
+         use import/export from Firebase's CDN.
+    ============================================= -->
     <script type="module">
-        // Import Firebase tools
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // PASTE YOUR FIREBASE CONFIG HERE
+        // --- Firebase Imports ---
+        import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore,
+                 collection,
+                 addDoc,
+                 Timestamp }        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // --- Firebase Configuration ---
+        // Replace these values if your project config ever changes.
         const firebaseConfig = {
-    apiKey: "AIzaSyAiplwGT8bfv-lXp8T7UX0_GhCFpnBzxH4",
-    authDomain: "incar-detailing.firebaseapp.com",
-    projectId: "incar-detailing",
-    storageBucket: "incar-detailing.firebasestorage.app",
-    messagingSenderId: "323775979442",
-    appId: "1:323775979442:web:1573ce4526d13559718eab"
-  };
+            apiKey:            "AIzaSyAiplwGT8bfv-lXp8T7UX0_GhCFpnBzxH4",
+            authDomain:        "incar-detailing.firebaseapp.com",
+            projectId:         "incar-detailing",
+            storageBucket:     "incar-detailing.firebasestorage.app",
+            messagingSenderId: "323775979442",
+            appId:             "1:323775979442:web:1573ce4526d13559718eab"
+        };
 
-
+        // --- Initialize Firebase ---
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const db  = getFirestore(app);
 
-        // Function to log the time
+        // -----------------------------------------------
+        // logTime()
+        // Called when the employee clicks Clock In or Out.
+        //
+        // Parameters:
+        //   action (string) — "Clocked In" or "Clocked Out"
+        //
+        // What it does:
+        //   1. Reads the selected employee name
+        //   2. Creates a JavaScript Date object for "right now"
+        //   3. Saves a document to Firestore's "timeLogs" collection
+        //      with a real Firestore Timestamp so we can sort later
+        //   4. Shows a success or error status message
+        // -----------------------------------------------
         window.logTime = async function(action) {
-            const name = document.getElementById("employeeName").value;
-            const timestamp = new Date();
+
+            const nameEl  = document.getElementById("employeeName");
+            const statusEl = document.getElementById("statusMessage");
+            const name    = nameEl.value;
+            const now     = new Date();
+
+            // Clear any previous status and remove old classes
+            statusEl.className = '';
+            statusEl.textContent = '';
 
             try {
+                // Save to Firestore.
+                // We store BOTH a Firestore Timestamp (for reliable sorting)
+                // and a human-readable string (for easy display in the dashboard).
                 await addDoc(collection(db, "timeLogs"), {
-                    employee: name,
-                    action: action,
-                    time: timestamp.toLocaleString()
+                    employee:      name,
+                    action:        action,
+                    time:          now.toLocaleString(),            // Human-readable string
+                    timestamp:     Timestamp.fromDate(now)          // Real Firestore Timestamp for sorting
                 });
-                document.getElementById("statusMessage").innerText = `${name} successfully ${action} at ${timestamp.toLocaleTimeString()}`;
+
+                // Show success message
+                statusEl.textContent = `${name} ${action} at ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                statusEl.className   = 'success';
+
             } catch (e) {
-                console.error("Error adding document: ", e);
+                // Show error message
+                console.error("Firestore write failed:", e);
+                statusEl.textContent = "Error saving record. Please try again.";
+                statusEl.className   = 'error';
             }
         };
+
     </script>
 </body>
 </html>
