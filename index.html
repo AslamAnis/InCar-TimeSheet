@@ -10,9 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
-        /* =============================================
-           CSS VARIABLES — UNCHANGED from premium theme
-        ============================================= */
+        /* ═══════════════════════════════════════════════
+           CSS VARIABLES — DO NOT CHANGE (premium theme)
+        ═══════════════════════════════════════════════ */
         :root {
             --bg-primary:          #121212;
             --bg-card:             #181818;
@@ -44,14 +44,20 @@
             --shadow-btn-hover:    0 6px 24px rgba(0, 0, 0, 0.7);
         }
 
+        /* ── Reset ─────────────────────────────────── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+        /* ── Body — carbon-fibre texture background ─ */
         body {
             font-family: var(--font-body);
             background-color: var(--bg-primary);
             background-image:
-                repeating-linear-gradient(45deg,  rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 8px),
-                repeating-linear-gradient(-45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 8px);
+                repeating-linear-gradient(45deg,
+                    rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px,
+                    transparent 1px, transparent 8px),
+                repeating-linear-gradient(-45deg,
+                    rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px,
+                    transparent 1px, transparent 8px);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -61,11 +67,159 @@
             padding: 24px;
         }
 
-        /* ---- Page Header ---- */
+        /* ═══════════════════════════════════════════════
+           NEW — FAQ BUTTON
+           A small "?" circle fixed in the top-right corner.
+           Positioned with `position: fixed` so it's always
+           visible regardless of scroll.
+        ═══════════════════════════════════════════════ */
+        .faq-trigger {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            /* Circle dimensions */
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            /* Subtle border-only style so it doesn't compete
+               with the main card UI */
+            background: var(--bg-card);
+            border: 1px solid var(--accent-border);
+            color: var(--text-muted);
+            font-family: var(--font-header);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transition: border-color var(--transition-speed) ease,
+                        color       var(--transition-speed) ease,
+                        transform   var(--transition-speed) ease;
+            z-index: 100; /* Stays above the card */
+        }
+        .faq-trigger:hover {
+            border-color: var(--accent-silver);
+            color: var(--accent-silver);
+            transform: scale(1.08);
+        }
+
+        /* ═══════════════════════════════════════════════
+           NEW — FAQ MODAL OVERLAY
+           The dark semi-transparent backdrop that covers
+           the whole screen when the modal is open.
+           Hidden by default via `display: none`.
+        ═══════════════════════════════════════════════ */
+        .modal-backdrop {
+            display: none;                /* Hidden until openFaq() is called */
+            position: fixed;
+            inset: 0;                     /* Covers full viewport */
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(4px);   /* Frosted-glass effect behind modal */
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 200;
+            /* Flex centres the modal panel in the viewport */
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            animation: backdropIn 0.25s ease both;
+        }
+        /* Class toggled by JS to show the backdrop */
+        .modal-backdrop.open {
+            display: flex;
+        }
+        @keyframes backdropIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* ── The white/dark modal panel inside the backdrop ── */
+        .modal-panel {
+            background-color: var(--bg-card);
+            border: 1px solid #333333;
+            border-radius: 14px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.8);
+            width: 100%;
+            max-width: 520px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: panelIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        @keyframes panelIn {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0)    scale(1); }
+        }
+
+        /* ── Modal header row (title + close button) ── */
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 28px 20px;
+            border-bottom: 1px solid var(--accent-border);
+        }
+        .modal-title {
+            font-family: var(--font-header);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-header);
+        }
+        /* "×" close button inside the modal */
+        .modal-close {
+            background: transparent;
+            border: 1px solid var(--accent-border);
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 18px;
+            line-height: 1;
+            width: 30px; height: 30px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: color var(--transition-speed) ease,
+                        border-color var(--transition-speed) ease;
+        }
+        .modal-close:hover {
+            color: var(--text-header);
+            border-color: var(--accent-silver);
+        }
+
+        /* ── FAQ list inside the modal ── */
+        .faq-list {
+            padding: 24px 28px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .faq-item {}
+        .faq-q {
+            font-family: var(--font-header);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--accent-silver);
+            margin-bottom: 6px;
+        }
+        .faq-a {
+            font-family: var(--font-body);
+            font-size: 13px;
+            line-height: 1.65;
+            color: var(--text-main);
+        }
+        /* Thin separator between FAQ items */
+        .faq-item + .faq-item {
+            padding-top: 20px;
+            border-top: 1px solid var(--accent-border);
+        }
+
+        /* ── Page Header ──────────────────────────── */
         .page-header { text-align: center; margin-bottom: 32px; }
         .page-header .brand {
             font-family: var(--font-header); font-size: 13px; font-weight: 600;
-            letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;
+            letter-spacing: 4px; text-transform: uppercase;
+            color: var(--text-muted); margin-bottom: 8px;
         }
         .page-header h1 {
             font-family: var(--font-header); font-size: 28px; font-weight: 700;
@@ -77,7 +231,7 @@
             margin: 16px auto 0; border-radius: 2px;
         }
 
-        /* ---- Card ---- */
+        /* ── Card ─────────────────────────────────── */
         .card {
             background-color: var(--bg-card); border: 1px solid var(--accent-border);
             border-radius: var(--radius-card); box-shadow: var(--shadow-card);
@@ -89,28 +243,35 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* ---- Form Group ---- */
+        /* ── Form Group ───────────────────────────── */
         .form-group { margin-bottom: 28px; }
         .form-group label {
             display: block; font-family: var(--font-body); font-size: 11px; font-weight: 600;
-            letter-spacing: 2px; text-transform: uppercase; color: var(--text-label); margin-bottom: 10px;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: var(--text-label); margin-bottom: 10px;
         }
 
-        /* ---- Select ---- */
+        /* ── Select ───────────────────────────────── */
         select#employeeName {
-            width: 100%; padding: 14px 18px; font-family: var(--font-body); font-size: 15px;
+            width: 100%; padding: 14px 18px;
+            font-family: var(--font-body); font-size: 15px;
             color: var(--text-main); background-color: var(--bg-input);
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C0C0C0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
             background-repeat: no-repeat; background-position: right 16px center;
             border: 1px solid var(--accent-border); border-radius: var(--radius-input);
-            appearance: none; -webkit-appearance: none; cursor: pointer; outline: none;
-            transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            appearance: none; -webkit-appearance: none;
+            cursor: pointer; outline: none;
+            transition: border-color var(--transition-speed) ease,
+                        box-shadow var(--transition-speed) ease;
         }
         select#employeeName:hover  { border-color: var(--accent-silver); }
-        select#employeeName:focus  { border-color: var(--accent-border-focus); box-shadow: 0 0 0 3px rgba(192,192,192,0.12); }
+        select#employeeName:focus  {
+            border-color: var(--accent-border-focus);
+            box-shadow: 0 0 0 3px rgba(192,192,192,0.12);
+        }
         select#employeeName option { background-color: #1e1e1e; color: var(--text-main); }
 
-        /* ---- Section Divider ---- */
+        /* ── Section Divider ──────────────────────── */
         .section-divider { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
         .section-divider span {
             font-size: 10px; font-weight: 600; letter-spacing: 2px;
@@ -120,15 +281,13 @@
             content: ''; flex: 1; height: 1px; background: var(--accent-border);
         }
 
-        /* ---- Button Row ---- */
+        /* ── Button Row ───────────────────────────── */
         .button-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-
         .btn {
             display: flex; align-items: center; justify-content: center; gap: 8px;
             padding: 15px 20px; font-family: var(--font-header); font-size: 13px;
             font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
             border: none; border-radius: var(--radius-btn); cursor: pointer;
-            /* [FEATURE 2] opacity added to transition for smooth disabled fade */
             transition: background-color var(--transition-speed) ease,
                         box-shadow      var(--transition-speed) ease,
                         transform       var(--transition-speed) ease,
@@ -137,58 +296,47 @@
         }
         .btn::after {
             content: ''; position: absolute; inset: 0;
-            background: rgba(255,255,255,0); transition: background var(--transition-speed) ease;
+            background: rgba(255,255,255,0);
+            transition: background var(--transition-speed) ease;
             border-radius: inherit;
         }
         .btn:hover:not(:disabled)::after { background: rgba(255,255,255,0.07); }
-
-        /* [FEATURE 2] Disabled state — greyed-out, non-interactive */
+        /* Disabled state — greyed-out, non-interactive */
         .btn:disabled {
-            opacity: 0.22;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
+            opacity: 0.22; cursor: not-allowed;
+            transform: none !important; box-shadow: none !important;
             pointer-events: none;
         }
-
         .btn-in  { background-color: var(--btn-in-bg);  color: var(--btn-in-text);  }
         .btn-out { background-color: var(--btn-out-bg); color: var(--btn-out-text); }
-
-        .btn-in:hover:not(:disabled) {
-            background-color: var(--btn-in-hover); box-shadow: var(--shadow-btn-hover); transform: translateY(-2px);
+        .btn-in:hover:not(:disabled)  {
+            background-color: var(--btn-in-hover);
+            box-shadow: var(--shadow-btn-hover); transform: translateY(-2px);
         }
-        .btn-in:active:not(:disabled) { transform: translateY(0); }
-
+        .btn-in:active:not(:disabled)  { transform: translateY(0); }
         .btn-out:hover:not(:disabled) {
-            background-color: var(--btn-out-hover); box-shadow: 0 6px 24px rgba(220,20,60,0.4); transform: translateY(-2px);
+            background-color: var(--btn-out-hover);
+            box-shadow: 0 6px 24px rgba(220,20,60,0.4); transform: translateY(-2px);
         }
         .btn-out:active:not(:disabled) { transform: translateY(0); }
-
         .btn-icon { font-size: 16px; line-height: 1; }
 
-        /* =============================================
-           [FEATURE 2] STATE HINT
-           A single line of text below the buttons that
-           tells the employee their current clock status.
-           Colour-coded: green = in, red/pink = out.
-        ============================================= */
+        /* ── State hint (below buttons) ──────────── */
+        /*
+         * Colour-coded one-liner that shows the employee's
+         * current clock state:  green = in,  muted = out.
+         */
         .state-hint {
-            margin-top: 14px;
-            text-align: center;
-            font-family: var(--font-body);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            min-height: 16px;       /* reserves space — prevents layout jump */
+            margin-top: 14px; text-align: center;
+            font-family: var(--font-body); font-size: 11px; font-weight: 600;
+            letter-spacing: 0.5px; min-height: 16px;
             transition: color var(--transition-speed) ease;
         }
-        .state-hint.is-in      { color: #6fcf74; } /* green  — currently clocked in  */
-        .state-hint.is-out     { color: #e84a6f; } /* pink   — currently clocked out */
-        .state-hint.is-loading { color: var(--text-muted); font-style: italic; letter-spacing: 0.5px; }
+        .state-hint.is-in      { color: #6fcf74; }
+        .state-hint.is-out     { color: var(--text-muted); }
+        .state-hint.is-loading { color: var(--text-muted); font-style: italic; }
 
-        /* ---- Status Message ---- */
+        /* ── Status message (below the card) ─────── */
         .status-wrapper {
             margin-top: 24px; width: 100%; max-width: 460px; min-height: 52px;
             display: flex; align-items: center; justify-content: center;
@@ -196,21 +344,34 @@
         #statusMessage {
             display: none; font-family: var(--font-body); font-size: 13px; font-weight: 600;
             letter-spacing: 0.3px; text-align: center; padding: 12px 20px;
-            border-radius: 8px; border-left: 3px solid currentColor; width: 100%;
-            animation: fadeIn 0.4s ease both;
+            border-radius: 8px; border-left: 3px solid currentColor;
+            width: 100%; animation: fadeIn 0.4s ease both;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(6px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-        #statusMessage.success { display: block; color: var(--status-success); background-color: rgba(76,175,80,0.08); }
-        #statusMessage.error   { display: block; color: var(--status-error);   background-color: rgba(244,67,54,0.08); }
+        #statusMessage.success {
+            display: block; color: var(--status-success);
+            background-color: rgba(76,175,80,0.08);
+        }
+        #statusMessage.error {
+            display: block; color: var(--status-error);
+            background-color: rgba(244,67,54,0.08);
+        }
 
-        /* ---- Footer Link ---- */
-        .footer-link { margin-top: 32px; font-family: var(--font-body); font-size: 12px; color: var(--text-muted); letter-spacing: 0.5px; }
-        .footer-link a { color: var(--accent-silver); text-decoration: none; transition: color var(--transition-speed) ease; }
+        /* ── Footer link ──────────────────────────── */
+        .footer-link {
+            margin-top: 32px; font-family: var(--font-body);
+            font-size: 12px; color: var(--text-muted); letter-spacing: 0.5px;
+        }
+        .footer-link a {
+            color: var(--accent-silver); text-decoration: none;
+            transition: color var(--transition-speed) ease;
+        }
         .footer-link a:hover { color: var(--text-header); }
 
+        /* ── Responsive ───────────────────────────── */
         @media (max-width: 520px) {
             .card { padding: 28px 24px; }
             .button-row { grid-template-columns: 1fr; }
@@ -219,20 +380,78 @@
 </head>
 <body>
 
+    <!-- ═══════════════════════════════════════════
+         NEW — FAQ TRIGGER BUTTON (top-right corner)
+         A fixed "?" circle always visible on screen.
+         Clicking it calls openFaq() defined in JS.
+    ═══════════════════════════════════════════════ -->
+    <button class="faq-trigger" onclick="openFaq()" aria-label="Open FAQ">?</button>
+
+    <!-- ═══════════════════════════════════════════
+         NEW — FAQ MODAL
+         Hidden by default. JS toggles .open on
+         .modal-backdrop to show/hide it.
+         Pressing Escape or clicking the backdrop
+         also closes it (handled in JS below).
+    ═══════════════════════════════════════════════ -->
+    <div class="modal-backdrop" id="faqBackdrop" role="dialog" aria-modal="true"
+         aria-labelledby="faqTitle" onclick="closeFaqOnBackdrop(event)">
+        <div class="modal-panel">
+
+            <div class="modal-header">
+                <span class="modal-title" id="faqTitle">Frequently Asked Questions</span>
+                <button class="modal-close" onclick="closeFaq()" aria-label="Close">&times;</button>
+            </div>
+
+            <div class="faq-list">
+
+                <!-- FAQ 1 -->
+                <div class="faq-item">
+                    <p class="faq-q">Q: What if I forgot to clock out?</p>
+                    <p class="faq-a">Our system automatically clocks you out at 5:00 PM on the day
+                        you clocked in. For any further corrections, please contact your manager.</p>
+                </div>
+
+                <!-- FAQ 2 -->
+                <div class="faq-item">
+                    <p class="faq-q">Q: I clicked the wrong button. How do I fix it?</p>
+                    <p class="faq-a">Only managers can edit or delete time logs. Please message your
+                        manager as soon as possible so they can correct the mistake on your behalf.</p>
+                </div>
+
+                <!-- FAQ 3 -->
+                <div class="faq-item">
+                    <p class="faq-q">Q: Can I check my total hours for the week?</p>
+                    <p class="faq-a">This portal only shows your current shift status. Your manager
+                        tracks your total weekly hours through the Manager Dashboard and handles
+                        all payroll calculations.</p>
+                </div>
+
+                <!-- FAQ 4 -->
+                <div class="faq-item">
+                    <p class="faq-q">Q: Why is my Clock In or Clock Out button disabled?</p>
+                    <p class="faq-a">The system prevents double-punching. If you are already clocked
+                        in, you can only clock out — and vice versa. This keeps your timesheet
+                        accurate and prevents duplicate records.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Page Header ────────────────────────────── -->
     <header class="page-header">
         <p class="brand">InCar Detailing</p>
         <h1>Employee Time Sheet</h1>
         <div class="rule"></div>
     </header>
 
+    <!-- ── Main Card ──────────────────────────────── -->
     <main class="card" role="main">
 
         <div class="form-group">
             <label for="employeeName">Select Employee</label>
-            <!--
-                [FEATURE 2] onchange triggers a Firestore lookup
-                to determine which button should be active.
-            -->
+            <!-- onchange fires checkEmployeeState() immediately -->
             <select id="employeeName" onchange="onEmployeeChange()">
                 <option value="Aslam">Aslam</option>
                 <option value="Farhan">Farhan</option>
@@ -249,11 +468,6 @@
         </div>
 
         <div class="button-row">
-            <!--
-                [FEATURE 2] Both buttons start disabled.
-                checkEmployeeState() re-enables the correct one
-                after querying Firestore.
-            -->
             <button id="btnIn"  class="btn btn-in"  onclick="logTime('Clocked In')"  disabled>
                 <span class="btn-icon">▶</span> Clock In
             </button>
@@ -262,27 +476,32 @@
             </button>
         </div>
 
-        <!-- [FEATURE 2] Live status hint text -->
-        <p id="stateHint" class="state-hint is-loading">Checking status…</p>
+        <!-- One-line status hint — colour-coded by clock state -->
+        <p class="state-hint is-loading" id="stateHint">Checking status…</p>
 
     </main>
 
+    <!-- Status confirmation / error shown below the card -->
     <div class="status-wrapper" role="status" aria-live="polite">
         <p id="statusMessage"></p>
     </div>
 
-    <p class="footer-link">Manager? <a href="manager.html" target="_blank">Open Dashboard →</a></p>
+    <p class="footer-link">Manager? <a href="manager.html">Open Dashboard →</a></p>
 
 
+    <!-- ═════════════════════════════════════════════
+         JAVASCRIPT
+    ═════════════════════════════════════════════ -->
     <script type="module">
 
-        // ---- Firebase Imports ----
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs,
-                 query, where, orderBy, limit, Timestamp }
-                 from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore,
+                 collection, addDoc, query,
+                 where, orderBy, limit, getDocs,
+                 Timestamp }
+            from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ---- Firebase Config ----
+        // ── Firebase init ─────────────────────────────
         const firebaseConfig = {
             apiKey:            "AIzaSyAiplwGT8bfv-lXp8T7UX0_GhCFpnBzxH4",
             authDomain:        "incar-detailing.firebaseapp.com",
@@ -291,71 +510,56 @@
             messagingSenderId: "323775979442",
             appId:             "1:323775979442:web:1573ce4526d13559718eab"
         };
-
         const app = initializeApp(firebaseConfig);
         const db  = getFirestore(app);
 
-        // =============================================
-        // [FEATURE 1] AUSTRALIAN DST TIMEZONE
+        // ─────────────────────────────────────────────
+        // TIMEZONE HELPERS — Australia/Melbourne
         //
-        // We pass the IANA timezone "Australia/Melbourne"
-        // explicitly to every toLocaleString() / toLocaleTimeString()
-        // call. JavaScript's Intl library knows the full
-        // DST transition schedule (clocks back first Sunday in
-        // April, forward first Sunday in October) and applies
-        // the correct UTC offset automatically — no manual math.
+        // JavaScript's Intl API knows the full IANA DST
+        // schedule for Australia/Melbourne:
+        //   • AEDT (UTC+11) Oct first-Sunday → Apr first-Sunday
+        //   • AEST (UTC+10) the rest of the year
         //
-        // We NEVER subtract or add hours ourselves.
-        // All arithmetic for payroll is done using the raw UTC
-        // Firestore Timestamp, which is always correct.
-        // =============================================
+        // Passing timeZone: TZ to every format call means
+        // we never manually add/subtract hours. The browser
+        // handles the April 5 transition automatically.
+        // ─────────────────────────────────────────────
         const TZ = "Australia/Melbourne";
 
-        /**
-         * toMelbourneString(date)
-         * Returns a human-readable date+time string in
-         * Melbourne local time, e.g. "7/04/2025, 9:15:32 am"
-         */
+        /** Full date+time string in Melbourne local time */
         function toMelbourneString(date) {
             return date.toLocaleString("en-AU", { timeZone: TZ });
         }
 
-        /**
-         * toMelbourneTimeString(date)
-         * Returns only the time portion, e.g. "9:15 am"
-         */
+        /** Time-only string in Melbourne local time, e.g. "9:15 am" */
         function toMelbourneTimeString(date) {
             return date.toLocaleTimeString("en-AU", {
-                timeZone: TZ,
-                hour:   "2-digit",
-                minute: "2-digit"
+                timeZone: TZ, hour: "2-digit", minute: "2-digit"
             });
         }
 
-        // =============================================
-        // [FEATURE 2] STATE-BASED BUTTON TOGGLING
+        // ─────────────────────────────────────────────
+        // BUTTON STATE MANAGEMENT
         //
         // setButtonState(lastAction)
-        //   Sets which button is enabled based on the
-        //   employee's most recent Firestore record.
-        //
-        //   lastAction = "Clocked In"  → only Clock Out active
-        //   lastAction = "Clocked Out" → only Clock In  active
-        //   lastAction = null          → no record → Clock In active
-        // =============================================
-
+        //   "Clocked In"  → Clock Out enabled,  Clock In  disabled
+        //   "Clocked Out" → Clock In  enabled,  Clock Out disabled
+        //   null          → (no records) Clock In enabled, Clock Out disabled
+        // ─────────────────────────────────────────────
         function setButtonState(lastAction) {
             const btnIn  = document.getElementById("btnIn");
             const btnOut = document.getElementById("btnOut");
             const hint   = document.getElementById("stateHint");
 
             if (lastAction === "Clocked In") {
+                // Employee is currently on shift → only allow Clock Out
                 btnIn.disabled  = true;
                 btnOut.disabled = false;
                 hint.textContent = "● Currently clocked in — please Clock Out when done";
                 hint.className   = "state-hint is-in";
             } else {
-                // Covers "Clocked Out" and null (no records)
+                // Employee is off shift (or new) → only allow Clock In
                 btnIn.disabled  = false;
                 btnOut.disabled = true;
                 hint.textContent = "○ Currently clocked out — please Clock In to begin";
@@ -365,15 +569,17 @@
 
         /**
          * checkEmployeeState(name)
-         * Queries Firestore for this employee's latest record,
-         * then enables the correct button via setButtonState().
+         * Queries Firestore for this employee's most recent
+         * single log entry (ordered by real Firestore Timestamp).
+         * Updates buttons and hint via setButtonState().
          */
         async function checkEmployeeState(name) {
             const btnIn  = document.getElementById("btnIn");
             const btnOut = document.getElementById("btnOut");
             const hint   = document.getElementById("stateHint");
 
-            // Lock both buttons while the query is in flight
+            // Lock both while the query is in-flight — prevents
+            // the employee clicking before we know their state.
             btnIn.disabled  = true;
             btnOut.disabled = true;
             hint.textContent = "Checking status…";
@@ -383,54 +589,48 @@
                 const q = query(
                     collection(db, "timeLogs"),
                     where("employee", "==", name),
-                    orderBy("timestamp", "desc"),   // rely on real Firestore Timestamp
-                    limit(1)
+                    orderBy("timestamp", "desc"),
+                    limit(1)                        // Only need the latest entry
                 );
                 const snap = await getDocs(q);
-
-                if (snap.empty) {
-                    setButtonState(null); // No records → allow Clock In
-                } else {
-                    setButtonState(snap.docs[0].data().action);
-                }
+                // Pass action string (or null for no records) to setButtonState
+                setButtonState(snap.empty ? null : snap.docs[0].data().action);
             } catch (e) {
-                // Graceful fallback: enable both so employee isn't locked out
-                console.error("State check query failed:", e);
+                // On error, allow both buttons — never lock out the employee
+                console.error("State check failed:", e);
                 btnIn.disabled  = false;
                 btnOut.disabled = false;
-                hint.textContent = "Status unavailable";
+                hint.textContent = "Status unavailable — proceed with care";
                 hint.className   = "state-hint";
             }
         }
 
-        // Called by the select's onchange attribute
+        /** Called by the <select onchange="..."> attribute */
         window.onEmployeeChange = function() {
             const name     = document.getElementById("employeeName").value;
             const statusEl = document.getElementById("statusMessage");
-            // Clear the last employee's confirmation message
+            // Wipe the previous employee's confirmation message
             statusEl.className   = "";
             statusEl.textContent = "";
             checkEmployeeState(name);
         };
 
-        // =============================================
+        // ─────────────────────────────────────────────
         // logTime(action)
-        //
-        // Writes a single clock event to Firestore.
-        // Key changes vs original:
-        //   [FEATURE 1] time string uses Melbourne timezone
-        //   [FEATURE 2] updates button state after success
-        // =============================================
+        // Writes one clock event to Firestore.
+        // ─────────────────────────────────────────────
         window.logTime = async function(action) {
             const name     = document.getElementById("employeeName").value;
             const statusEl = document.getElementById("statusMessage");
-            const now      = new Date(); // UTC internally — always correct
+            const now      = new Date();      // UTC internally — always correct
 
             // Clear previous status
             statusEl.className   = "";
             statusEl.textContent = "";
 
-            // Disable buttons during the write to prevent double-submits
+            // Lock both buttons during the Firestore write to prevent
+            // accidental double-submissions while the network request is
+            // in-flight.
             document.getElementById("btnIn").disabled  = true;
             document.getElementById("btnOut").disabled = true;
             const hint = document.getElementById("stateHint");
@@ -441,31 +641,73 @@
                 await addDoc(collection(db, "timeLogs"), {
                     employee:  name,
                     action:    action,
-                    // [FEATURE 1] Store Melbourne-formatted string for human display
+                    // Human-readable display string stored in Melbourne time
                     time:      toMelbourneString(now),
-                    // Store real Firestore Timestamp (UTC) for sorting and arithmetic
+                    // Real UTC Firestore Timestamp — used for sorting and arithmetic
                     timestamp: Timestamp.fromDate(now)
                 });
 
-                // [FEATURE 1] Confirmation message in Melbourne time
                 statusEl.textContent =
                     `${name} ${action} at ${toMelbourneTimeString(now)} (Melbourne time)`;
                 statusEl.className = "success";
 
-                // [FEATURE 2] Update buttons immediately — no extra Firestore call needed
+                // Update buttons immediately based on the action just taken.
+                // No extra Firestore query needed — we already know the new state.
                 setButtonState(action);
 
             } catch (e) {
                 console.error("Firestore write failed:", e);
                 statusEl.textContent = "Error saving record. Please try again.";
                 statusEl.className   = "error";
-
-                // Re-enable the button that was just attempted so the user can retry
+                // Re-enable the correct button so the employee can retry
                 setButtonState(action === "Clocked In" ? "Clocked Out" : "Clocked In");
             }
         };
 
-        // ---- On page load, check the initially-selected employee ----
+        // ─────────────────────────────────────────────
+        // FAQ MODAL FUNCTIONS
+        // These are exposed on window so the inline HTML
+        // onclick attributes can call them.
+        //
+        // openFaq()         — adds .open to the backdrop
+        // closeFaq()        — removes .open
+        // closeFaqOnBackdrop(event) — only closes if the
+        //   click was directly on the backdrop (not the panel)
+        // ─────────────────────────────────────────────
+
+        /** Opens the FAQ modal */
+        window.openFaq = function() {
+            document.getElementById("faqBackdrop").classList.add("open");
+            // Prevent the body from scrolling while the modal is open
+            document.body.style.overflow = "hidden";
+        };
+
+        /** Closes the FAQ modal */
+        window.closeFaq = function() {
+            document.getElementById("faqBackdrop").classList.remove("open");
+            document.body.style.overflow = "";
+        };
+
+        /**
+         * closeFaqOnBackdrop(event)
+         * Closes the modal only when the user clicks the dark
+         * backdrop area — NOT when they click the panel itself.
+         * This prevents the modal from closing mid-read.
+         */
+        window.closeFaqOnBackdrop = function(event) {
+            // event.target is the element that was directly clicked.
+            // If it's the backdrop div itself (not a child), close.
+            if (event.target === document.getElementById("faqBackdrop")) {
+                closeFaq();
+            }
+        };
+
+        // Close modal with Escape key — standard UX accessibility behaviour
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") closeFaq();
+        });
+
+        // ── Check state for the default-selected employee on page load ──
         checkEmployeeState(document.getElementById("employeeName").value);
 
     </script>

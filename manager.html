@@ -10,9 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
-        /* =============================================
-           CSS VARIABLES — UNCHANGED from premium theme
-        ============================================= */
+        /* ═══════════════════════════════════════════════
+           CSS VARIABLES — DO NOT CHANGE (premium theme)
+        ═══════════════════════════════════════════════ */
         :root {
             --bg-primary:          #121212;
             --bg-card:             #181818;
@@ -48,22 +48,27 @@
             --shadow-btn:          0 4px 16px rgba(0,0,0,0.5);
         }
 
+        /* ── Reset ─────────────────────────────────── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+        /* ── Body — carbon-fibre texture ───────────── */
         body {
             font-family: var(--font-body);
             background-color: var(--bg-primary);
             background-image:
-                repeating-linear-gradient(45deg,  rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 8px),
-                repeating-linear-gradient(-45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 8px);
+                repeating-linear-gradient(45deg,
+                    rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px,
+                    transparent 1px, transparent 8px),
+                repeating-linear-gradient(-45deg,
+                    rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px,
+                    transparent 1px, transparent 8px);
             color: var(--text-main);
             min-height: 100vh;
             padding: 40px 24px 60px;
         }
-
         .wrapper { max-width: 980px; margin: 0 auto; }
 
-        /* ---- Page Header ---- */
+        /* ── Page Header ───────────────────────────── */
         .page-header {
             display: flex; align-items: center; justify-content: space-between;
             flex-wrap: wrap; gap: 16px; margin-bottom: 36px;
@@ -71,7 +76,8 @@
         }
         .page-header-left .brand {
             font-family: var(--font-header); font-size: 11px; font-weight: 600;
-            letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;
+            letter-spacing: 4px; text-transform: uppercase;
+            color: var(--text-muted); margin-bottom: 4px;
         }
         .page-header-left h1 {
             font-family: var(--font-header); font-size: 26px; font-weight: 700;
@@ -84,7 +90,7 @@
         }
         .back-link:hover { color: var(--accent-silver); }
 
-        /* ---- Cards ---- */
+        /* ── Cards ─────────────────────────────────── */
         .card {
             background-color: var(--bg-card); border: 1px solid var(--accent-border);
             border-radius: var(--radius-card); box-shadow: var(--shadow-card);
@@ -94,22 +100,22 @@
         .card:nth-child(2) { animation-delay: 0.08s; }
         .card:nth-child(3) { animation-delay: 0.16s; }
         .card:nth-child(4) { animation-delay: 0.24s; }
-
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-
         .card-title {
             font-family: var(--font-header); font-size: 11px; font-weight: 700;
             letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted);
-            margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--accent-border);
+            margin-bottom: 24px; padding-bottom: 16px;
+            border-bottom: 1px solid var(--accent-border);
         }
         .inner-divider { height: 1px; background: var(--accent-border); margin: 24px 0; }
 
-        /* ---- Shared form controls ---- */
+        /* ── Shared form controls ──────────────────── */
         .form-control {
-            width: 100%; padding: 12px 16px; font-family: var(--font-body); font-size: 14px;
+            width: 100%; padding: 12px 16px;
+            font-family: var(--font-body); font-size: 14px;
             color: var(--text-main); background-color: var(--bg-input);
             border: 1px solid var(--accent-border); border-radius: var(--radius-input);
             appearance: none; -webkit-appearance: none; outline: none; cursor: pointer;
@@ -118,22 +124,30 @@
             color-scheme: dark;
         }
         .form-control:hover { border-color: var(--accent-silver); }
-        .form-control:focus { border-color: var(--accent-border-focus); box-shadow: 0 0 0 3px rgba(192,192,192,0.12); }
+        .form-control:focus {
+            border-color: var(--accent-border-focus);
+            box-shadow: 0 0 0 3px rgba(192,192,192,0.12);
+        }
         .form-control option { background-color: #1e1e1e; color: var(--text-main); }
-
-        /* Select with custom chevron arrow */
         .select-ctrl {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C0C0C0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
             background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
         }
 
+        /* ── Form group helper ─────────────────────── */
         .fg { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 130px; }
         .fg label {
             font-size: 10px; font-weight: 600; letter-spacing: 2px;
             text-transform: uppercase; color: var(--text-label);
         }
 
-        /* ---- Primary button ---- */
+        /* ═══════════════════════════════════════════════
+           BUTTON SYSTEM
+           Three button variants:
+             .btn-primary  — light steel blue (main actions)
+             .btn-ghost    — dark, bordered (secondary actions like Refresh)
+             .btn-danger   — crimson-tinted (delete)
+        ═══════════════════════════════════════════════ */
         .btn-primary {
             display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px;
             font-family: var(--font-header); font-size: 12px; font-weight: 700;
@@ -145,114 +159,190 @@
                         transform var(--transition-speed) ease,
                         box-shadow var(--transition-speed) ease;
         }
-        .btn-primary:hover  { background-color: var(--btn-primary-hover); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.5); }
+        .btn-primary:hover  {
+            background-color: var(--btn-primary-hover);
+            transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+        }
         .btn-primary:active { transform: translateY(0); }
 
-        /* ---- Danger (delete) button ---- */
+        /* Ghost / secondary button — used for Refresh & Clear Filters */
+        .btn-ghost {
+            display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px;
+            font-family: var(--font-header); font-size: 11px; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-btn); cursor: pointer; white-space: nowrap;
+            transition: color var(--transition-speed) ease,
+                        border-color var(--transition-speed) ease,
+                        transform var(--transition-speed) ease;
+        }
+        .btn-ghost:hover  {
+            color: var(--accent-silver);
+            border-color: var(--accent-silver);
+            transform: translateY(-2px);
+        }
+        .btn-ghost:active { transform: translateY(0); }
+
+        /* Delete button inside table rows */
         .btn-del {
             display: inline-flex; align-items: center; justify-content: center;
             padding: 5px 9px; font-size: 13px; line-height: 1;
             background: transparent; color: var(--badge-out-text);
             border: 1px solid var(--badge-out-border); border-radius: 6px;
-            cursor: pointer; transition: background-color var(--transition-speed) ease,
-                                         color var(--transition-speed) ease;
+            cursor: pointer;
+            transition: background-color var(--transition-speed) ease,
+                        color var(--transition-speed) ease;
         }
         .btn-del:hover { background-color: rgba(220,20,60,0.15); color: #ff4d6d; }
 
-        /* =============================================
-           PAYROLL CONTROLS
-        ============================================= */
+        /* ── Payroll control strip ────────────────── */
+        /*
+         * Horizontal flex row containing:
+         *   week picker | employee filter | Calculate btn |
+         *   Export CSV btn | Refresh btn | Clear Filters btn
+         */
         .payroll-controls {
             display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap;
         }
+        /* Group secondary action buttons together on the right */
+        .control-actions {
+            display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
+            margin-left: auto; /* Pushes the group to the far right */
+        }
 
-        /* =============================================
+        /* ═══════════════════════════════════════════════
            SUMMARY TILES
-        ============================================= */
+        ═══════════════════════════════════════════════ */
         #summarySection { margin-top: 28px; display: none; }
         .summary-week-label {
             font-size: 11px; font-weight: 600; letter-spacing: 2px;
             text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px;
         }
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 16px; }
-
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
+            gap: 14px;
+        }
         .summary-tile {
             background-color: #0f0f0f; border: 1px solid var(--accent-border);
             border-radius: 10px; padding: 20px 16px; text-align: center;
-            transition: border-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+            transition: border-color var(--transition-speed) ease,
+                        transform var(--transition-speed) ease;
         }
         .summary-tile:hover { border-color: var(--accent-silver); transform: translateY(-3px); }
+        .tile-name {
+            font-family: var(--font-header); font-size: 11px; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: var(--text-muted); margin-bottom: 10px;
+        }
+        .tile-hours {
+            font-family: var(--font-header); font-size: 28px; font-weight: 700;
+            color: var(--text-header); line-height: 1;
+        }
+        .tile-unit {
+            font-family: var(--font-body); font-size: 11px;
+            color: var(--text-muted); margin-top: 4px;
+        }
+        /* Amber warning note shown when auto-clock-out was applied */
+        .tile-auto-note {
+            margin-top: 8px; font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+            color: #ffc107;
+        }
         .summary-tile.highlight { border-color: rgba(176,196,222,0.35); }
         .summary-tile.highlight .tile-hours { color: var(--btn-primary-bg); }
-
-        .tile-name  { font-family: var(--font-header); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
-        .tile-hours { font-family: var(--font-header); font-size: 28px; font-weight: 700; color: var(--text-header); line-height: 1; }
-        .tile-unit  { font-family: var(--font-body); font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-
-        /* [FEATURE 3] Amber warning on tile when auto-clock-out was applied */
-        .tile-auto-note {
-            font-family: var(--font-body); font-size: 10px; font-weight: 600;
-            color: #e09b3d; margin-top: 7px; letter-spacing: 0.2px;
-        }
-
         .summary-empty { font-size: 13px; color: var(--text-muted); text-align: center; padding: 16px 0; }
 
-        /* =============================================
-           [FEATURE 4] MANUAL ENTRY FORM
-        ============================================= */
-        .manual-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr auto;
-            gap: 14px;
-            align-items: flex-end;
+        /* ═══════════════════════════════════════════════
+           MANUAL ENTRY SECTION
+        ═══════════════════════════════════════════════ */
+        .manual-toggle {
+            display: inline-flex; align-items: center; gap: 6px;
+            margin-top: 20px; padding: 8px 14px;
+            font-family: var(--font-header); font-size: 10px; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--text-muted); background: transparent;
+            border: 1px solid var(--accent-border); border-radius: 6px; cursor: pointer;
+            transition: color var(--transition-speed) ease,
+                        border-color var(--transition-speed) ease;
         }
+        .manual-toggle:hover { color: var(--accent-silver); border-color: var(--accent-silver); }
+        #manualPanel {
+            display: none; margin-top: 20px; padding: 24px;
+            background-color: #101010; border: 1px solid var(--accent-border); border-radius: 10px;
+        }
+        #manualPanel.open { display: block; }
+        .manual-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
         .manual-status {
-            margin-top: 14px; font-size: 12px; font-weight: 600;
-            letter-spacing: 0.3px; min-height: 18px;
+            font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+            padding: 8px 14px; border-radius: 6px;
+            border-left: 3px solid currentColor; display: none; margin-bottom: 14px;
         }
-        .manual-status.success { color: var(--status-success); }
-        .manual-status.error   { color: var(--status-error); }
+        .manual-status.success { display: block; color: var(--status-success); background: rgba(76,175,80,0.08); }
+        .manual-status.error   { display: block; color: var(--status-error);   background: rgba(244,67,54,0.08); }
 
-        /* =============================================
-           DETAILED LOG TABLE
-        ============================================= */
-        .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--accent-border); }
+        /* ═══════════════════════════════════════════════
+           LOG TABLE
+        ═══════════════════════════════════════════════ */
+        .table-wrapper {
+            overflow-x: auto; border-radius: 8px; border: 1px solid var(--accent-border);
+        }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
         thead tr { background-color: #0f0f0f; }
         th {
             font-family: var(--font-header); font-size: 10px; font-weight: 700;
             letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted);
-            padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--accent-border);
-            white-space: nowrap;
+            padding: 14px 18px; text-align: left;
+            border-bottom: 1px solid var(--accent-border); white-space: nowrap;
         }
         tbody tr:nth-child(odd)  { background-color: var(--bg-card); }
         tbody tr:nth-child(even) { background-color: var(--bg-card-alt); }
         tbody tr { transition: background-color var(--transition-speed) ease; }
         tbody tr:hover { background-color: #222; }
         td {
-            padding: 12px 18px; color: var(--text-main);
+            padding: 13px 18px; color: var(--text-main);
             border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle;
         }
         tbody tr:last-child td { border-bottom: none; }
         td.td-name { font-family: var(--font-header); font-weight: 600; color: var(--text-header); }
         td.td-time { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
-        td.td-del  { width: 52px; text-align: center; }
+        td.td-del  { text-align: center; width: 48px; }
 
-        /* ---- Action badges ---- */
+        /* ── Action badges ─────────────────────────── */
         .badge {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 3px 10px 3px 8px; border-radius: var(--radius-badge);
-            font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
-            text-transform: uppercase; border: 1px solid transparent;
+            display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 8px;
+            border-radius: var(--radius-badge); font-size: 11px; font-weight: 700;
+            letter-spacing: 0.5px; text-transform: uppercase; border: 1px solid transparent;
         }
         .badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-        .badge-in  { background-color: var(--badge-in-bg);  color: var(--badge-in-text);  border-color: var(--badge-in-border);  }
-        .badge-out { background-color: var(--badge-out-bg); color: var(--badge-out-text); border-color: var(--badge-out-border); }
-        .badge-in  .badge-dot { background-color: var(--badge-in-text);  }
+        .badge-in  {
+            background-color: var(--badge-in-bg); color: var(--badge-in-text);
+            border-color: var(--badge-in-border);
+        }
+        .badge-in .badge-dot  { background-color: var(--badge-in-text); }
+        .badge-out {
+            background-color: var(--badge-out-bg); color: var(--badge-out-text);
+            border-color: var(--badge-out-border);
+        }
         .badge-out .badge-dot { background-color: var(--badge-out-text); }
 
-        /* ---- Loading/empty states ---- */
-        .state-row td { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px; }
+        /* Auto-clock-out amber indicator badge */
+        .badge-auto {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 2px 8px; margin-left: 6px;
+            background-color: rgba(255,193,7,0.1); color: #ffc107;
+            border: 1px solid rgba(255,193,7,0.3);
+            border-radius: var(--radius-badge);
+            font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+            text-transform: uppercase; vertical-align: middle;
+        }
+
+        /* ── Loading / empty state ─────────────────── */
+        .state-row td {
+            text-align: center; padding: 40px 20px;
+            color: var(--text-muted); font-size: 13px;
+        }
         .spinner {
             display: inline-block; width: 18px; height: 18px;
             border: 2px solid rgba(192,192,192,0.2); border-top-color: var(--accent-silver);
@@ -261,19 +351,19 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        @media (max-width: 768px) {
+        /* ── Responsive ────────────────────────────── */
+        @media (max-width: 640px) {
             .card { padding: 24px 18px; }
             .page-header-left h1 { font-size: 20px; }
             .summary-grid { grid-template-columns: repeat(2, 1fr); }
-            .manual-grid { grid-template-columns: 1fr 1fr; }
-            .payroll-controls { flex-direction: column; align-items: stretch; }
+            .control-actions { margin-left: 0; }
         }
     </style>
 </head>
 <body>
 <div class="wrapper">
 
-    <!-- Page Header -->
+    <!-- ── Page Header ──────────────────────────── -->
     <header class="page-header">
         <div class="page-header-left">
             <p class="brand">InCar Detailing</p>
@@ -283,31 +373,33 @@
     </header>
 
 
-    <!-- =============================================
+    <!-- ═══════════════════════════════════════════
          CARD 1 — PAYROLL CALCULATOR
-         Original week-picker + [FEATURE 5] employee filter
-         + summary tiles with [FEATURE 3] auto-clock-out
-    ============================================= -->
+         Contains:
+           • Week picker
+           • Employee filter dropdown
+           • Calculate Hours (primary CTA)
+           • Export CSV button
+           • Refresh Data button
+           • Clear Filters button
+           • Summary tiles
+           • Manual Entry form (collapsible)
+    ═══════════════════════════════════════════════ -->
     <section class="card">
         <p class="card-title">Payroll Calculator</p>
 
         <div class="payroll-controls">
 
-            <!-- Week picker (original) -->
+            <!-- Week picker -->
             <div class="fg">
                 <label for="weekPicker">Pay Week</label>
                 <input type="week" id="weekPicker" class="form-control">
             </div>
 
-            <!--
-                [FEATURE 5] Employee filter.
-                "All Employees" is the default.
-                Changing this re-renders both the summary
-                tiles AND the log table immediately.
-            -->
+            <!-- Employee filter — "all" shows everyone -->
             <div class="fg">
-                <label for="employeeFilter">Employee Filter</label>
-                <select id="employeeFilter" class="form-control select-ctrl" onchange="onFilterChange()">
+                <label for="employeeFilter">Employee</label>
+                <select id="employeeFilter" class="form-control select-ctrl">
                     <option value="all">All Employees</option>
                     <option value="Aslam">Aslam</option>
                     <option value="Farhan">Farhan</option>
@@ -319,74 +411,92 @@
                 </select>
             </div>
 
+            <!-- Primary: calculate payroll for the selection -->
             <button class="btn-primary" onclick="calculatePayroll()">
                 &#9654; Calculate Hours
             </button>
+
+            <!-- ═══════════════════════════════════════
+                 NEW — Secondary action buttons group
+                 Pushed right via margin-left: auto on
+                 .control-actions.
+            ═══════════════════════════════════════ -->
+            <div class="control-actions">
+
+                <!-- NEW — Export to CSV -->
+                <!-- Disabled until a payroll calculation has been run;
+                     JS removes the disabled attribute after calculatePayroll() -->
+                <button class="btn-ghost" id="exportBtn" onclick="exportCSV()" disabled
+                        title="Run a calculation first, then export">
+                    &#8595; Export CSV
+                </button>
+
+                <!-- NEW — Refresh Data: reloads all logs from Firestore -->
+                <button class="btn-ghost" onclick="refreshData()" title="Reload all logs from Firestore">
+                    &#8635; Refresh
+                </button>
+
+                <!-- NEW — Clear Filters: resets controls and hides summary -->
+                <button class="btn-ghost" onclick="clearFilters()" title="Reset all filters and hide summary">
+                    &#10005; Clear
+                </button>
+
+            </div>
         </div>
 
-        <!-- Summary section — revealed after calculation -->
+        <!-- Summary tiles — hidden until calculatePayroll() runs -->
         <div id="summarySection">
-            <div class="inner-divider"></div>
             <p class="summary-week-label" id="summaryWeekLabel"></p>
             <div class="summary-grid" id="summaryGrid"></div>
         </div>
-    </section>
 
+        <!-- ── Manual Entry (collapsible) ────────── -->
+        <button class="manual-toggle" id="manToggleBtn" onclick="toggleManual()">
+            ✚ Manual Entry
+        </button>
 
-    <!-- =============================================
-         CARD 2 — MANUAL ENTRY  [FEATURE 4]
-         Manager can add or correct any clock record.
-         Fields: Employee | Date | Time | Action | Save
-    ============================================= -->
-    <section class="card">
-        <p class="card-title">Manual Entry / Correction</p>
-
-        <div class="manual-grid">
-            <div class="fg">
-                <label for="manEmployee">Employee</label>
-                <select id="manEmployee" class="form-control select-ctrl">
-                    <option value="Aslam">Aslam</option>
-                    <option value="Farhan">Farhan</option>
-                    <option value="Infaz">Infaz</option>
-                    <option value="Aymen">Aymen</option>
-                    <option value="Faqi">Faqi</option>
-                    <option value="Employee 6">Employee 6</option>
-                    <option value="Employee 7">Employee 7</option>
-                </select>
+        <div id="manualPanel">
+            <p class="manual-status" id="manualStatus"></p>
+            <div class="manual-row">
+                <div class="fg" style="min-width:0">
+                    <label for="manEmployee">Employee</label>
+                    <select id="manEmployee" class="form-control select-ctrl">
+                        <option value="Aslam">Aslam</option>
+                        <option value="Farhan">Farhan</option>
+                        <option value="Infaz">Infaz</option>
+                        <option value="Aymen">Aymen</option>
+                        <option value="Faqi">Faqi</option>
+                        <option value="Employee 6">Employee 6</option>
+                        <option value="Employee 7">Employee 7</option>
+                    </select>
+                </div>
+                <div class="fg" style="min-width:0">
+                    <label for="manDate">Date</label>
+                    <input type="date" id="manDate" class="form-control">
+                </div>
+                <div class="fg" style="min-width:0">
+                    <label for="manTime">Time</label>
+                    <input type="time" id="manTime" class="form-control">
+                </div>
+                <div class="fg" style="min-width:0">
+                    <label for="manAction">Action</label>
+                    <select id="manAction" class="form-control select-ctrl">
+                        <option value="Clocked In">Clocked In</option>
+                        <option value="Clocked Out">Clocked Out</option>
+                    </select>
+                </div>
             </div>
-
-            <div class="fg">
-                <label for="manDate">Date</label>
-                <input type="date" id="manDate" class="form-control">
-            </div>
-
-            <div class="fg">
-                <label for="manTime">Time</label>
-                <input type="time" id="manTime" class="form-control">
-            </div>
-
-            <div class="fg">
-                <label for="manAction">Action</label>
-                <select id="manAction" class="form-control select-ctrl">
-                    <option value="Clocked In">Clock In</option>
-                    <option value="Clocked Out">Clock Out</option>
-                </select>
-            </div>
-
-            <button class="btn-primary" onclick="saveManualEntry()" style="padding:12px 20px;">
-                + Save
-            </button>
+            <button class="btn-primary" onclick="saveManualEntry()">✔ Save Entry</button>
         </div>
-
-        <p id="manualStatus" class="manual-status"></p>
     </section>
 
 
-    <!-- =============================================
-         CARD 3 — DETAILED LOG TABLE
-         [FEATURE 4] Delete button per row
-         [FEATURE 5] Filtered by employee dropdown
-    ============================================= -->
+    <!-- ═══════════════════════════════════════════
+         CARD 2 — DETAILED LOG TABLE
+         All time logs ordered newest-first.
+         Each row has a delete button.
+         Auto-clock-out rows get a ⚠ AUTO badge.
+    ═══════════════════════════════════════════════ -->
     <section class="card">
         <p class="card-title" id="tableTitle">All Time Logs — Most Recent First</p>
 
@@ -397,12 +507,15 @@
                         <th>Employee</th>
                         <th>Action</th>
                         <th>Date &amp; Time</th>
-                        <th></th>
+                        <th>Duration</th>
+                        <th style="width:48px; text-align:center">Del</th>
                     </tr>
                 </thead>
                 <tbody id="logTableBody">
                     <tr class="state-row">
-                        <td colspan="4"><span class="spinner"></span> Loading records…</td>
+                        <td colspan="5">
+                            <span class="spinner"></span> Loading records…
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -412,13 +525,19 @@
 </div><!-- /.wrapper -->
 
 
+<!-- ═════════════════════════════════════════════
+     JAVASCRIPT
+═════════════════════════════════════════════ -->
 <script type="module">
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc,
-             doc, query, orderBy, Timestamp }
-             from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { initializeApp }
+        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore,
+             collection, addDoc, deleteDoc, doc,
+             query, orderBy, getDocs, Timestamp }
+        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    // ── Firebase init ─────────────────────────────
     const firebaseConfig = {
         apiKey:            "AIzaSyAiplwGT8bfv-lXp8T7UX0_GhCFpnBzxH4",
         authDomain:        "incar-detailing.firebaseapp.com",
@@ -427,291 +546,556 @@
         messagingSenderId: "323775979442",
         appId:             "1:323775979442:web:1573ce4526d13559718eab"
     };
-
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    // =============================================
-    // [FEATURE 1] AUSTRALIAN DST — TIMEZONE CONSTANT
+    // ─────────────────────────────────────────────
+    // TIMEZONE HELPERS — Australia/Melbourne
     //
-    // "Australia/Melbourne" is the IANA timezone ID.
-    // JavaScript's Intl engine knows the full DST
-    // schedule for this zone (clocks back first Sunday
-    // of April, forward first Sunday of October).
-    // Passing this to every locale call means we never
-    // need manual +10/+11 offset arithmetic.
-    // =============================================
+    // Every date formatting call passes this timezone
+    // so DST transitions are handled automatically.
+    // AEDT (UTC+11) Oct–Apr, AEST (UTC+10) otherwise.
+    // ─────────────────────────────────────────────
     const TZ = "Australia/Melbourne";
 
-    /** Returns a "YYYY-MM-DD" string in Melbourne local time (for day comparisons) */
-    function toMelbDay(date) {
-        // en-CA locale returns ISO-format YYYY-MM-DD which is ideal for string comparison
-        return date.toLocaleDateString("en-CA", { timeZone: TZ });
+    /** Full date+time string in Melbourne local time */
+    function toMelbourneString(d) {
+        return d.toLocaleString("en-AU", { timeZone: TZ });
     }
 
-    /** Returns a full display string in Melbourne local time */
-    function toMelbString(date) {
-        return date.toLocaleString("en-AU", { timeZone: TZ });
-    }
-
-    // =============================================
-    // parseMelbLocalTime(dateStr, timeStr)
-    //
-    // [FEATURE 1] Converts a Melbourne wall-clock time
-    // (entered by the manager in the manual-entry form)
-    // into a JS Date (UTC internally).
-    //
-    // We can't just do new Date("2025-04-07T09:00") because
-    // the browser interprets that as LOCAL time, not Melbourne
-    // time — and the server might be anywhere.
-    //
-    // Strategy: create a UTC candidate, ask Intl what
-    // Melbourne time that corresponds to, measure the
-    // offset, then subtract it.
-    //
-    // This handles DST correctly without any library.
-    // =============================================
-    function parseMelbLocalTime(dateStr, timeStr) {
-        const [y, mo, d]   = dateStr.split("-").map(Number);
-        const [hr, min]    = timeStr.split(":").map(Number);
-
-        // Step 1: treat the input as if it WERE UTC
-        const candidate = new Date(Date.UTC(y, mo - 1, d, hr, min, 0));
-
-        // Step 2: find out what Melbourne wall-clock time that UTC moment maps to
-        const parts = new Intl.DateTimeFormat("en-AU", {
-            timeZone: TZ,
-            year: "numeric", month: "2-digit", day: "2-digit",
-            hour: "2-digit", minute: "2-digit", second: "2-digit",
-            hour12: false
-        }).formatToParts(candidate);
-
-        const p = {};
-        parts.forEach(({ type, value }) => { p[type] = value; });
-
-        const melbWall = new Date(Date.UTC(
-            Number(p.year), Number(p.month) - 1, Number(p.day),
-            Number(p.hour) === 24 ? 0 : Number(p.hour),
-            Number(p.minute), Number(p.second)
-        ));
-
-        // Step 3: offset = (what Intl says Melbourne is) − (what we fed it as UTC)
-        const offsetMs = melbWall - candidate;
-
-        // Step 4: shift back to get the true UTC value for our wall-clock input
-        return new Date(candidate - offsetMs);
+    /**
+     * toMelbDay(date)
+     * Returns the Melbourne calendar date as "YYYY-MM-DD".
+     * Used to group logs by day for auto-clock-out logic.
+     */
+    function toMelbDay(d) {
+        return d.toLocaleDateString("en-CA", { timeZone: TZ }); // en-CA gives YYYY-MM-DD
     }
 
     /**
      * melbourneEndOfShift(clockInDate)
-     * [FEATURE 3] Returns a JS Date for 17:00 Melbourne time
-     * on the same calendar day as clockInDate.
+     * Returns a Date representing 17:00 Melbourne time
+     * on the same Melbourne calendar day as clockInDate.
+     * Used by the auto-clock-out fallback (Feature 3).
+     *
+     * Strategy:
+     *   1. Find the Melbourne "YYYY-MM-DD" for clockInDate
+     *   2. Build "YYYY-MM-DDT17:00:00" in Melbourne local time
+     *   3. Convert to UTC by measuring the offset at that moment
      */
     function melbourneEndOfShift(clockInDate) {
-        return parseMelbLocalTime(toMelbDay(clockInDate), "17:00");
+        const dayStr  = toMelbDay(clockInDate);          // e.g. "2025-04-07"
+        const [y,m,d] = dayStr.split("-").map(Number);
+
+        // Create a UTC anchor at midnight of that Melbourne day
+        const utcAnchor = new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
+
+        // Find the AUS local midnight by formatting the anchor in Melbourne time,
+        // then measure the offset between that and our anchor.
+        const melbMidnightStr = utcAnchor.toLocaleString("en-AU", {
+            timeZone: TZ,
+            year: "numeric", month: "2-digit", day: "2-digit",
+            hour: "2-digit", minute: "2-digit", second: "2-digit",
+            hour12: false
+        });
+        // melbMidnightStr is like "07/04/2025, 10:00:00" (the UTC offset included)
+        // Re-parse it to get actual midnight-AUS as a JS Date
+        const melbMidnight = new Date(melbMidnightStr.replace(
+            /(\d{2})\/(\d{2})\/(\d{4}), (\d{2}:\d{2}:\d{2})/,
+            "$3-$2-$1T$4Z"
+        ));
+
+        // The UTC epoch for 17:00 Melbourne time = midnight UTC + AUS-offset + 17 hours
+        // But it's simpler and more robust to compute via subtraction:
+        // The Intl offset at that date = (utcAnchor - melbMidnight)
+        // 17:00 Melbourne = utcAnchor + offset + 17h
+        const offsetMs = utcAnchor - melbMidnight; // ms ahead of UTC Melbourne is
+        return new Date(utcAnchor.getTime() - offsetMs + 17 * 3600 * 1000);
     }
 
-    // =============================================
+    /**
+     * minutesToHMM(mins)
+     * Converts a decimal minutes count to "Xh YYm" display.
+     * e.g. 135 → "2h 15m"
+     */
+    function minutesToHMM(mins) {
+        if (!mins || mins <= 0) return "—";
+        const h = Math.floor(mins / 60);
+        const m = Math.round(mins % 60);
+        return h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`;
+    }
+
+    // ─────────────────────────────────────────────
     // DATA CACHE
-    //
-    // allLogs: loaded once from Firestore.
-    // Shape: { id, employee, action, timeStr, date }
-    //
-    // Keeping it in memory means:
-    //   • Payroll calculation is O(n) without extra network calls
-    //   • [FEATURE 5] filtering is instant
-    //   • [FEATURE 4] deletes update the cache in place
-    // =============================================
+    // All logs are loaded into allLogs once on page
+    // load (or on Refresh). Every filter/calculation
+    // operates on this array — no extra Firestore reads.
+    // ─────────────────────────────────────────────
     let allLogs = [];
 
-    // =============================================
+    // Stores the last payroll calculation output so the
+    // CSV exporter can use it without recalculating.
+    // Format: [ { employee, date, action, timeStr, duration, isAuto }, … ]
+    let lastExportRows = [];
+
+    // ─────────────────────────────────────────────
     // loadLogs()
-    // Initial fetch of all timeLogs, ordered newest first.
-    // Populates allLogs cache, then calls renderTable().
-    // =============================================
+    // Fetches ALL timeLogs from Firestore, newest first.
+    // Populates allLogs and calls renderTable().
+    // ─────────────────────────────────────────────
     async function loadLogs() {
         const tbody = document.getElementById("logTableBody");
+        tbody.innerHTML = `<tr class="state-row"><td colspan="5">
+            <span class="spinner"></span> Loading records…</td></tr>`;
+
         try {
             const snap = await getDocs(
                 query(collection(db, "timeLogs"), orderBy("timestamp", "desc"))
             );
 
-            tbody.innerHTML = "";
             allLogs = [];
-
-            if (snap.empty) {
-                tbody.innerHTML = `<tr class="state-row"><td colspan="4">No records found yet.</td></tr>`;
-                return;
-            }
-
             snap.forEach(docSnap => {
                 const d = docSnap.data();
                 allLogs.push({
                     id:       docSnap.id,
-                    employee: d.employee  || "Unknown",
-                    action:   d.action    || "",
-                    timeStr:  d.time      || "",
-                    // [FEATURE 1] Convert Firestore UTC Timestamp → JS Date.
-                    // Falls back to parsing the time string for old records that
-                    // don't have the timestamp field yet.
+                    employee: d.employee || "Unknown",
+                    action:   d.action   || "",
+                    timeStr:  d.time     || "",
+                    // Prefer the real Firestore Timestamp for arithmetic;
+                    // fall back to parsing the stored string for old records.
                     date: d.timestamp ? d.timestamp.toDate() : new Date(d.time)
                 });
             });
 
-            renderTable();
-
+            renderTable(allLogs);
         } catch (e) {
             console.error("loadLogs error:", e);
-            tbody.innerHTML = `
-                <tr class="state-row">
-                    <td colspan="4" style="color:var(--status-error);">
-                        Error loading records. Check your Firebase connection.
-                    </td>
-                </tr>`;
+            tbody.innerHTML = `<tr class="state-row"><td colspan="5"
+                style="color:var(--status-error)">
+                Error loading records. Check your Firebase connection.</td></tr>`;
         }
     }
 
-    // =============================================
-    // renderTable()
-    //
-    // Renders the log table, applying the
-    // [FEATURE 5] employee filter if set.
-    // Each row has a [FEATURE 4] delete button.
-    // =============================================
-    function renderTable() {
-        const tbody     = document.getElementById("logTableBody");
-        const filter    = document.getElementById("employeeFilter").value;
-        const titleEl   = document.getElementById("tableTitle");
-
-        const logs = filter === "all"
-            ? allLogs
-            : allLogs.filter(l => l.employee === filter);
-
-        titleEl.textContent = filter === "all"
-            ? "All Time Logs — Most Recent First"
-            : `Logs for ${filter} — Most Recent First`;
-
+    /**
+     * renderTable(logs, autoIds)
+     * Renders the provided log array into #logTableBody.
+     *
+     * @param {Array}  logs    — log objects to render
+     * @param {Set}    autoIds — (optional) set of log IDs that had
+     *                          auto-clock-out applied (shown with amber badge)
+     * @param {Object} durations — (optional) map of log ID → calculated
+     *                             shift duration in minutes (for the Duration column)
+     */
+    function renderTable(logs, autoIds = new Set(), durations = {}) {
+        const tbody = document.getElementById("logTableBody");
         tbody.innerHTML = "";
 
-        if (logs.length === 0) {
-            tbody.innerHTML = `<tr class="state-row"><td colspan="4">No records match the current filter.</td></tr>`;
+        if (!logs.length) {
+            tbody.innerHTML = `<tr class="state-row"><td colspan="5">
+                No records match the current filters.</td></tr>`;
             return;
         }
 
         logs.forEach(log => {
-            const isIn  = log.action === "Clocked In";
-            const row   = document.createElement("tr");
-            row.dataset.id = log.id;
+            const isIn       = log.action === "Clocked In";
+            const badgeClass = isIn ? "badge-in" : "badge-out";
+            const badgeLabel = isIn ? "Clocked In" : "Clocked Out";
 
-            row.innerHTML = `
+            // Auto-clock-out badge: shown only on Clock In rows where we
+            // applied the 5pm fallback during calculation.
+            const autoHTML = (isIn && autoIds.has(log.id))
+                ? `<span class="badge-auto" title="No clock-out found — hours calculated to 5:00 PM">
+                       ⚠ Auto 5 pm</span>`
+                : "";
+
+            // Duration column: only shown for Clock In rows that have a
+            // calculated duration (from the most recent calculatePayroll run).
+            const durStr = durations[log.id] ? minutesToHMM(durations[log.id]) : "—";
+
+            const tr = document.createElement("tr");
+            tr.dataset.id = log.id;
+            tr.innerHTML = `
                 <td class="td-name">${log.employee}</td>
                 <td>
-                    <span class="badge ${isIn ? "badge-in" : "badge-out"}">
-                        <span class="badge-dot"></span>
-                        ${isIn ? "Clocked In" : "Clocked Out"}
-                    </span>
+                    <span class="badge ${badgeClass}">
+                        <span class="badge-dot"></span>${badgeLabel}
+                    </span>${autoHTML}
                 </td>
-                <td class="td-time">${log.timeStr || toMelbString(log.date)}</td>
+                <td class="td-time">${log.timeStr || "—"}</td>
+                <td class="td-time">${durStr}</td>
                 <td class="td-del">
-                    <!--
-                        [FEATURE 4] Trash-can delete button.
-                        onclick passes the Firestore doc ID.
-                    -->
-                    <button class="btn-del" title="Delete this record"
-                            onclick="deleteLog('${log.id}', this)">🗑</button>
+                    <button class="btn-del" title="Delete this entry"
+                            data-id="${log.id}">&#128465;</button>
                 </td>`;
-            tbody.appendChild(row);
+            tbody.appendChild(tr);
+        });
+
+        // Attach delete listeners to every trash button after rendering.
+        // Using event delegation on tbody is also fine, but explicit
+        // per-button attachment is clearer for beginners.
+        tbody.querySelectorAll(".btn-del").forEach(btn => {
+            btn.addEventListener("click", () => deleteLog(btn.dataset.id));
         });
     }
 
-    // =============================================
-    // [FEATURE 5] onFilterChange()
-    // Instantly re-renders the table with the new filter.
-    // If a payroll summary is already showing, recalculate
-    // it for the filtered employee.
-    // =============================================
-    window.onFilterChange = function() {
-        renderTable();
-        if (document.getElementById("summarySection").style.display !== "none") {
+    // ─────────────────────────────────────────────
+    // calculatePayroll()
+    //
+    // Reads the week picker + employee filter, then:
+    //   1. Filters allLogs to that week & employee
+    //   2. Pairs Clock In → Clock Out per employee
+    //   3. Applies 5pm auto-clock-out for missing outs
+    //   4. Renders summary tiles
+    //   5. Re-renders the log table with duration column
+    //   6. Builds lastExportRows for CSV export
+    //   7. Enables the Export CSV button
+    // ─────────────────────────────────────────────
+    window.calculatePayroll = function() {
+        const weekInput = document.getElementById("weekPicker").value;
+        if (!weekInput) { alert("Please select a week first."); return; }
+
+        // ── Parse ISO week → Monday/Sunday boundaries ──
+        const [yearStr, weekStr] = weekInput.split("-W");
+        const year    = parseInt(yearStr, 10);
+        const week    = parseInt(weekStr, 10);
+        const jan4    = new Date(year, 0, 4);
+        const jan4Day = (jan4.getDay() + 6) % 7;
+        const monday  = new Date(jan4);
+        monday.setDate(jan4.getDate() - jan4Day + (week - 1) * 7);
+        monday.setHours(0, 0, 0, 0);
+        const sunday  = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+
+        // ── Apply employee filter ──────────────────────
+        const filter   = document.getElementById("employeeFilter").value;
+        const weekLogs = allLogs.filter(l => {
+            const inWeek   = l.date >= monday && l.date <= sunday;
+            const inFilter = filter === "all" || l.employee === filter;
+            return inWeek && inFilter;
+        });
+
+        // ── Group by employee, sort oldest-first ───────
+        const byEmp = {};
+        weekLogs.forEach(l => {
+            if (!byEmp[l.employee]) byEmp[l.employee] = [];
+            byEmp[l.employee].push(l);
+        });
+
+        // ══════════════════════════════════════════════
+        // PER-EMPLOYEE HOUR CALCULATION
+        // With auto-clock-out (5 pm fallback) and shift
+        // duration tracking per Clock In record.
+        // ══════════════════════════════════════════════
+        const results   = {};          // { name: { minutes, hadAuto } }
+        const autoIds   = new Set();   // Log IDs that triggered auto close
+        const durations = {};          // { logId: shiftMinutes } — for Duration column
+
+        Object.entries(byEmp).forEach(([name, logs]) => {
+            logs.sort((a, b) => a.date - b.date); // oldest first
+
+            let totalMins = 0;
+            let hadAuto   = false;
+            let inTime    = null;      // Date of open Clock In
+            let inDay     = null;      // Melbourne day of that Clock In
+            let inLogId   = null;      // Log ID of that Clock In
+
+            logs.forEach(log => {
+
+                if (log.action === "Clocked In") {
+
+                    // If a prior Clock In is still open, auto-close it
+                    if (inTime !== null) {
+                        const thisDay = toMelbDay(log.date);
+                        if (thisDay !== inDay) {
+                            // Different day → apply 5pm fallback for the prior day
+                            const autoOut  = melbourneEndOfShift(inTime);
+                            const diffMins = (autoOut - inTime) / 60000;
+                            if (diffMins > 0) {
+                                totalMins += diffMins;
+                                hadAuto    = true;
+                                autoIds.add(inLogId);
+                                durations[inLogId] = diffMins;
+                            }
+                        }
+                        // Same-day duplicate Clock In: discard the earlier one
+                        inTime = null; inDay = null; inLogId = null;
+                    }
+
+                    inTime  = log.date;
+                    inDay   = toMelbDay(log.date);
+                    inLogId = log.id;
+
+                } else if (log.action === "Clocked Out" && inTime !== null) {
+                    // Normal paired Clock Out
+                    const diffMins = (log.date - inTime) / 60000;
+                    if (diffMins > 0) {
+                        totalMins           += diffMins;
+                        durations[inLogId]   = diffMins;
+                    }
+                    inTime = null; inDay = null; inLogId = null;
+                }
+            });
+
+            // Remaining open Clock In at end of scan → auto-close if 5pm is past
+            if (inTime !== null) {
+                const autoOut  = melbourneEndOfShift(inTime);
+                if (autoOut < new Date()) {
+                    const diffMins = (autoOut - inTime) / 60000;
+                    if (diffMins > 0) {
+                        totalMins += diffMins;
+                        hadAuto    = true;
+                        autoIds.add(inLogId);
+                        durations[inLogId] = diffMins;
+                    }
+                }
+            }
+
+            results[name] = { minutes: totalMins, hadAuto };
+        });
+
+        // ── Render summary tiles ───────────────────────
+        const grid      = document.getElementById("summaryGrid");
+        const section   = document.getElementById("summarySection");
+        const labelEl   = document.getElementById("summaryWeekLabel");
+        const fmtDate   = d => d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+        const empLabel  = filter === "all" ? "All Employees" : filter;
+
+        labelEl.textContent = `${empLabel} — ${fmtDate(monday)} to ${fmtDate(sunday)}, ${year}`;
+        grid.innerHTML = "";
+
+        if (!Object.keys(results).length) {
+            grid.innerHTML = `<p class="summary-empty">No logs found for this selection.</p>`;
+            section.style.display = "block";
+        } else {
+            const maxMins = Math.max(...Object.values(results).map(r => r.minutes));
+            Object.entries(results).forEach(([name, { minutes, hadAuto }]) => {
+                const tile = document.createElement("div");
+                tile.className = `summary-tile${minutes === maxMins && maxMins > 0 ? " highlight" : ""}`;
+                tile.innerHTML = `
+                    <p class="tile-name">${name}</p>
+                    <p class="tile-hours">${(minutes / 60).toFixed(2)}</p>
+                    <p class="tile-unit">hrs this week</p>
+                    ${hadAuto ? `<p class="tile-auto-note">⚠ Auto 5 pm clock-out applied</p>` : ""}`;
+                grid.appendChild(tile);
+            });
+            section.style.display = "block";
+        }
+
+        // ── Re-render log table with durations & auto badges ──
+        // Sort weekLogs newest-first for display (they were sorted oldest-first above)
+        weekLogs.sort((a, b) => b.date - a.date);
+        renderTable(weekLogs, autoIds, durations);
+
+        // Update the table title to reflect the active filter
+        document.getElementById("tableTitle").textContent =
+            filter === "all"
+                ? `All Employees — Week of ${fmtDate(monday)}`
+                : `${filter} — Week of ${fmtDate(monday)}`;
+
+        // ── Build CSV export rows ──────────────────────
+        // Store every displayed row in a structured format so
+        // exportCSV() can use it directly.
+        lastExportRows = weekLogs.map(log => ({
+            employee: log.employee,
+            date:     toMelbDay(log.date),
+            action:   log.action,
+            timeStr:  log.timeStr,
+            duration: durations[log.id] ? minutesToHMM(durations[log.id]) : "",
+            isAuto:   autoIds.has(log.id) ? "Yes" : ""
+        }));
+
+        // ── Enable the Export CSV button ───────────────
+        document.getElementById("exportBtn").disabled = false;
+    };
+
+
+    // ═══════════════════════════════════════════════
+    // NEW — exportCSV()
+    //
+    // Converts lastExportRows (populated by calculatePayroll)
+    // into a properly-formatted CSV string and triggers a
+    // browser download.
+    //
+    // CSV format:
+    //   Employee Name, Date, Action, Exact Time,
+    //   Calculated Duration, Auto Clock-Out Applied
+    //
+    // Download filename:
+    //   InCar_Payroll_Week_[DD-Mon]_to_[DD-Mon-YYYY].csv
+    // ═══════════════════════════════════════════════
+    window.exportCSV = function() {
+        if (!lastExportRows.length) {
+            alert("No data to export. Please run a payroll calculation first.");
+            return;
+        }
+
+        // ── Build the week label for the filename ──────
+        const weekInput = document.getElementById("weekPicker").value;
+        let weekLabel   = "unknown_week";
+        if (weekInput) {
+            const [yearStr, weekStr] = weekInput.split("-W");
+            const year    = parseInt(yearStr, 10);
+            const week    = parseInt(weekStr, 10);
+            const jan4    = new Date(year, 0, 4);
+            const jan4Day = (jan4.getDay() + 6) % 7;
+            const monday  = new Date(jan4);
+            monday.setDate(jan4.getDate() - jan4Day + (week - 1) * 7);
+            const sunday  = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+
+            const fmtShort = d => d.toLocaleDateString("en-AU",
+                { day: "numeric", month: "short", year: "numeric" })
+                .replace(/ /g, "-");
+            weekLabel = `${fmtShort(monday)}_to_${fmtShort(sunday)}`;
+        }
+
+        // ── Helper: escape a CSV cell value ───────────
+        // If the value contains commas, quotes, or newlines,
+        // wrap it in double-quotes and escape any internal quotes.
+        function csvCell(val) {
+            const str = String(val ?? "");
+            if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        }
+
+        // ── Build CSV lines ────────────────────────────
+        const header = [
+            "Employee Name",
+            "Date",
+            "Action",
+            "Exact Time",
+            "Calculated Duration",
+            "Auto Clock-Out Applied"
+        ].map(csvCell).join(",");
+
+        const rows = lastExportRows.map(r => [
+            csvCell(r.employee),
+            csvCell(r.date),
+            csvCell(r.action),
+            csvCell(r.timeStr),
+            csvCell(r.duration),
+            csvCell(r.isAuto)
+        ].join(","));
+
+        const csvContent = [header, ...rows].join("\r\n");
+
+        // ── Trigger browser download ───────────────────
+        // Create a temporary <a> element pointing to a Blob URL,
+        // programmatically click it, then revoke the URL to free memory.
+        const blob     = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url      = URL.createObjectURL(blob);
+        const link     = document.createElement("a");
+        link.href      = url;
+        link.download  = `InCar_Payroll_Week_${weekLabel}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);  // Free the memory
+    };
+
+
+    // ═══════════════════════════════════════════════
+    // NEW — refreshData()
+    // Reloads all logs from Firestore. Useful when the
+    // manager has been on the dashboard for a while and
+    // wants to see entries that employees added since the
+    // page was first loaded.
+    // ═══════════════════════════════════════════════
+    window.refreshData = async function() {
+        await loadLogs();
+        // If a payroll calculation was showing, re-run it with fresh data
+        if (document.getElementById("weekPicker").value) {
             calculatePayroll();
         }
     };
 
-    // =============================================
-    // [FEATURE 4] deleteLog(docId, btnEl)
-    //
-    // Deletes the Firestore document, removes the row
-    // from the DOM, and removes it from allLogs cache.
-    // =============================================
-    window.deleteLog = async function(docId, btnEl) {
-        if (!confirm("Permanently delete this record? This cannot be undone.")) return;
-        try {
-            await deleteDoc(doc(db, "timeLogs", docId));
-            allLogs = allLogs.filter(l => l.id !== docId);
 
-            const row = btnEl.closest("tr");
-            if (row) row.remove();
-
-            const tbody = document.getElementById("logTableBody");
-            if (!tbody.querySelector("tr:not(.state-row)")) {
-                tbody.innerHTML = `<tr class="state-row"><td colspan="4">No records match the current filter.</td></tr>`;
-            }
-        } catch (e) {
-            console.error("Delete failed:", e);
-            alert("Error deleting record. Please try again.");
-        }
+    // ═══════════════════════════════════════════════
+    // NEW — clearFilters()
+    // Resets the week picker and employee filter to their
+    // default states, hides the summary section, and
+    // restores the full unfiltered log table.
+    // ═══════════════════════════════════════════════
+    window.clearFilters = function() {
+        document.getElementById("weekPicker").value      = "";
+        document.getElementById("employeeFilter").value  = "all";
+        document.getElementById("summarySection").style.display = "none";
+        document.getElementById("tableTitle").textContent = "All Time Logs — Most Recent First";
+        document.getElementById("exportBtn").disabled     = true;
+        lastExportRows = [];
+        renderTable(allLogs); // Show the complete unfiltered table
     };
 
-    // =============================================
-    // [FEATURE 4] saveManualEntry()
-    //
-    // Reads the Manual Entry form, builds a Melbourne-
-    // aware Date using parseMelbLocalTime() [FEATURE 1],
-    // and saves to Firestore. Instantly adds to cache
-    // and re-renders the table.
-    // =============================================
-    window.saveManualEntry = async function() {
-        const employee = document.getElementById("manEmployee").value;
-        const dateStr  = document.getElementById("manDate").value;   // "YYYY-MM-DD"
-        const timeStr  = document.getElementById("manTime").value;   // "HH:MM"
-        const action   = document.getElementById("manAction").value;
-        const statusEl = document.getElementById("manualStatus");
 
-        if (!dateStr || !timeStr) {
-            statusEl.textContent = "Please fill in both Date and Time.";
+    // ─────────────────────────────────────────────
+    // Manual Entry — toggle & save
+    // ─────────────────────────────────────────────
+    window.toggleManual = function() {
+        const panel = document.getElementById("manualPanel");
+        const btn   = document.getElementById("manToggleBtn");
+        const open  = panel.classList.toggle("open");
+        btn.textContent = open ? "✕ Close Manual Entry" : "✚ Manual Entry";
+    };
+
+    window.saveManualEntry = async function() {
+        const statusEl  = document.getElementById("manualStatus");
+        statusEl.className   = "manual-status";
+        statusEl.textContent = "";
+
+        const employee = document.getElementById("manEmployee").value;
+        const dateVal  = document.getElementById("manDate").value;   // "YYYY-MM-DD"
+        const timeVal  = document.getElementById("manTime").value;   // "HH:MM"
+        const action   = document.getElementById("manAction").value;
+
+        if (!dateVal || !timeVal) {
+            statusEl.textContent = "Please fill in all fields.";
             statusEl.className   = "manual-status error";
             return;
         }
 
-        // [FEATURE 1] Parse input as Melbourne local time → correct UTC Date
-        const melbDate   = parseMelbLocalTime(dateStr, timeStr);
-        const displayStr = toMelbString(melbDate);
-
-        statusEl.textContent = "Saving…";
-        statusEl.className   = "manual-status";
+        // Convert the entered date+time into a proper Date object.
+        // We treat the entered values as Melbourne local time.
+        const [y,m,d]  = dateVal.split("-").map(Number);
+        const [hh,mm]  = timeVal.split(":").map(Number);
+        // Build a UTC anchor at that moment
+        const utcAnchor = new Date(Date.UTC(y, m - 1, d, hh, mm, 0));
+        // Measure Melbourne offset at this date using the Intl API
+        const melbStr   = utcAnchor.toLocaleString("en-AU", {
+            timeZone: TZ,
+            year: "numeric", month: "2-digit", day: "2-digit",
+            hour: "2-digit", minute: "2-digit", second: "2-digit",
+            hour12: false
+        });
+        const melbDate  = new Date(melbStr.replace(
+            /(\d{2})\/(\d{2})\/(\d{4}), (\d{2}:\d{2}:\d{2})/,
+            "$3-$2-$1T$4Z"
+        ));
+        const offsetMs  = utcAnchor - melbDate;
+        // The "true" Date whose UTC representation gives the correct Melbourne time
+        const entryDate = new Date(utcAnchor.getTime() + offsetMs);
+        const displayStr = toMelbourneString(entryDate);
 
         try {
             const ref = await addDoc(collection(db, "timeLogs"), {
-                employee:    employee,
-                action:      action,
-                time:        displayStr,                    // Melbourne-formatted string
-                timestamp:   Timestamp.fromDate(melbDate),  // UTC Timestamp for sorting
-                manualEntry: true                            // Audit flag
+                employee,
+                action,
+                time:      displayStr,
+                timestamp: Timestamp.fromDate(entryDate),
+                manualEntry: true
             });
 
-            // Add to cache in the right position (newest first is approximate here;
-            // a full reload would re-sort, but for UX we prepend to the cache)
+            // Add to cache (prepend — newest first)
             allLogs.unshift({
                 id: ref.id, employee, action,
-                timeStr: displayStr, date: melbDate
+                timeStr: displayStr, date: entryDate
             });
 
-            renderTable(); // Re-render with new entry visible
-
+            renderTable(allLogs);
             statusEl.textContent = `✓ Saved: ${employee} ${action} at ${displayStr}`;
             statusEl.className   = "manual-status success";
-
-            // Clear time field; keep date and employee for quick multi-entry
             document.getElementById("manTime").value = "";
 
         } catch (e) {
@@ -721,152 +1105,34 @@
         }
     };
 
-    // =============================================
-    // calculatePayroll()
-    //
-    // Core payroll engine.  Enhanced with:
-    //   [FEATURE 1] All date boundaries use UTC Timestamps
-    //   [FEATURE 3] Auto-clock-out at 17:00 for forgotten outs
-    //   [FEATURE 5] Filters by employee dropdown
-    // =============================================
-    window.calculatePayroll = function() {
-        const weekInput = document.getElementById("weekPicker").value;
-        if (!weekInput) { alert("Please select a week first."); return; }
 
-        // Parse "YYYY-Www" → Monday/Sunday boundaries
-        const [yearStr, weekStr] = weekInput.split("-W");
-        const year = parseInt(yearStr, 10);
-        const week = parseInt(weekStr, 10);
-
-        // ISO 8601 week calculation: Monday of week N
-        const jan4    = new Date(year, 0, 4);                   // Jan 4 is always in week 1
-        const jan4Day = (jan4.getDay() + 6) % 7;               // Mon=0 … Sun=6
-        const monday  = new Date(jan4);
-        monday.setDate(jan4.getDate() - jan4Day + (week - 1) * 7);
-        monday.setHours(0, 0, 0, 0);
-
-        const sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
-        sunday.setHours(23, 59, 59, 999);
-
-        // [FEATURE 5] Apply employee filter
-        const filter   = document.getElementById("employeeFilter").value;
-        const weekLogs = allLogs.filter(l => {
-            const inWeek   = l.date >= monday && l.date <= sunday;
-            const inFilter = filter === "all" || l.employee === filter;
-            return inWeek && inFilter;
-        });
-
-        // Group logs by employee name
-        const byEmp = {};
-        weekLogs.forEach(l => {
-            if (!byEmp[l.employee]) byEmp[l.employee] = [];
-            byEmp[l.employee].push(l);
-        });
-
-        // =============================================
-        // Per-employee hour calculation
-        // [FEATURE 3] Auto-clock-out logic embedded here
-        // =============================================
-        const results = {}; // { name: { minutes, hadAuto } }
-
-        Object.entries(byEmp).forEach(([name, logs]) => {
-            // Sort oldest-first for correct In→Out pairing
-            logs.sort((a, b) => a.date - b.date);
-
-            let totalMins = 0;
-            let hadAuto   = false;
-            let inTime    = null;   // JS Date of the open Clock In
-            let inDay     = null;   // Melbourne calendar day of that Clock In ("YYYY-MM-DD")
-
-            logs.forEach(log => {
-                if (log.action === "Clocked In") {
-
-                    if (inTime !== null) {
-                        // There's already an open shift. If this new Clock In is on
-                        // a DIFFERENT Melbourne day, auto-close the previous shift at 17:00.
-                        // [FEATURE 3]
-                        const thisDay = toMelbDay(log.date);
-                        if (thisDay !== inDay) {
-                            const autoOut = melbourneEndOfShift(inTime);
-                            const diff    = autoOut - inTime;
-                            if (diff > 0) { totalMins += diff / 60000; hadAuto = true; }
-                        }
-                        // Same day duplicate Clock In: overwrite (take the later time)
-                        inTime = null; inDay = null;
-                    }
-
-                    inTime = log.date;
-                    inDay  = toMelbDay(log.date);
-
-                } else if (log.action === "Clocked Out" && inTime !== null) {
-                    // Normal paired Clock Out
-                    const diff = log.date - inTime;
-                    totalMins += diff / 60000;
-                    inTime = null; inDay = null;
-                }
-            });
-
-            // [FEATURE 3] After all logs processed — if inTime is still set,
-            // the employee never clocked out. Auto-close at 17:00 if that
-            // 5 pm point is already in the past.
-            if (inTime !== null) {
-                const autoOut = melbourneEndOfShift(inTime);
-                if (autoOut < new Date()) {
-                    const diff = autoOut - inTime;
-                    if (diff > 0) { totalMins += diff / 60000; hadAuto = true; }
-                }
+    // ─────────────────────────────────────────────
+    // deleteLog(id)
+    // Asks for confirmation, deletes the Firestore doc,
+    // removes it from the local cache, and fades the row.
+    // ─────────────────────────────────────────────
+    async function deleteLog(id) {
+        if (!confirm("Delete this time entry? This cannot be undone.")) return;
+        try {
+            await deleteDoc(doc(db, "timeLogs", id));
+            allLogs = allLogs.filter(l => l.id !== id);
+            // Find and fade the row out
+            const tr = document.querySelector(`tr[data-id="${id}"]`);
+            if (tr) {
+                tr.style.transition = "opacity 0.3s ease";
+                tr.style.opacity    = "0";
+                setTimeout(() => tr.remove(), 320);
             }
-
-            results[name] = { minutes: totalMins, hadAuto };
-        });
-
-        // Render summary tiles
-        const grid      = document.getElementById("summaryGrid");
-        const section   = document.getElementById("summarySection");
-        const labelEl   = document.getElementById("summaryWeekLabel");
-
-        grid.innerHTML = "";
-
-        const fmtDate    = d => d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
-        const filterLabel = filter === "all" ? "All Employees" : filter;
-        labelEl.textContent = `${filterLabel} — Week of ${fmtDate(monday)} – ${fmtDate(sunday)}, ${year}`;
-
-        if (Object.keys(results).length === 0) {
-            grid.innerHTML = `<p class="summary-empty">No logs found for this selection.</p>`;
-            section.style.display = "block";
-            return;
+        } catch (e) {
+            console.error("Delete failed:", e);
+            alert("Could not delete. Please try again.");
         }
+    }
 
-        const maxMins = Math.max(...Object.values(results).map(r => r.minutes));
-
-        Object.entries(results).forEach(([name, { minutes, hadAuto }]) => {
-            const hours = (minutes / 60).toFixed(2);
-            const isTop = minutes === maxMins && maxMins > 0;
-
-            const tile = document.createElement("div");
-            tile.className = `summary-tile${isTop ? " highlight" : ""}`;
-
-            // [FEATURE 3] Amber warning note on tile if auto-clock-out was applied
-            const autoHTML = hadAuto
-                ? `<p class="tile-auto-note">⚠ Auto 5 pm clock-out applied</p>`
-                : "";
-
-            tile.innerHTML = `
-                <p class="tile-name">${name}</p>
-                <p class="tile-hours">${hours}</p>
-                <p class="tile-unit">hrs this week</p>
-                ${autoHTML}`;
-            grid.appendChild(tile);
-        });
-
-        section.style.display = "block";
-    };
-
-    // Pre-fill the manual entry date to today in Melbourne time
+    // ── Pre-fill the manual date field to today ────
     document.getElementById("manDate").value = toMelbDay(new Date());
 
-    // Initial load
+    // ── Initial data load on page ready ───────────
     loadLogs();
 
 </script>
