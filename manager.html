@@ -5,822 +5,870 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Dashboard — InCar Detailing</title>
 
-    <!-- =============================================
-         FONTS: Montserrat for headers, Open Sans for body
-    ============================================= -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
         /* =============================================
-           CSS VARIABLES — Identical token set to index.html
-           for visual consistency across both pages.
+           CSS VARIABLES — UNCHANGED from premium theme
         ============================================= */
         :root {
-            --bg-primary:        #121212;
-            --bg-card:           #181818;
-            --bg-card-alt:       #1c1c1c;   /* Alternate row tint */
-            --bg-input:          #0f0f0f;
-
-            --text-main:         #E0E0E0;
-            --text-header:       #FFFFFF;
-            --text-muted:        #888888;
-            --text-label:        #B0B0B0;
-
-            --accent-silver:     #C0C0C0;
-            --accent-border:     #2a2a2a;
+            --bg-primary:          #121212;
+            --bg-card:             #181818;
+            --bg-card-alt:         #1c1c1c;
+            --bg-input:            #0f0f0f;
+            --text-main:           #E0E0E0;
+            --text-header:         #FFFFFF;
+            --text-muted:          #888888;
+            --text-label:          #B0B0B0;
+            --accent-silver:       #C0C0C0;
+            --accent-border:       #2a2a2a;
             --accent-border-focus: #C0C0C0;
-
-            --btn-primary-bg:    #B0C4DE;   /* Light Steel Blue */
-            --btn-primary-text:  #121212;
-            --btn-primary-hover: #c8d8ec;
-
-            --status-success:    #4CAF50;
-            --status-error:      #F44336;
-
-            /* Clocked In badge — calm green */
-            --badge-in-bg:       rgba(76, 175, 80, 0.12);
-            --badge-in-text:     #6fcf74;
-            --badge-in-border:   rgba(76, 175, 80, 0.3);
-
-            /* Clocked Out badge — crimson */
-            --badge-out-bg:      rgba(220, 20, 60, 0.1);
-            --badge-out-text:    #e84a6f;
-            --badge-out-border:  rgba(220, 20, 60, 0.25);
-
-            --radius-card:       12px;
-            --radius-btn:        8px;
-            --radius-input:      8px;
-            --radius-badge:      20px;
-
-            --font-header:       'Montserrat', sans-serif;
-            --font-body:         'Open Sans', sans-serif;
-            --font-mono:         'Courier New', monospace;
-
-            --transition-speed:  0.3s;
-
-            --shadow-card:       0 8px 32px rgba(0, 0, 0, 0.6);
-            --shadow-btn:        0 4px 16px rgba(0, 0, 0, 0.5);
+            --btn-primary-bg:      #B0C4DE;
+            --btn-primary-text:    #121212;
+            --btn-primary-hover:   #c8d8ec;
+            --status-success:      #4CAF50;
+            --status-error:        #F44336;
+            --badge-in-bg:         rgba(76,175,80,0.12);
+            --badge-in-text:       #6fcf74;
+            --badge-in-border:     rgba(76,175,80,0.3);
+            --badge-out-bg:        rgba(220,20,60,0.1);
+            --badge-out-text:      #e84a6f;
+            --badge-out-border:    rgba(220,20,60,0.25);
+            --radius-card:         12px;
+            --radius-btn:          8px;
+            --radius-input:        8px;
+            --radius-badge:        20px;
+            --font-header:         'Montserrat', sans-serif;
+            --font-body:           'Open Sans', sans-serif;
+            --font-mono:           'Courier New', monospace;
+            --transition-speed:    0.3s;
+            --shadow-card:         0 8px 32px rgba(0,0,0,0.6);
+            --shadow-btn:          0 4px 16px rgba(0,0,0,0.5);
         }
 
-        /* =============================================
-           RESET & BASE
-        ============================================= */
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* =============================================
-           BODY — Same carbon-fiber texture as index.html
-        ============================================= */
         body {
             font-family: var(--font-body);
             background-color: var(--bg-primary);
             background-image:
-                repeating-linear-gradient(
-                    45deg,
-                    rgba(255,255,255,0.015) 0px,
-                    rgba(255,255,255,0.015) 1px,
-                    transparent 1px,
-                    transparent 8px
-                ),
-                repeating-linear-gradient(
-                    -45deg,
-                    rgba(255,255,255,0.015) 0px,
-                    rgba(255,255,255,0.015) 1px,
-                    transparent 1px,
-                    transparent 8px
-                );
+                repeating-linear-gradient(45deg,  rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 8px),
+                repeating-linear-gradient(-45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 8px);
             color: var(--text-main);
             min-height: 100vh;
             padding: 40px 24px 60px;
         }
 
-        /* =============================================
-           WRAPPER — Max-width container, centered
-        ============================================= */
-        .wrapper {
-            max-width: 960px;
-            margin: 0 auto;
-        }
+        .wrapper { max-width: 980px; margin: 0 auto; }
 
-        /* =============================================
-           PAGE HEADER
-        ============================================= */
+        /* ---- Page Header ---- */
         .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 36px;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 16px; margin-bottom: 36px;
             animation: fadeUp 0.4s ease both;
         }
-
         .page-header-left .brand {
-            font-family: var(--font-header);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 4px;
+            font-family: var(--font-header); font-size: 11px; font-weight: 600;
+            letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;
         }
-
         .page-header-left h1 {
-            font-family: var(--font-header);
-            font-size: 26px;
-            font-weight: 700;
-            color: var(--text-header);
-            letter-spacing: -0.5px;
+            font-family: var(--font-header); font-size: 26px; font-weight: 700;
+            color: var(--text-header); letter-spacing: -0.5px;
         }
-
-        /* Back link in top-right */
         .back-link {
-            font-family: var(--font-body);
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            text-decoration: none;
-            text-transform: uppercase;
-            transition: color var(--transition-speed) ease;
+            font-family: var(--font-body); font-size: 12px; font-weight: 600;
+            letter-spacing: 1px; color: var(--text-muted); text-decoration: none;
+            text-transform: uppercase; transition: color var(--transition-speed) ease;
         }
+        .back-link:hover { color: var(--accent-silver); }
 
-        .back-link:hover {
-            color: var(--accent-silver);
-        }
-
-        /* =============================================
-           CARD — Reusable panel component
-        ============================================= */
+        /* ---- Cards ---- */
         .card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--accent-border);
-            border-radius: var(--radius-card);
-            box-shadow: var(--shadow-card);
-            padding: 32px 36px;
-            margin-bottom: 24px;
+            background-color: var(--bg-card); border: 1px solid var(--accent-border);
+            border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+            padding: 32px 36px; margin-bottom: 24px;
             animation: fadeUp 0.5s ease both;
         }
-
-        /* Stagger the second card's animation slightly */
-        .card:nth-child(2) { animation-delay: 0.1s; }
-        .card:nth-child(3) { animation-delay: 0.2s; }
+        .card:nth-child(2) { animation-delay: 0.08s; }
+        .card:nth-child(3) { animation-delay: 0.16s; }
+        .card:nth-child(4) { animation-delay: 0.24s; }
 
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Card title style */
         .card-title {
-            font-family: var(--font-header);
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--accent-border);
+            font-family: var(--font-header); font-size: 11px; font-weight: 700;
+            letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted);
+            margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--accent-border);
         }
+        .inner-divider { height: 1px; background: var(--accent-border); margin: 24px 0; }
 
-        /* =============================================
-           PAYROLL CONTROLS — Week selector row
-        ============================================= */
-        .payroll-controls {
-            display: flex;
-            align-items: flex-end;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        /* Form group used inside payroll controls */
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .form-group label {
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--text-label);
-        }
-
-        /* Week input styling */
-        input[type="week"] {
-            width: 100%;
-            padding: 12px 16px;
-            font-family: var(--font-body);
-            font-size: 14px;
-            color: var(--text-main);
-            background-color: var(--bg-input);
-            border: 1px solid var(--accent-border);
-            border-radius: var(--radius-input);
-            appearance: none;
-            -webkit-appearance: none;
-            outline: none;
-            cursor: pointer;
+        /* ---- Shared form controls ---- */
+        .form-control {
+            width: 100%; padding: 12px 16px; font-family: var(--font-body); font-size: 14px;
+            color: var(--text-main); background-color: var(--bg-input);
+            border: 1px solid var(--accent-border); border-radius: var(--radius-input);
+            appearance: none; -webkit-appearance: none; outline: none; cursor: pointer;
             transition: border-color var(--transition-speed) ease,
                         box-shadow var(--transition-speed) ease;
-            /* Force text color in webkit (week input quirk) */
             color-scheme: dark;
         }
+        .form-control:hover { border-color: var(--accent-silver); }
+        .form-control:focus { border-color: var(--accent-border-focus); box-shadow: 0 0 0 3px rgba(192,192,192,0.12); }
+        .form-control option { background-color: #1e1e1e; color: var(--text-main); }
 
-        input[type="week"]:hover  { border-color: var(--accent-silver); }
-        input[type="week"]:focus  {
-            border-color: var(--accent-border-focus);
-            box-shadow: 0 0 0 3px rgba(192, 192, 192, 0.12);
+        /* Select with custom chevron arrow */
+        .select-ctrl {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C0C0C0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
         }
 
-        /* "Calculate" button */
-        .btn-calculate {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 13px 28px;
-            font-family: var(--font-header);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: var(--btn-primary-text);
-            background-color: var(--btn-primary-bg);
-            border: none;
-            border-radius: var(--radius-btn);
-            cursor: pointer;
-            box-shadow: var(--shadow-btn);
+        .fg { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 130px; }
+        .fg label {
+            font-size: 10px; font-weight: 600; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--text-label);
+        }
+
+        /* ---- Primary button ---- */
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px;
+            font-family: var(--font-header); font-size: 12px; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--btn-primary-text); background-color: var(--btn-primary-bg);
+            border: none; border-radius: var(--radius-btn); cursor: pointer;
+            box-shadow: var(--shadow-btn); white-space: nowrap;
             transition: background-color var(--transition-speed) ease,
                         transform var(--transition-speed) ease,
                         box-shadow var(--transition-speed) ease;
-            white-space: nowrap;
         }
+        .btn-primary:hover  { background-color: var(--btn-primary-hover); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.5); }
+        .btn-primary:active { transform: translateY(0); }
 
-        .btn-calculate:hover {
-            background-color: var(--btn-primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+        /* ---- Danger (delete) button ---- */
+        .btn-del {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 5px 9px; font-size: 13px; line-height: 1;
+            background: transparent; color: var(--badge-out-text);
+            border: 1px solid var(--badge-out-border); border-radius: 6px;
+            cursor: pointer; transition: background-color var(--transition-speed) ease,
+                                         color var(--transition-speed) ease;
         }
-
-        .btn-calculate:active { transform: translateY(0); }
+        .btn-del:hover { background-color: rgba(220,20,60,0.15); color: #ff4d6d; }
 
         /* =============================================
-           PAYROLL SUMMARY — Cards grid per employee
+           PAYROLL CONTROLS
         ============================================= */
-        #summarySection {
-            margin-top: 28px;
-            display: none; /* Hidden until a week is calculated */
+        .payroll-controls {
+            display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap;
         }
 
+        /* =============================================
+           SUMMARY TILES
+        ============================================= */
+        #summarySection { margin-top: 28px; display: none; }
         .summary-week-label {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 16px;
+            font-size: 11px; font-weight: 600; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px;
         }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 16px; }
 
-        /* Grid of employee hour cards */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 16px;
-        }
-
-        /* Individual employee summary tile */
         .summary-tile {
-            background-color: #0f0f0f;
-            border: 1px solid var(--accent-border);
-            border-radius: 10px;
-            padding: 20px 18px;
-            text-align: center;
-            transition: border-color var(--transition-speed) ease,
-                        transform var(--transition-speed) ease;
+            background-color: #0f0f0f; border: 1px solid var(--accent-border);
+            border-radius: 10px; padding: 20px 16px; text-align: center;
+            transition: border-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+        }
+        .summary-tile:hover { border-color: var(--accent-silver); transform: translateY(-3px); }
+        .summary-tile.highlight { border-color: rgba(176,196,222,0.35); }
+        .summary-tile.highlight .tile-hours { color: var(--btn-primary-bg); }
+
+        .tile-name  { font-family: var(--font-header); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+        .tile-hours { font-family: var(--font-header); font-size: 28px; font-weight: 700; color: var(--text-header); line-height: 1; }
+        .tile-unit  { font-family: var(--font-body); font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+        /* [FEATURE 3] Amber warning on tile when auto-clock-out was applied */
+        .tile-auto-note {
+            font-family: var(--font-body); font-size: 10px; font-weight: 600;
+            color: #e09b3d; margin-top: 7px; letter-spacing: 0.2px;
         }
 
-        .summary-tile:hover {
-            border-color: var(--accent-silver);
-            transform: translateY(-3px);
-        }
-
-        .summary-tile .tile-name {
-            font-family: var(--font-header);
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-        }
-
-        .summary-tile .tile-hours {
-            font-family: var(--font-header);
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text-header);
-            line-height: 1;
-        }
-
-        .summary-tile .tile-unit {
-            font-family: var(--font-body);
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        /* Highlight tile for highest hours (bonus detail) */
-        .summary-tile.highlight {
-            border-color: rgba(176, 196, 222, 0.35);
-        }
-
-        .summary-tile.highlight .tile-hours {
-            color: var(--btn-primary-bg);
-        }
-
-        /* Empty state message inside summary */
-        .summary-empty {
-            font-size: 13px;
-            color: var(--text-muted);
-            text-align: center;
-            padding: 16px 0;
-        }
+        .summary-empty { font-size: 13px; color: var(--text-muted); text-align: center; padding: 16px 0; }
 
         /* =============================================
-           DETAILED LOGS TABLE
+           [FEATURE 4] MANUAL ENTRY FORM
         ============================================= */
-        .table-wrapper {
-            overflow-x: auto; /* Scroll horizontally on mobile */
-            border-radius: 8px;
-            border: 1px solid var(--accent-border);
+        .manual-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr auto;
+            gap: 14px;
+            align-items: flex-end;
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
+        .manual-status {
+            margin-top: 14px; font-size: 12px; font-weight: 600;
+            letter-spacing: 0.3px; min-height: 18px;
         }
+        .manual-status.success { color: var(--status-success); }
+        .manual-status.error   { color: var(--status-error); }
 
-        /* Table header row */
-        thead tr {
-            background-color: #0f0f0f;
-        }
-
+        /* =============================================
+           DETAILED LOG TABLE
+        ============================================= */
+        .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--accent-border); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        thead tr { background-color: #0f0f0f; }
         th {
-            font-family: var(--font-header);
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            padding: 14px 18px;
-            text-align: left;
-            border-bottom: 1px solid var(--accent-border);
+            font-family: var(--font-header); font-size: 10px; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted);
+            padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--accent-border);
             white-space: nowrap;
         }
-
-        /* Alternating row colors for dark-mode readability */
         tbody tr:nth-child(odd)  { background-color: var(--bg-card); }
         tbody tr:nth-child(even) { background-color: var(--bg-card-alt); }
-
-        tbody tr {
-            transition: background-color var(--transition-speed) ease;
-        }
-
-        tbody tr:hover {
-            background-color: #222222;
-        }
-
+        tbody tr { transition: background-color var(--transition-speed) ease; }
+        tbody tr:hover { background-color: #222; }
         td {
-            padding: 13px 18px;
-            color: var(--text-main);
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            vertical-align: middle;
+            padding: 12px 18px; color: var(--text-main);
+            border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle;
         }
-
-        /* Last row has no bottom border */
         tbody tr:last-child td { border-bottom: none; }
+        td.td-name { font-family: var(--font-header); font-weight: 600; color: var(--text-header); }
+        td.td-time { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+        td.td-del  { width: 52px; text-align: center; }
 
-        /* Employee name cell — slightly brighter */
-        td.td-name {
-            font-family: var(--font-header);
-            font-weight: 600;
-            color: var(--text-header);
-            font-size: 13px;
-        }
-
-        /* Time cell — monospace for alignment */
-        td.td-time {
-            font-family: var(--font-mono);
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        /* =============================================
-           ACTION BADGE — Styled "Clocked In / Out" pill
-        ============================================= */
+        /* ---- Action badges ---- */
         .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 10px 3px 8px;
-            border-radius: var(--radius-badge);
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            border: 1px solid transparent;
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px 3px 8px; border-radius: var(--radius-badge);
+            font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+            text-transform: uppercase; border: 1px solid transparent;
         }
-
-        .badge-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        /* Green badge — Clocked In */
-        .badge-in {
-            background-color: var(--badge-in-bg);
-            color: var(--badge-in-text);
-            border-color: var(--badge-in-border);
-        }
-        .badge-in .badge-dot { background-color: var(--badge-in-text); }
-
-        /* Crimson badge — Clocked Out */
-        .badge-out {
-            background-color: var(--badge-out-bg);
-            color: var(--badge-out-text);
-            border-color: var(--badge-out-border);
-        }
+        .badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .badge-in  { background-color: var(--badge-in-bg);  color: var(--badge-in-text);  border-color: var(--badge-in-border);  }
+        .badge-out { background-color: var(--badge-out-bg); color: var(--badge-out-text); border-color: var(--badge-out-border); }
+        .badge-in  .badge-dot { background-color: var(--badge-in-text);  }
         .badge-out .badge-dot { background-color: var(--badge-out-text); }
 
-        /* =============================================
-           LOADING / EMPTY STATE
-        ============================================= */
-        .state-row td {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-            font-size: 13px;
-        }
-
-        /* Loading spinner */
+        /* ---- Loading/empty states ---- */
+        .state-row td { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px; }
         .spinner {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(192,192,192,0.2);
-            border-top-color: var(--accent-silver);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
+            display: inline-block; width: 18px; height: 18px;
+            border: 2px solid rgba(192,192,192,0.2); border-top-color: var(--accent-silver);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+            margin-right: 8px; vertical-align: middle;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* =============================================
-           RESPONSIVE ADJUSTMENTS
-        ============================================= */
-        @media (max-width: 640px) {
-            .card { padding: 24px 20px; }
+        @media (max-width: 768px) {
+            .card { padding: 24px 18px; }
             .page-header-left h1 { font-size: 20px; }
             .summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .manual-grid { grid-template-columns: 1fr 1fr; }
+            .payroll-controls { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
 <body>
+<div class="wrapper">
 
-    <div class="wrapper">
-
-        <!-- =============================================
-             PAGE HEADER
-        ============================================= -->
-        <header class="page-header">
-            <div class="page-header-left">
-                <p class="brand">InCar Detailing</p>
-                <h1>Manager Dashboard</h1>
-            </div>
-            <a href="index.html" class="back-link">← Employee Portal</a>
-        </header>
-
-
-        <!-- =============================================
-             CARD 1: PAYROLL PANEL
-             Contains the week selector and the resulting
-             per-employee hours summary.
-        ============================================= -->
-        <section class="card" id="payrollCard">
-            <p class="card-title">Payroll Calculator</p>
-
-            <!-- Week Selector + Button -->
-            <div class="payroll-controls">
-                <div class="form-group">
-                    <label for="weekPicker">Select Pay Week</label>
-                    <input type="week" id="weekPicker">
-                </div>
-                <button class="btn-calculate" onclick="calculatePayroll()">
-                    &#9654; Calculate Hours
-                </button>
-            </div>
-
-            <!-- Summary Grid — shown after calculation -->
-            <div id="summarySection">
-                <p class="summary-week-label" id="summaryWeekLabel"></p>
-                <div class="summary-grid" id="summaryGrid">
-                    <!-- Tiles injected by JS -->
-                </div>
-            </div>
-        </section>
-
-
-        <!-- =============================================
-             CARD 2: DETAILED LOG TABLE
-             Shows every individual clock-in/out entry.
-        ============================================= -->
-        <section class="card">
-            <p class="card-title">All Time Logs — Most Recent First</p>
-
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Action</th>
-                            <th>Date &amp; Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logTableBody">
-                        <!-- Loading state shown while Firestore fetches -->
-                        <tr class="state-row">
-                            <td colspan="3">
-                                <span class="spinner"></span> Loading records…
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-    </div><!-- /.wrapper -->
+    <!-- Page Header -->
+    <header class="page-header">
+        <div class="page-header-left">
+            <p class="brand">InCar Detailing</p>
+            <h1>Manager Dashboard</h1>
+        </div>
+        <a href="index.html" class="back-link">← Employee Portal</a>
+    </header>
 
 
     <!-- =============================================
-         JAVASCRIPT — Firebase + Payroll Logic
+         CARD 1 — PAYROLL CALCULATOR
+         Original week-picker + [FEATURE 5] employee filter
+         + summary tiles with [FEATURE 3] auto-clock-out
     ============================================= -->
-    <script type="module">
+    <section class="card">
+        <p class="card-title">Payroll Calculator</p>
 
-        // --- Firebase Imports ---
-        import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore,
-                 collection,
-                 getDocs,
-                 orderBy,
-                 query }           from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        <div class="payroll-controls">
 
-        // --- Firebase Configuration ---
-        const firebaseConfig = {
-            apiKey:            "AIzaSyAiplwGT8bfv-lXp8T7UX0_GhCFpnBzxH4",
-            authDomain:        "incar-detailing.firebaseapp.com",
-            projectId:         "incar-detailing",
-            storageBucket:     "incar-detailing.firebasestorage.app",
-            messagingSenderId: "323775979442",
-            appId:             "1:323775979442:web:1573ce4526d13559718eab"
-        };
+            <!-- Week picker (original) -->
+            <div class="fg">
+                <label for="weekPicker">Pay Week</label>
+                <input type="week" id="weekPicker" class="form-control">
+            </div>
 
-        const app = initializeApp(firebaseConfig);
-        const db  = getFirestore(app);
+            <!--
+                [FEATURE 5] Employee filter.
+                "All Employees" is the default.
+                Changing this re-renders both the summary
+                tiles AND the log table immediately.
+            -->
+            <div class="fg">
+                <label for="employeeFilter">Employee Filter</label>
+                <select id="employeeFilter" class="form-control select-ctrl" onchange="onFilterChange()">
+                    <option value="all">All Employees</option>
+                    <option value="Aslam">Aslam</option>
+                    <option value="Farhan">Farhan</option>
+                    <option value="Infaz">Infaz</option>
+                    <option value="Aymen">Aymen</option>
+                    <option value="Faqi">Faqi</option>
+                    <option value="Employee 6">Employee 6</option>
+                    <option value="Employee 7">Employee 7</option>
+                </select>
+            </div>
 
-        // -----------------------------------------------
-        // MODULE-LEVEL CACHE
-        // We load ALL logs once from Firestore and store
-        // them in this array. This way the payroll
-        // calculator can filter them instantly without
-        // making extra network requests.
-        // -----------------------------------------------
-        let allLogs = []; // Will hold every log object after initial load
+            <button class="btn-primary" onclick="calculatePayroll()">
+                &#9654; Calculate Hours
+            </button>
+        </div>
+
+        <!-- Summary section — revealed after calculation -->
+        <div id="summarySection">
+            <div class="inner-divider"></div>
+            <p class="summary-week-label" id="summaryWeekLabel"></p>
+            <div class="summary-grid" id="summaryGrid"></div>
+        </div>
+    </section>
 
 
-        // -----------------------------------------------
-        // loadLogs()
-        // Fetches all documents from the "timeLogs"
-        // collection, ordered by Firestore Timestamp
-        // (newest first). Populates the detail table AND
-        // fills the allLogs cache.
-        // -----------------------------------------------
-        async function loadLogs() {
-            const tableBody = document.getElementById("logTableBody");
+    <!-- =============================================
+         CARD 2 — MANUAL ENTRY  [FEATURE 4]
+         Manager can add or correct any clock record.
+         Fields: Employee | Date | Time | Action | Save
+    ============================================= -->
+    <section class="card">
+        <p class="card-title">Manual Entry / Correction</p>
 
-            try {
-                // Query ordered by the Firestore Timestamp field we added in index.html.
-                // Falls back gracefully if older records don't have the "timestamp" field.
-                const q = query(
-                    collection(db, "timeLogs"),
-                    orderBy("timestamp", "desc")
-                );
+        <div class="manual-grid">
+            <div class="fg">
+                <label for="manEmployee">Employee</label>
+                <select id="manEmployee" class="form-control select-ctrl">
+                    <option value="Aslam">Aslam</option>
+                    <option value="Farhan">Farhan</option>
+                    <option value="Infaz">Infaz</option>
+                    <option value="Aymen">Aymen</option>
+                    <option value="Faqi">Faqi</option>
+                    <option value="Employee 6">Employee 6</option>
+                    <option value="Employee 7">Employee 7</option>
+                </select>
+            </div>
 
-                const snapshot = await getDocs(q);
+            <div class="fg">
+                <label for="manDate">Date</label>
+                <input type="date" id="manDate" class="form-control">
+            </div>
 
-                // Clear the loading spinner row
-                tableBody.innerHTML = "";
+            <div class="fg">
+                <label for="manTime">Time</label>
+                <input type="time" id="manTime" class="form-control">
+            </div>
 
-                if (snapshot.empty) {
-                    // No records at all — show a friendly empty state
-                    tableBody.innerHTML = `
-                        <tr class="state-row">
-                            <td colspan="3">No records found. Employees haven't clocked in yet.</td>
-                        </tr>`;
-                    return;
-                }
+            <div class="fg">
+                <label for="manAction">Action</label>
+                <select id="manAction" class="form-control select-ctrl">
+                    <option value="Clocked In">Clock In</option>
+                    <option value="Clocked Out">Clock Out</option>
+                </select>
+            </div>
 
-                // Loop over every document returned by Firestore
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
+            <button class="btn-primary" onclick="saveManualEntry()" style="padding:12px 20px;">
+                + Save
+            </button>
+        </div>
 
-                    // Store the raw data in our cache for the payroll calculator.
-                    // We attach the Firestore Timestamp JS Date for easy comparison.
-                    allLogs.push({
-                        employee:  data.employee  || "Unknown",
-                        action:    data.action    || "",
-                        timeStr:   data.time      || "",   // Human-readable string for display
-                        // Convert Firestore Timestamp to a JS Date object.
-                        // If timestamp field is missing (old records), fall back to parsing the string.
-                        date: data.timestamp
-                                ? data.timestamp.toDate()
-                                : new Date(data.time)
-                    });
+        <p id="manualStatus" class="manual-status"></p>
+    </section>
 
-                    // --- Render the table row ---
 
-                    // Build the action badge HTML based on action type
-                    const isIn = data.action === "Clocked In";
-                    const badgeClass = isIn ? "badge-in" : "badge-out";
-                    const badgeText  = isIn ? "Clocked In" : "Clocked Out";
+    <!-- =============================================
+         CARD 3 — DETAILED LOG TABLE
+         [FEATURE 4] Delete button per row
+         [FEATURE 5] Filtered by employee dropdown
+    ============================================= -->
+    <section class="card">
+        <p class="card-title" id="tableTitle">All Time Logs — Most Recent First</p>
 
-                    const badgeHTML = `
-                        <span class="badge ${badgeClass}">
-                            <span class="badge-dot"></span>${badgeText}
-                        </span>`;
-
-                    // Inject a <tr> into the table
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td class="td-name">${data.employee || "—"}</td>
-                        <td>${badgeHTML}</td>
-                        <td class="td-time">${data.time || "—"}</td>`;
-                    tableBody.appendChild(row);
-                });
-
-            } catch (e) {
-                console.error("Error loading logs:", e);
-                tableBody.innerHTML = `
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Action</th>
+                        <th>Date &amp; Time</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="logTableBody">
                     <tr class="state-row">
-                        <td colspan="3" style="color: var(--status-error);">
-                            Error loading records. Check your Firebase connection.
-                        </td>
-                    </tr>`;
+                        <td colspan="4"><span class="spinner"></span> Loading records…</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div><!-- /.wrapper -->
+
+
+<script type="module">
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc,
+             doc, query, orderBy, Timestamp }
+             from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey:            "AIzaSyAiplwGT8bfv-lXp8T7UX0_GhCFpnBzxH4",
+        authDomain:        "incar-detailing.firebaseapp.com",
+        projectId:         "incar-detailing",
+        storageBucket:     "incar-detailing.firebasestorage.app",
+        messagingSenderId: "323775979442",
+        appId:             "1:323775979442:web:1573ce4526d13559718eab"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    // =============================================
+    // [FEATURE 1] AUSTRALIAN DST — TIMEZONE CONSTANT
+    //
+    // "Australia/Melbourne" is the IANA timezone ID.
+    // JavaScript's Intl engine knows the full DST
+    // schedule for this zone (clocks back first Sunday
+    // of April, forward first Sunday of October).
+    // Passing this to every locale call means we never
+    // need manual +10/+11 offset arithmetic.
+    // =============================================
+    const TZ = "Australia/Melbourne";
+
+    /** Returns a "YYYY-MM-DD" string in Melbourne local time (for day comparisons) */
+    function toMelbDay(date) {
+        // en-CA locale returns ISO-format YYYY-MM-DD which is ideal for string comparison
+        return date.toLocaleDateString("en-CA", { timeZone: TZ });
+    }
+
+    /** Returns a full display string in Melbourne local time */
+    function toMelbString(date) {
+        return date.toLocaleString("en-AU", { timeZone: TZ });
+    }
+
+    // =============================================
+    // parseMelbLocalTime(dateStr, timeStr)
+    //
+    // [FEATURE 1] Converts a Melbourne wall-clock time
+    // (entered by the manager in the manual-entry form)
+    // into a JS Date (UTC internally).
+    //
+    // We can't just do new Date("2025-04-07T09:00") because
+    // the browser interprets that as LOCAL time, not Melbourne
+    // time — and the server might be anywhere.
+    //
+    // Strategy: create a UTC candidate, ask Intl what
+    // Melbourne time that corresponds to, measure the
+    // offset, then subtract it.
+    //
+    // This handles DST correctly without any library.
+    // =============================================
+    function parseMelbLocalTime(dateStr, timeStr) {
+        const [y, mo, d]   = dateStr.split("-").map(Number);
+        const [hr, min]    = timeStr.split(":").map(Number);
+
+        // Step 1: treat the input as if it WERE UTC
+        const candidate = new Date(Date.UTC(y, mo - 1, d, hr, min, 0));
+
+        // Step 2: find out what Melbourne wall-clock time that UTC moment maps to
+        const parts = new Intl.DateTimeFormat("en-AU", {
+            timeZone: TZ,
+            year: "numeric", month: "2-digit", day: "2-digit",
+            hour: "2-digit", minute: "2-digit", second: "2-digit",
+            hour12: false
+        }).formatToParts(candidate);
+
+        const p = {};
+        parts.forEach(({ type, value }) => { p[type] = value; });
+
+        const melbWall = new Date(Date.UTC(
+            Number(p.year), Number(p.month) - 1, Number(p.day),
+            Number(p.hour) === 24 ? 0 : Number(p.hour),
+            Number(p.minute), Number(p.second)
+        ));
+
+        // Step 3: offset = (what Intl says Melbourne is) − (what we fed it as UTC)
+        const offsetMs = melbWall - candidate;
+
+        // Step 4: shift back to get the true UTC value for our wall-clock input
+        return new Date(candidate - offsetMs);
+    }
+
+    /**
+     * melbourneEndOfShift(clockInDate)
+     * [FEATURE 3] Returns a JS Date for 17:00 Melbourne time
+     * on the same calendar day as clockInDate.
+     */
+    function melbourneEndOfShift(clockInDate) {
+        return parseMelbLocalTime(toMelbDay(clockInDate), "17:00");
+    }
+
+    // =============================================
+    // DATA CACHE
+    //
+    // allLogs: loaded once from Firestore.
+    // Shape: { id, employee, action, timeStr, date }
+    //
+    // Keeping it in memory means:
+    //   • Payroll calculation is O(n) without extra network calls
+    //   • [FEATURE 5] filtering is instant
+    //   • [FEATURE 4] deletes update the cache in place
+    // =============================================
+    let allLogs = [];
+
+    // =============================================
+    // loadLogs()
+    // Initial fetch of all timeLogs, ordered newest first.
+    // Populates allLogs cache, then calls renderTable().
+    // =============================================
+    async function loadLogs() {
+        const tbody = document.getElementById("logTableBody");
+        try {
+            const snap = await getDocs(
+                query(collection(db, "timeLogs"), orderBy("timestamp", "desc"))
+            );
+
+            tbody.innerHTML = "";
+            allLogs = [];
+
+            if (snap.empty) {
+                tbody.innerHTML = `<tr class="state-row"><td colspan="4">No records found yet.</td></tr>`;
+                return;
             }
+
+            snap.forEach(docSnap => {
+                const d = docSnap.data();
+                allLogs.push({
+                    id:       docSnap.id,
+                    employee: d.employee  || "Unknown",
+                    action:   d.action    || "",
+                    timeStr:  d.time      || "",
+                    // [FEATURE 1] Convert Firestore UTC Timestamp → JS Date.
+                    // Falls back to parsing the time string for old records that
+                    // don't have the timestamp field yet.
+                    date: d.timestamp ? d.timestamp.toDate() : new Date(d.time)
+                });
+            });
+
+            renderTable();
+
+        } catch (e) {
+            console.error("loadLogs error:", e);
+            tbody.innerHTML = `
+                <tr class="state-row">
+                    <td colspan="4" style="color:var(--status-error);">
+                        Error loading records. Check your Firebase connection.
+                    </td>
+                </tr>`;
+        }
+    }
+
+    // =============================================
+    // renderTable()
+    //
+    // Renders the log table, applying the
+    // [FEATURE 5] employee filter if set.
+    // Each row has a [FEATURE 4] delete button.
+    // =============================================
+    function renderTable() {
+        const tbody     = document.getElementById("logTableBody");
+        const filter    = document.getElementById("employeeFilter").value;
+        const titleEl   = document.getElementById("tableTitle");
+
+        const logs = filter === "all"
+            ? allLogs
+            : allLogs.filter(l => l.employee === filter);
+
+        titleEl.textContent = filter === "all"
+            ? "All Time Logs — Most Recent First"
+            : `Logs for ${filter} — Most Recent First`;
+
+        tbody.innerHTML = "";
+
+        if (logs.length === 0) {
+            tbody.innerHTML = `<tr class="state-row"><td colspan="4">No records match the current filter.</td></tr>`;
+            return;
         }
 
+        logs.forEach(log => {
+            const isIn  = log.action === "Clocked In";
+            const row   = document.createElement("tr");
+            row.dataset.id = log.id;
 
-        // -----------------------------------------------
-        // calculatePayroll()
-        // Called when the manager clicks "Calculate Hours".
-        //
-        // ALGORITHM:
-        //   1. Read the selected week from the <input type="week">
-        //   2. Determine the Monday–Sunday date range for that week
-        //   3. Filter allLogs to only entries within that range
-        //   4. For each employee, pair their "Clocked In" events
-        //      with the next matching "Clocked Out" event
-        //   5. Sum up all shift durations (Clock Out - Clock In)
-        //   6. Render one summary tile per employee
-        //
-        // NOTE: This is a simple sequential pairing algorithm.
-        // It assumes employees always clock in before clocking out.
-        // -----------------------------------------------
-        window.calculatePayroll = function() {
-            const weekInput = document.getElementById("weekPicker").value;
+            row.innerHTML = `
+                <td class="td-name">${log.employee}</td>
+                <td>
+                    <span class="badge ${isIn ? "badge-in" : "badge-out"}">
+                        <span class="badge-dot"></span>
+                        ${isIn ? "Clocked In" : "Clocked Out"}
+                    </span>
+                </td>
+                <td class="td-time">${log.timeStr || toMelbString(log.date)}</td>
+                <td class="td-del">
+                    <!--
+                        [FEATURE 4] Trash-can delete button.
+                        onclick passes the Firestore doc ID.
+                    -->
+                    <button class="btn-del" title="Delete this record"
+                            onclick="deleteLog('${log.id}', this)">🗑</button>
+                </td>`;
+            tbody.appendChild(row);
+        });
+    }
 
-            if (!weekInput) {
-                alert("Please select a week first.");
-                return;
+    // =============================================
+    // [FEATURE 5] onFilterChange()
+    // Instantly re-renders the table with the new filter.
+    // If a payroll summary is already showing, recalculate
+    // it for the filtered employee.
+    // =============================================
+    window.onFilterChange = function() {
+        renderTable();
+        if (document.getElementById("summarySection").style.display !== "none") {
+            calculatePayroll();
+        }
+    };
+
+    // =============================================
+    // [FEATURE 4] deleteLog(docId, btnEl)
+    //
+    // Deletes the Firestore document, removes the row
+    // from the DOM, and removes it from allLogs cache.
+    // =============================================
+    window.deleteLog = async function(docId, btnEl) {
+        if (!confirm("Permanently delete this record? This cannot be undone.")) return;
+        try {
+            await deleteDoc(doc(db, "timeLogs", docId));
+            allLogs = allLogs.filter(l => l.id !== docId);
+
+            const row = btnEl.closest("tr");
+            if (row) row.remove();
+
+            const tbody = document.getElementById("logTableBody");
+            if (!tbody.querySelector("tr:not(.state-row)")) {
+                tbody.innerHTML = `<tr class="state-row"><td colspan="4">No records match the current filter.</td></tr>`;
             }
+        } catch (e) {
+            console.error("Delete failed:", e);
+            alert("Error deleting record. Please try again.");
+        }
+    };
 
-            // --- Step 1: Parse the week input ---
-            // The <input type="week"> returns a value like "2025-W23"
-            // We need to convert this to Monday 00:00 and Sunday 23:59
+    // =============================================
+    // [FEATURE 4] saveManualEntry()
+    //
+    // Reads the Manual Entry form, builds a Melbourne-
+    // aware Date using parseMelbLocalTime() [FEATURE 1],
+    // and saves to Firestore. Instantly adds to cache
+    // and re-renders the table.
+    // =============================================
+    window.saveManualEntry = async function() {
+        const employee = document.getElementById("manEmployee").value;
+        const dateStr  = document.getElementById("manDate").value;   // "YYYY-MM-DD"
+        const timeStr  = document.getElementById("manTime").value;   // "HH:MM"
+        const action   = document.getElementById("manAction").value;
+        const statusEl = document.getElementById("manualStatus");
 
-            const [yearStr, weekStr] = weekInput.split("-W");
-            const year = parseInt(yearStr, 10);
-            const week = parseInt(weekStr, 10);
+        if (!dateStr || !timeStr) {
+            statusEl.textContent = "Please fill in both Date and Time.";
+            statusEl.className   = "manual-status error";
+            return;
+        }
 
-            // Calculate the Monday of the selected ISO week.
-            // ISO week 1 is the week containing the first Thursday of January.
-            const jan4 = new Date(year, 0, 4);                 // Jan 4 is always in week 1
-            const jan4Day = (jan4.getDay() + 6) % 7;           // Monday=0 … Sunday=6
-            const monday = new Date(jan4);
-            monday.setDate(jan4.getDate() - jan4Day + (week - 1) * 7);
-            monday.setHours(0, 0, 0, 0);                        // Start of Monday
+        // [FEATURE 1] Parse input as Melbourne local time → correct UTC Date
+        const melbDate   = parseMelbLocalTime(dateStr, timeStr);
+        const displayStr = toMelbString(melbDate);
 
-            const sunday = new Date(monday);
-            sunday.setDate(monday.getDate() + 6);
-            sunday.setHours(23, 59, 59, 999);                   // End of Sunday
+        statusEl.textContent = "Saving…";
+        statusEl.className   = "manual-status";
 
-            // --- Step 2: Filter logs to this week ---
-            const weekLogs = allLogs.filter(log => log.date >= monday && log.date <= sunday);
-
-            // --- Step 3: Group logs by employee ---
-            // Result: { "Employee 1": [...logs], "Employee 2": [...logs], ... }
-            const byEmployee = {};
-            weekLogs.forEach(log => {
-                if (!byEmployee[log.employee]) byEmployee[log.employee] = [];
-                byEmployee[log.employee].push(log);
+        try {
+            const ref = await addDoc(collection(db, "timeLogs"), {
+                employee:    employee,
+                action:      action,
+                time:        displayStr,                    // Melbourne-formatted string
+                timestamp:   Timestamp.fromDate(melbDate),  // UTC Timestamp for sorting
+                manualEntry: true                            // Audit flag
             });
 
-            // --- Step 4: Calculate hours per employee ---
-            // For each employee, sort their events by date ascending,
-            // then iterate and pair In→Out, accumulating the minutes.
-            const results = {}; // { "Employee 1": totalMinutes, ... }
+            // Add to cache in the right position (newest first is approximate here;
+            // a full reload would re-sort, but for UX we prepend to the cache)
+            allLogs.unshift({
+                id: ref.id, employee, action,
+                timeStr: displayStr, date: melbDate
+            });
 
-            Object.entries(byEmployee).forEach(([name, logs]) => {
-                // Sort chronologically (oldest first) for correct pairing
-                logs.sort((a, b) => a.date - b.date);
+            renderTable(); // Re-render with new entry visible
 
-                let totalMinutes = 0;
-                let clockInTime  = null; // Holds the Date of the most recent Clock In
+            statusEl.textContent = `✓ Saved: ${employee} ${action} at ${displayStr}`;
+            statusEl.className   = "manual-status success";
 
-                logs.forEach(log => {
-                    if (log.action === "Clocked In") {
-                        // Start a new shift
-                        clockInTime = log.date;
+            // Clear time field; keep date and employee for quick multi-entry
+            document.getElementById("manTime").value = "";
 
-                    } else if (log.action === "Clocked Out" && clockInTime !== null) {
-                        // End the shift: calculate duration in minutes
-                        const diffMs      = log.date - clockInTime;
-                        const diffMinutes = diffMs / (1000 * 60); // Convert ms → minutes
-                        totalMinutes     += diffMinutes;
-                        clockInTime       = null; // Reset so we don't double-count
+        } catch (e) {
+            console.error("Manual save failed:", e);
+            statusEl.textContent = "Error saving. Please try again.";
+            statusEl.className   = "manual-status error";
+        }
+    };
+
+    // =============================================
+    // calculatePayroll()
+    //
+    // Core payroll engine.  Enhanced with:
+    //   [FEATURE 1] All date boundaries use UTC Timestamps
+    //   [FEATURE 3] Auto-clock-out at 17:00 for forgotten outs
+    //   [FEATURE 5] Filters by employee dropdown
+    // =============================================
+    window.calculatePayroll = function() {
+        const weekInput = document.getElementById("weekPicker").value;
+        if (!weekInput) { alert("Please select a week first."); return; }
+
+        // Parse "YYYY-Www" → Monday/Sunday boundaries
+        const [yearStr, weekStr] = weekInput.split("-W");
+        const year = parseInt(yearStr, 10);
+        const week = parseInt(weekStr, 10);
+
+        // ISO 8601 week calculation: Monday of week N
+        const jan4    = new Date(year, 0, 4);                   // Jan 4 is always in week 1
+        const jan4Day = (jan4.getDay() + 6) % 7;               // Mon=0 … Sun=6
+        const monday  = new Date(jan4);
+        monday.setDate(jan4.getDate() - jan4Day + (week - 1) * 7);
+        monday.setHours(0, 0, 0, 0);
+
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+
+        // [FEATURE 5] Apply employee filter
+        const filter   = document.getElementById("employeeFilter").value;
+        const weekLogs = allLogs.filter(l => {
+            const inWeek   = l.date >= monday && l.date <= sunday;
+            const inFilter = filter === "all" || l.employee === filter;
+            return inWeek && inFilter;
+        });
+
+        // Group logs by employee name
+        const byEmp = {};
+        weekLogs.forEach(l => {
+            if (!byEmp[l.employee]) byEmp[l.employee] = [];
+            byEmp[l.employee].push(l);
+        });
+
+        // =============================================
+        // Per-employee hour calculation
+        // [FEATURE 3] Auto-clock-out logic embedded here
+        // =============================================
+        const results = {}; // { name: { minutes, hadAuto } }
+
+        Object.entries(byEmp).forEach(([name, logs]) => {
+            // Sort oldest-first for correct In→Out pairing
+            logs.sort((a, b) => a.date - b.date);
+
+            let totalMins = 0;
+            let hadAuto   = false;
+            let inTime    = null;   // JS Date of the open Clock In
+            let inDay     = null;   // Melbourne calendar day of that Clock In ("YYYY-MM-DD")
+
+            logs.forEach(log => {
+                if (log.action === "Clocked In") {
+
+                    if (inTime !== null) {
+                        // There's already an open shift. If this new Clock In is on
+                        // a DIFFERENT Melbourne day, auto-close the previous shift at 17:00.
+                        // [FEATURE 3]
+                        const thisDay = toMelbDay(log.date);
+                        if (thisDay !== inDay) {
+                            const autoOut = melbourneEndOfShift(inTime);
+                            const diff    = autoOut - inTime;
+                            if (diff > 0) { totalMins += diff / 60000; hadAuto = true; }
+                        }
+                        // Same day duplicate Clock In: overwrite (take the later time)
+                        inTime = null; inDay = null;
                     }
-                });
 
-                results[name] = totalMinutes;
+                    inTime = log.date;
+                    inDay  = toMelbDay(log.date);
+
+                } else if (log.action === "Clocked Out" && inTime !== null) {
+                    // Normal paired Clock Out
+                    const diff = log.date - inTime;
+                    totalMins += diff / 60000;
+                    inTime = null; inDay = null;
+                }
             });
 
-            // --- Step 5: Render the summary tiles ---
-            const summarySection  = document.getElementById("summarySection");
-            const summaryGrid     = document.getElementById("summaryGrid");
-            const summaryWeekLbl  = document.getElementById("summaryWeekLabel");
-
-            summaryGrid.innerHTML = ""; // Clear old tiles
-
-            // Format the label: "Week of Mon DD MMM – Sun DD MMM YYYY"
-            const fmtDate = d => d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
-            summaryWeekLbl.textContent =
-                `Week of ${fmtDate(monday)} – ${fmtDate(sunday)}, ${year}`;
-
-            if (Object.keys(results).length === 0) {
-                summaryGrid.innerHTML = `<p class="summary-empty">No logs found for this week.</p>`;
-                summarySection.style.display = "block";
-                return;
+            // [FEATURE 3] After all logs processed — if inTime is still set,
+            // the employee never clocked out. Auto-close at 17:00 if that
+            // 5 pm point is already in the past.
+            if (inTime !== null) {
+                const autoOut = melbourneEndOfShift(inTime);
+                if (autoOut < new Date()) {
+                    const diff = autoOut - inTime;
+                    if (diff > 0) { totalMins += diff / 60000; hadAuto = true; }
+                }
             }
 
-            // Find the highest hours to highlight the top performer
-            const maxMinutes = Math.max(...Object.values(results));
+            results[name] = { minutes: totalMins, hadAuto };
+        });
 
-            Object.entries(results).forEach(([name, minutes]) => {
-                // Convert minutes to decimal hours, rounded to 2 decimal places
-                const hours   = (minutes / 60).toFixed(2);
-                const isTop   = minutes === maxMinutes && maxMinutes > 0;
+        // Render summary tiles
+        const grid      = document.getElementById("summaryGrid");
+        const section   = document.getElementById("summarySection");
+        const labelEl   = document.getElementById("summaryWeekLabel");
 
-                const tile = document.createElement("div");
-                tile.className = `summary-tile${isTop ? " highlight" : ""}`;
-                tile.innerHTML = `
-                    <p class="tile-name">${name}</p>
-                    <p class="tile-hours">${hours}</p>
-                    <p class="tile-unit">hrs this week</p>`;
-                summaryGrid.appendChild(tile);
-            });
+        grid.innerHTML = "";
 
-            // Reveal the summary section with a smooth display
-            summarySection.style.display = "block";
-        };
+        const fmtDate    = d => d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+        const filterLabel = filter === "all" ? "All Employees" : filter;
+        labelEl.textContent = `${filterLabel} — Week of ${fmtDate(monday)} – ${fmtDate(sunday)}, ${year}`;
 
-        // --- Kick off the initial data load when the page is ready ---
-        loadLogs();
+        if (Object.keys(results).length === 0) {
+            grid.innerHTML = `<p class="summary-empty">No logs found for this selection.</p>`;
+            section.style.display = "block";
+            return;
+        }
 
-    </script>
+        const maxMins = Math.max(...Object.values(results).map(r => r.minutes));
+
+        Object.entries(results).forEach(([name, { minutes, hadAuto }]) => {
+            const hours = (minutes / 60).toFixed(2);
+            const isTop = minutes === maxMins && maxMins > 0;
+
+            const tile = document.createElement("div");
+            tile.className = `summary-tile${isTop ? " highlight" : ""}`;
+
+            // [FEATURE 3] Amber warning note on tile if auto-clock-out was applied
+            const autoHTML = hadAuto
+                ? `<p class="tile-auto-note">⚠ Auto 5 pm clock-out applied</p>`
+                : "";
+
+            tile.innerHTML = `
+                <p class="tile-name">${name}</p>
+                <p class="tile-hours">${hours}</p>
+                <p class="tile-unit">hrs this week</p>
+                ${autoHTML}`;
+            grid.appendChild(tile);
+        });
+
+        section.style.display = "block";
+    };
+
+    // Pre-fill the manual entry date to today in Melbourne time
+    document.getElementById("manDate").value = toMelbDay(new Date());
+
+    // Initial load
+    loadLogs();
+
+</script>
 </body>
 </html>
