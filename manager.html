@@ -265,6 +265,18 @@
         <p class="card-title">Payroll Calculator</p>
 
         <div class="payroll-controls">
+            <button class="btn-calculate" onclick="calculatePayroll()">
+                &#9654; Calculate Hours
+            </button>
+
+            <button class="btn-calculate" style="background-color: #4CAF50; color: #121212;" onclick="refreshData()">
+                &#8635; Refresh Logs
+            </button>
+
+            <button class="btn-calculate" style="background-color: #C0C0C0; color: #121212;" onclick="exportToCSV()">
+                &#11123; Export to Excel (CSV)
+            </button>
+        </div>
 
             <!-- Week Picker (existing) -->
             <div class="form-group">
@@ -851,7 +863,65 @@
         });
     }
 
+// =================================================
+    // FEATURE: Refresh Data
+    // Shows a loading spinner, re-fetches from Firebase,
+    // and re-applies any active filters/week selections.
+    // =================================================
+    window.refreshData = async function() {
+        const tableBody = document.getElementById("logTableBody");
+        // Show loading state
+        tableBody.innerHTML = `<tr class="state-row"><td colspan="4"><span class="spinner"></span> Refreshing records...</td></tr>`;
+        
+        await loadLogs(); // Re-fetch everything from Firebase
+        
+        // If the manager has a week selected, re-apply that view
+        if (weekBounds) {
+            renderDashboard();
+        }
+    };
 
+    // =================================================
+    // FEATURE: Export to Excel (CSV format)
+    // Scrapes the currently visible table and downloads 
+    // it as a CSV file that opens directly in Excel.
+    // =================================================
+    window.exportToCSV = function() {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        // Create the headers
+        csvContent += "Employee,Action,Date & Time\n";
+
+        // Grab all the rows currently visible in the table
+        const rows = document.querySelectorAll("#logTableBody tr");
+        
+        rows.forEach(row => {
+            // Skip the row if it's just the "Loading..." or "No records" message
+            if(row.classList.contains('state-row')) return; 
+            
+            const cols = row.querySelectorAll("td");
+            if (cols.length >= 3) {
+                const name = cols[0].innerText;
+                
+                // Clean up the action text (removes the dot and formats the "Auto Out" badge nicely)
+                let action = cols[1].innerText.replace("\n", " ").replace("Auto Out @ 5 PM", " (Auto Out @ 5 PM)").trim();
+                
+                // Clean up commas in the date so it doesn't break the CSV columns
+                const time = cols[2].innerText.replace(/,/g, ""); 
+                
+                // Add the row to our CSV string
+                csvContent += `"${name}","${action}","${time}"\n`;
+            }
+        });
+
+        // Create a fake link, click it to trigger the download, then remove it
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "InCar_Time_Logs.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
     // =================================================
     // BOOTSTRAP — load logs on page ready
     // =================================================
