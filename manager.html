@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Dashboard — InCar Detailing</title>
 
+    <!-- ExcelJS for roster export -->
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
         /* =============================================
-           CSS VARIABLES — 100% preserved from original
+           CSS VARIABLES
         ============================================= */
         :root {
             --bg-primary:          #121212;
@@ -58,53 +61,306 @@
                 repeating-linear-gradient(-45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 8px);
             color: var(--text-main);
             min-height: 100vh;
-            padding: 40px 24px 60px;
         }
 
-        .wrapper { max-width: 960px; margin: 0 auto; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin    { to   { transform: rotate(360deg); } }
+
+        /* =============================================
+           LOGIN SCREEN
+        ============================================= */
+        #loginScreen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 400px;
+            animation: fadeUp 0.4s ease both;
+        }
+        .login-brand {
+            font-family: var(--font-header);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .login-title {
+            font-family: var(--font-header);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-header);
+            margin-bottom: 6px;
+        }
+        .login-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+        .login-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .login-field label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-label);
+        }
+        .login-field input {
+            width: 100%;
+            padding: 12px 16px;
+            font-family: var(--font-body);
+            font-size: 14px;
+            color: var(--text-main);
+            background: var(--bg-input);
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-input);
+            outline: none;
+            transition: border-color var(--transition-speed) ease,
+                        box-shadow    var(--transition-speed) ease;
+            color-scheme: dark;
+        }
+        .login-field input:focus {
+            border-color: var(--accent-border-focus);
+            box-shadow: 0 0 0 3px rgba(192,192,192,0.12);
+        }
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            margin-top: 8px;
+            font-family: var(--font-header);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--btn-primary-text);
+            background: var(--btn-primary-bg);
+            border: none;
+            border-radius: var(--radius-btn);
+            cursor: pointer;
+            box-shadow: var(--shadow-btn);
+            transition: background var(--transition-speed), transform var(--transition-speed);
+        }
+        .btn-login:hover  { background: var(--btn-primary-hover); transform: translateY(-2px); }
+        .btn-login:active { transform: translateY(0); }
+        #loginError {
+            margin-top: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--status-error);
+            background: rgba(244,67,54,0.08);
+            border-left: 3px solid var(--status-error);
+            padding: 9px 14px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        /* =============================================
+           DASHBOARD SHELL
+        ============================================= */
+        #dashboard { display: none; padding: 40px 24px 60px; }
+        .wrapper   { max-width: 960px; margin: 0 auto; }
 
         /* ---- Page Header ---- */
-        .page-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 36px; animation: fadeUp 0.4s ease both; }
-        .page-header-left .brand { font-family: var(--font-header); font-size: 11px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-        .page-header-left h1 { font-family: var(--font-header); font-size: 26px; font-weight: 700; color: var(--text-header); letter-spacing: -0.5px; }
-        .back-link { font-family: var(--font-body); font-size: 12px; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-decoration: none; text-transform: uppercase; transition: color var(--transition-speed) ease; }
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 36px;
+            animation: fadeUp 0.4s ease both;
+        }
+        .page-header-left .brand {
+            font-family: var(--font-header);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .page-header-left h1 {
+            font-family: var(--font-header);
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-header);
+            letter-spacing: -0.5px;
+        }
+        .header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .back-link {
+            font-family: var(--font-body);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: color var(--transition-speed) ease;
+        }
         .back-link:hover { color: var(--accent-silver); }
+        .btn-logout {
+            font-family: var(--font-header);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #e84a6f;
+            background: rgba(220,20,60,0.1);
+            border: 1px solid rgba(220,20,60,0.25);
+            border-radius: var(--radius-btn);
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background var(--transition-speed);
+        }
+        .btn-logout:hover { background: rgba(220,20,60,0.2); }
 
-        /* ---- Card ---- */
-        .card { background-color: var(--bg-card); border: 1px solid var(--accent-border); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 32px 36px; margin-bottom: 24px; animation: fadeUp 0.5s ease both; }
+        /* =============================================
+           LEDGER CARDS ROW
+        ============================================= */
+        .ledger-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+            animation: fadeUp 0.45s ease both;
+        }
+        @media (max-width: 720px) { .ledger-row { grid-template-columns: 1fr; } }
+
+        .ledger-card {
+            background: var(--bg-card);
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            padding: 22px 20px;
+        }
+        .ledger-card.accent-green { border-color: rgba(76,175,80,0.3); }
+        .ledger-card.accent-blue  { border-color: rgba(176,196,222,0.35); }
+        .ledger-card.accent-gold  { border-color: rgba(255,193,7,0.3); }
+
+        .ledger-label {
+            font-family: var(--font-header);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .ledger-value {
+            font-family: var(--font-header);
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--text-header);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .ledger-value.green { color: #6fcf74; }
+        .ledger-value.blue  { color: var(--btn-primary-bg); }
+        .ledger-sub { font-size: 11px; color: var(--text-muted); }
+
+        /* Payment Checklist inside ledger card */
+        .checklist-body  { margin-top: 6px; }
+        .checklist-item  {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--accent-border);
+            font-size: 12px;
+        }
+        .checklist-item:last-child { border-bottom: none; }
+        .checklist-item input[type="checkbox"] {
+            width: 14px; height: 14px;
+            accent-color: var(--btn-primary-bg);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .checklist-item label         { cursor: pointer; flex: 1; }
+        .checklist-item label.checked { text-decoration: line-through; color: var(--text-muted); }
+        .checklist-empty { font-size: 11px; color: var(--text-muted); }
+
+        /* =============================================
+           CARDS
+        ============================================= */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            padding: 32px 36px;
+            margin-bottom: 24px;
+            animation: fadeUp 0.5s ease both;
+        }
         .card:nth-child(2) { animation-delay: 0.1s; }
         .card:nth-child(3) { animation-delay: 0.2s; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .card-title { font-family: var(--font-header); font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--accent-border); }
+        .card-title {
+            font-family: var(--font-header);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--accent-border);
+        }
 
         /* ---- Payroll Controls ---- */
-        .payroll-controls { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+        .payroll-controls {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
         .form-group { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 160px; }
-        .form-group label { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-label); }
+        .form-group label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-label);
+        }
 
-        /* Shared input / select style */
         .ctrl-input {
-            width: 100%; padding: 12px 16px; font-family: var(--font-body); font-size: 14px;
+            width: 100%; padding: 12px 16px;
+            font-family: var(--font-body); font-size: 14px;
             color: var(--text-main); background-color: var(--bg-input);
             border: 1px solid var(--accent-border); border-radius: var(--radius-input);
             appearance: none; -webkit-appearance: none; outline: none; cursor: pointer;
-            transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            transition: border-color var(--transition-speed) ease,
+                        box-shadow    var(--transition-speed) ease;
             color-scheme: dark;
         }
         .ctrl-input:hover { border-color: var(--accent-silver); }
         .ctrl-input:focus { border-color: var(--accent-border-focus); box-shadow: 0 0 0 3px rgba(192,192,192,0.12); }
-        /* Custom dropdown arrow for <select> elements */
         select.ctrl-input {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C0C0C0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 16px center;
+            padding-right: 40px;
         }
         select.ctrl-input option { background-color: #1e1e1e; color: var(--text-main); }
 
         /* ---- Buttons ---- */
-        .btn-calculate, .btn-manual-save, .btn-danger {
+        .btn-calculate, .btn-manual-save, .btn-export, .btn-paid {
             display: flex; align-items: center; gap: 8px;
-            padding: 12px 22px; font-family: var(--font-header); font-size: 12px;
+            padding: 12px 22px;
+            font-family: var(--font-header); font-size: 12px;
             font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
             border: none; border-radius: var(--radius-btn); cursor: pointer;
             box-shadow: var(--shadow-btn); white-space: nowrap;
@@ -123,20 +379,59 @@
         }
         .btn-calculate:active, .btn-manual-save:active { transform: translateY(0); }
 
-        /* Small destructive button for delete & status feedback */
-        .btn-danger { background: rgba(220,20,60,0.15); color: #e84a6f; border: 1px solid rgba(220,20,60,0.25); padding: 8px 14px; font-size: 11px; }
-        .btn-danger:hover { background: rgba(220,20,60,0.28); transform: translateY(-1px); }
+        .btn-export { color: #121212; background: #4CAF50; }
+        .btn-export:hover { background: #5dbb63; transform: translateY(-2px); }
+
+        .btn-paid { color: #121212; background: #FFC107; }
+        .btn-paid:hover:not(:disabled) { background: #ffd54f; transform: translateY(-2px); }
+        .btn-paid:disabled { background: #333; color: #555; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-refresh {
+            display: flex; align-items: center; gap: 8px;
+            padding: 12px 18px;
+            font-family: var(--font-header); font-size: 12px;
+            font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-btn);
+            cursor: pointer; white-space: nowrap;
+            transition: background var(--transition-speed), color var(--transition-speed);
+        }
+        .btn-refresh:hover { background: rgba(255,255,255,0.08); color: var(--text-main); }
+
+        .action-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+
+        /* Paid period banner */
+        #paidBanner {
+            display: none;
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: rgba(255,193,7,0.07);
+            border: 1px solid rgba(255,193,7,0.3);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #FFC107;
+        }
 
         /* ---- Summary Section ---- */
         #summarySection { margin-top: 28px; display: none; }
-        .summary-week-label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
+        .summary-week-label {
+            font-size: 11px; font-weight: 600; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px;
+        }
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
-        .summary-tile { background: #0f0f0f; border: 1px solid var(--accent-border); border-radius: 10px; padding: 20px 18px; text-align: center; transition: border-color var(--transition-speed), transform var(--transition-speed); }
+        .summary-tile {
+            background: #0f0f0f; border: 1px solid var(--accent-border);
+            border-radius: 10px; padding: 20px 18px; text-align: center;
+            transition: border-color var(--transition-speed), transform var(--transition-speed);
+        }
         .summary-tile:hover { border-color: var(--accent-silver); transform: translateY(-3px); }
-        .summary-tile .tile-name { font-family: var(--font-header); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+        .summary-tile .tile-name  { font-family: var(--font-header); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
         .summary-tile .tile-hours { font-family: var(--font-header); font-size: 28px; font-weight: 700; color: var(--text-header); line-height: 1; }
-        .summary-tile .tile-unit { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-        .summary-tile.highlight { border-color: rgba(176,196,222,0.35); }
+        .summary-tile .tile-unit  { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        .summary-tile.highlight   { border-color: rgba(176,196,222,0.35); }
         .summary-tile.highlight .tile-hours { color: var(--btn-primary-bg); }
         .summary-empty { font-size: 13px; color: var(--text-muted); text-align: center; padding: 16px 0; }
 
@@ -144,94 +439,89 @@
         .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--accent-border); }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
         thead tr { background-color: #0f0f0f; }
-        th { font-family: var(--font-header); font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--accent-border); white-space: nowrap; }
+        th {
+            font-family: var(--font-header); font-size: 10px; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted);
+            padding: 14px 18px; text-align: left;
+            border-bottom: 1px solid var(--accent-border); white-space: nowrap;
+        }
         tbody tr:nth-child(odd)  { background-color: var(--bg-card); }
         tbody tr:nth-child(even) { background-color: var(--bg-card-alt); }
         tbody tr { transition: background-color var(--transition-speed) ease; }
         tbody tr:hover { background-color: #222; }
-        td { padding: 12px 18px; color: var(--text-main); border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle; }
+        td {
+            padding: 12px 18px; color: var(--text-main);
+            border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle;
+        }
         tbody tr:last-child td { border-bottom: none; }
         td.td-name { font-family: var(--font-header); font-weight: 600; color: var(--text-header); font-size: 13px; }
         td.td-time { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
 
-        /* ---- Badges ---- */
-        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 8px; border-radius: var(--radius-badge); font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border: 1px solid transparent; }
-        .badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-        .badge-in  { background: var(--badge-in-bg);  color: var(--badge-in-text);  border-color: var(--badge-in-border);  }
-        .badge-out { background: var(--badge-out-bg); color: var(--badge-out-text); border-color: var(--badge-out-border); }
-        .badge-in  .badge-dot { background: var(--badge-in-text);  }
-        .badge-out .badge-dot { background: var(--badge-out-text); }
+        /* Locked / paid row */
+        tbody tr.row-paid { opacity: 0.55; }
+        tbody tr.row-paid td.td-name { color: var(--text-muted); }
 
-        /* =============================================
-           FEATURE 3 — Auto clock-out indicator badge.
-           Applied to rows where payroll logic inserted
-           a synthetic 5 PM clock-out.
-        ============================================= */
+        /* ---- Badges ---- */
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px 3px 8px; border-radius: var(--radius-badge);
+            font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+            text-transform: uppercase; border: 1px solid transparent;
+        }
+        .badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .badge-in   { background: var(--badge-in-bg);  color: var(--badge-in-text);  border-color: var(--badge-in-border);  }
+        .badge-out  { background: var(--badge-out-bg); color: var(--badge-out-text); border-color: var(--badge-out-border); }
+        .badge-in   .badge-dot { background: var(--badge-in-text);  }
+        .badge-out  .badge-dot { background: var(--badge-out-text); }
         .badge-auto {
-            background: rgba(255,152,0,0.1);
-            color: #ffb74d;
+            background: rgba(255,152,0,0.1); color: #ffb74d;
             border-color: rgba(255,152,0,0.3);
         }
         .badge-auto .badge-dot { background: #ffb74d; }
+        .badge-paid {
+            background: rgba(255,193,7,0.1); color: #FFC107;
+            border-color: rgba(255,193,7,0.3); font-size: 10px;
+        }
 
         /* ---- Loading / Empty ---- */
         .state-row td { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px; }
-        .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(192,192,192,0.2); border-top-color: var(--accent-silver); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            display: inline-block; width: 18px; height: 18px;
+            border: 2px solid rgba(192,192,192,0.2); border-top-color: var(--accent-silver);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+            margin-right: 8px; vertical-align: middle;
+        }
 
-        /* =============================================
-           FEATURE 4 — Manual Entry form.
-           Appears below the week-selector row, separated
-           by a subtle divider. Uses the same ctrl-input
-           and btn styles as the rest of the card.
-        ============================================= */
+        /* ---- Manual Entry ---- */
         .manual-entry-section {
-            margin-top: 28px;
-            padding-top: 24px;
+            margin-top: 28px; padding-top: 24px;
             border-top: 1px solid var(--accent-border);
         }
         .manual-entry-title {
-            font-family: var(--font-header);
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 2.5px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 16px;
+            font-family: var(--font-header); font-size: 10px; font-weight: 700;
+            letter-spacing: 2.5px; text-transform: uppercase;
+            color: var(--text-muted); margin-bottom: 16px;
         }
         .manual-entry-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr 1fr auto;
-            gap: 12px;
-            align-items: flex-end;
-            flex-wrap: wrap;
+            gap: 12px; align-items: flex-end;
         }
-        /* Collapse to 2 columns on smaller screens */
-        @media (max-width: 720px) {
-            .manual-entry-grid { grid-template-columns: 1fr 1fr; }
-        }
+        @media (max-width: 720px) { .manual-entry-grid { grid-template-columns: 1fr 1fr; } }
         #manualFeedback {
-            font-size: 12px;
-            font-weight: 600;
-            margin-top: 12px;
-            padding: 9px 14px;
-            border-radius: 6px;
-            display: none;
+            font-size: 12px; font-weight: 600;
+            margin-top: 12px; padding: 9px 14px;
+            border-radius: 6px; display: none;
         }
         #manualFeedback.success { display: block; color: var(--status-success); background: rgba(76,175,80,0.08); border-left: 3px solid var(--status-success); }
         #manualFeedback.error   { display: block; color: var(--status-error);   background: rgba(244,67,54,0.08);  border-left: 3px solid var(--status-error); }
 
-        /* ---- Delete icon button inside table rows ---- */
+        /* ---- Delete icon ---- */
         .btn-delete {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--text-muted);
-            font-size: 15px;
-            padding: 4px 6px;
-            border-radius: 4px;
+            background: none; border: none; cursor: pointer;
+            color: var(--text-muted); font-size: 15px;
+            padding: 4px 6px; border-radius: 4px; line-height: 1;
             transition: color var(--transition-speed) ease, background var(--transition-speed) ease;
-            line-height: 1;
         }
         .btn-delete:hover { color: #e84a6f; background: rgba(220,20,60,0.1); }
 
@@ -240,57 +530,101 @@
             .page-header-left h1 { font-size: 20px; }
             .summary-grid { grid-template-columns: repeat(2, 1fr); }
             .payroll-controls { flex-direction: column; }
+            .action-btns { flex-direction: column; }
         }
     </style>
 </head>
 <body>
+
+<!-- =====================================================
+     LOGIN SCREEN
+     Shown by default; hidden by onAuthStateChanged.
+===================================================== -->
+<div id="loginScreen">
+    <div class="login-card">
+        <p class="login-brand">InCar Detailing</p>
+        <h1 class="login-title">Manager Access</h1>
+        <p class="login-subtitle">Secure dashboard — authorised personnel only.</p>
+
+        <div class="login-field">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" placeholder="manager@incardetailing.com.au" autocomplete="email">
+        </div>
+        <div class="login-field">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+        </div>
+
+        <button class="btn-login" onclick="doLogin()">&#128274; Sign In</button>
+        <div id="loginError"></div>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     DASHBOARD — hidden until Firebase Auth confirms user.
+===================================================== -->
+<div id="dashboard">
 <div class="wrapper">
 
-    <!-- ---- Page Header ---- -->
+    <!-- Page Header -->
     <header class="page-header">
         <div class="page-header-left">
             <p class="brand">InCar Detailing</p>
             <h1>Manager Dashboard</h1>
         </div>
-        <a href="index.html" class="back-link">← Employee Portal</a>
+        <div class="header-right">
+            <a href="index.html" class="back-link">&#8592; Employee Portal</a>
+            <button class="btn-logout" onclick="doLogout()">&#128274; Log Out</button>
+        </div>
     </header>
 
 
-    <!-- ==================================================
+    <!-- ===================================================
+         LEDGER CARDS ROW (NEW)
+         Updates on every calculatePayroll() / renderDashboard()
+    =================================================== -->
+    <div class="ledger-row">
+
+        <div class="ledger-card accent-green">
+            <p class="ledger-label">Fortnight Accrued</p>
+            <p class="ledger-value green" id="ledgerAccrued">—</p>
+            <p class="ledger-sub" id="ledgerAccruedSub">Select a pay period to calculate</p>
+        </div>
+
+        <div class="ledger-card accent-blue">
+            <p class="ledger-label">Total Hours</p>
+            <p class="ledger-value blue" id="ledgerHours">—</p>
+            <p class="ledger-sub" id="ledgerHoursSub">Current view</p>
+        </div>
+
+        <div class="ledger-card accent-gold">
+            <p class="ledger-label">Payment Checklist</p>
+            <div class="checklist-body" id="checklistBody">
+                <p class="checklist-empty">Calculate a pay period to populate.</p>
+            </div>
+        </div>
+
+    </div><!-- /.ledger-row -->
+
+
+    <!-- ===================================================
          CARD 1 — Payroll Calculator
-         Features: week picker (existing) + employee filter
-         (Feature 5) + manual entry form (Feature 4).
-    ================================================== -->
+    =================================================== -->
     <section class="card" id="payrollCard">
         <p class="card-title">Payroll Calculator</p>
 
         <div class="payroll-controls">
-            <!-- <button class="btn-calculate" onclick="calculatePayroll()">
-                &#9654; Calculate Hours
-            </button>
 
-            <!-- <button class="btn-calculate" style="background-color: #4CAF50; color: #121212;" onclick="refreshData()">
-                &#8635; Refresh Logs
-            </button>
-
-            <button class="btn-calculate" style="background-color: #C0C0C0; color: #121212;" onclick="exportToCSV()">
-                &#11123; Export to Excel (CSV)
-            </button>
-            </div>
-
-            <!-- Week Picker (existing) -->
+            <!-- Pay Period dropdown (NEW — replaces week picker) -->
             <div class="form-group">
-                <label for="weekPicker">Pay Week</label>
-                <input type="week" id="weekPicker" class="ctrl-input">
+                <label for="payPeriodSelect">Pay Period (Fortnight)</label>
+                <select id="payPeriodSelect" class="ctrl-input">
+                    <option value="">— Select Pay Period —</option>
+                </select>
             </div>
 
-            <!--
-                FEATURE 5 — Employee Filter dropdown.
-                Default = "All Employees".
-                Changing this triggers a re-render of
-                both the summary tiles and the log table
-                without another Firestore fetch.
-            -->
+            <!-- Employee filter -->
             <div class="form-group">
                 <label for="employeeFilter">Filter Employee</label>
                 <select id="employeeFilter" class="ctrl-input" onchange="renderDashboard()">
@@ -306,23 +640,34 @@
             </div>
 
             <button class="btn-calculate" onclick="calculatePayroll()">
-                &#9654; Calculate Hours
+                &#9654; Calculate
             </button>
 
+        </div><!-- /.payroll-controls -->
+
+        <!-- Action buttons row -->
+        <div class="action-btns">
+            <button class="btn-export" onclick="exportToExcel()">
+                &#11123; Export Excel
+            </button>
+            <button class="btn-paid" id="btnMarkPaid" onclick="markAsPaid()" disabled>
+                &#128274; Close Period &amp; Mark Paid
+            </button>
+            <button class="btn-refresh" onclick="loadLogs()">
+                &#8635; Refresh
+            </button>
         </div>
 
-        <!-- Summary tiles — revealed after calculation -->
+        <!-- Paid period banner -->
+        <div id="paidBanner">&#128274; This pay period is fully locked — all records have been marked as paid.</div>
+
+        <!-- Summary tiles (revealed after calculation) -->
         <div id="summarySection">
             <p class="summary-week-label" id="summaryWeekLabel"></p>
             <div class="summary-grid" id="summaryGrid"></div>
         </div>
 
-        <!-- ============================================
-             FEATURE 4 — Manual Entry Form
-             Allows manager to inject or correct records
-             directly into Firestore without touching the
-             employee portal.
-        ============================================ -->
+        <!-- Manual Entry Form -->
         <div class="manual-entry-section">
             <p class="manual-entry-title">&#9998; Manual Entry / Correction</p>
             <div class="manual-entry-grid">
@@ -358,25 +703,20 @@
                     </select>
                 </div>
 
-                <button class="btn-manual-save" onclick="saveManualEntry()">
-                    &#43; Save
-                </button>
+                <button class="btn-manual-save" onclick="saveManualEntry()">&#43; Save</button>
 
             </div>
             <p id="manualFeedback"></p>
         </div>
 
-    </section>
+    </section><!-- /#payrollCard -->
 
 
-    <!-- ==================================================
+    <!-- ===================================================
          CARD 2 — Detailed Log Table
-         Features: delete buttons (Feature 4),
-         auto clock-out badges (Feature 3),
-         filtered by Feature 5 when active.
-    ================================================== -->
+    =================================================== -->
     <section class="card">
-        <p class="card-title">All Time Logs — Most Recent First</p>
+        <p class="card-title">Time Logs — Current Pay Period</p>
         <div class="table-wrapper">
             <table>
                 <thead>
@@ -384,7 +724,7 @@
                         <th>Employee</th>
                         <th>Action</th>
                         <th>Date &amp; Time</th>
-                        <th style="width:40px;"></th><!-- Delete column -->
+                        <th style="width:80px;"></th>
                     </tr>
                 </thead>
                 <tbody id="logTableBody">
@@ -397,21 +737,30 @@
     </section>
 
 </div><!-- /.wrapper -->
+</div><!-- /#dashboard -->
 
 
 <script type="module">
 
-    import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore,
              collection,
              getDocs,
              addDoc,
              deleteDoc,
              doc,
+             writeBatch,
              orderBy,
              query,
-             Timestamp }      from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+             Timestamp }           from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth,
+             signInWithEmailAndPassword,
+             signOut,
+             onAuthStateChanged }  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+    // =====================================================
+    // FIREBASE INIT
+    // =====================================================
     const firebaseConfig = {
         apiKey:            "AIzaSyAiplwGT8bfv-lXp8T7UX0_GhCFpnBzxH4",
         authDomain:        "incar-detailing.firebaseapp.com",
@@ -420,34 +769,114 @@
         messagingSenderId: "323775979442",
         appId:             "1:323775979442:web:1573ce4526d13559718eab"
     };
+    const app  = initializeApp(firebaseConfig);
+    const db   = getFirestore(app);
+    const auth = getAuth(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
+    // =====================================================
+    // HOURLY RATES (AUD) — edit here per employee
+    // =====================================================
+    const HOURLY_RATES = {
+        "Aslam":      25,
+        "Farhan":     25,
+        "Infaz":      25,
+        "Aymen":      25,
+        "Faqi":       25,
+        "Employee 6": 25,
+        "Employee 7": 25,
+        DEFAULT:      25
+    };
+    const getRate = name => HOURLY_RATES[name] ?? HOURLY_RATES.DEFAULT;
 
-    // =================================================
-    // MODULE-LEVEL STATE
-    //
-    // allLogs    — every record fetched from Firestore,
-    //              cached so we never re-fetch just to
-    //              change the filter or recalculate.
-    //
-    // weekBounds — the Monday / Sunday Date objects for
-    //              the currently selected pay week.
-    //              Stored so the employee filter can
-    //              re-render without re-parsing the week.
-    // =================================================
-    let allLogs    = [];
-    let weekBounds = null; // { monday: Date, sunday: Date }
+    // =====================================================
+    // PAY PERIOD GENERATOR
+    // Anchor = 2024-01-01 (Monday). Generates all 14-day
+    // blocks from anchor through today + 90 days.
+    // =====================================================
+    const ANCHOR      = new Date(2024, 0, 1);
+    const PAY_PERIODS = (function () {
+        const periods = [];
+        const limit   = new Date();
+        limit.setDate(limit.getDate() + 90);
+        let s = new Date(ANCHOR);
+        while (s <= limit) {
+            const e = new Date(s);
+            e.setDate(s.getDate() + 13);
+            e.setHours(23, 59, 59, 999);
+            periods.push({ start: new Date(s), end: new Date(e) });
+            s.setDate(s.getDate() + 14);
+        }
+        return periods;
+    })();
 
+    function fmtShort(d) {
+        return d.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
+    }
 
-    // =================================================
-    // FEATURE 1 — Australian DST Helper
-    //
-    // Same helper as index.html. Formats any JS Date
-    // as a human-readable string in Australian Eastern
-    // Time (AEDT/AEST), which automatically adjusts for
-    // Daylight Savings transitions.
-    // =================================================
+    function populatePayPeriodDropdown() {
+        const sel   = document.getElementById("payPeriodSelect");
+        const today = new Date();
+        let   auto  = 0;
+        PAY_PERIODS.forEach((p, i) => {
+            const opt       = document.createElement("option");
+            opt.value       = i;
+            opt.textContent = `${fmtShort(p.start)} – ${fmtShort(p.end)}`;
+            sel.appendChild(opt);
+            if (today >= p.start && today <= p.end) auto = i;
+        });
+        sel.value = auto;
+    }
+
+    // =====================================================
+    // MODULE STATE
+    // =====================================================
+    let allLogs           = [];   // Full Firestore cache
+    let fortnightBounds   = null; // { start: Date, end: Date }
+    let currentPeriodLogs = [];   // Logs visible in current table
+
+    // =====================================================
+    // FIREBASE AUTH
+    // =====================================================
+    onAuthStateChanged(auth, user => {
+        if (user) {
+            document.getElementById("loginScreen").style.display = "none";
+            document.getElementById("dashboard").style.display   = "block";
+            loadLogs();
+        } else {
+            document.getElementById("loginScreen").style.display = "flex";
+            document.getElementById("dashboard").style.display   = "none";
+        }
+    });
+
+    window.doLogin = async function () {
+        const email    = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        const errEl    = document.getElementById("loginError");
+        errEl.style.display = "none";
+
+        if (!email || !password) {
+            errEl.textContent   = "Please enter your email and password.";
+            errEl.style.display = "block";
+            return;
+        }
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch {
+            errEl.textContent   = "Invalid credentials. Please try again.";
+            errEl.style.display = "block";
+        }
+    };
+
+    window.doLogout = () => signOut(auth);
+
+    document.getElementById("loginPassword")
+            .addEventListener("keydown", e => { if (e.key === "Enter") window.doLogin(); });
+    document.getElementById("loginEmail")
+            .addEventListener("keydown", e => { if (e.key === "Enter") window.doLogin(); });
+
+    // =====================================================
+    // AU TIME HELPER
+    // =====================================================
     function getAUTimeString(date) {
         return date.toLocaleString("en-AU", {
             timeZone: "Australia/Melbourne",
@@ -457,66 +886,230 @@
         });
     }
 
-
-    // =================================================
-    // loadLogs()
-    //
-    // Fetches ALL documents from the "timeLogs"
-    // collection ordered by Firestore Timestamp (newest
-    // first). Populates the allLogs cache and renders
-    // the full detail table.
-    // =================================================
-    async function loadLogs() {
+    // =====================================================
+    // LOAD LOGS FROM FIRESTORE
+    // =====================================================
+    window.loadLogs = async function () {
         const tableBody = document.getElementById("logTableBody");
+        tableBody.innerHTML = `<tr class="state-row"><td colspan="4"><span class="spinner"></span> Loading records…</td></tr>`;
 
         try {
             const q    = query(collection(db, "timeLogs"), orderBy("timestamp", "desc"));
             const snap = await getDocs(q);
-
-            allLogs = []; // Reset cache on each full load
-
-            if (snap.empty) {
-                tableBody.innerHTML = `<tr class="state-row"><td colspan="4">No records found.</td></tr>`;
-                return;
-            }
+            allLogs    = [];
 
             snap.forEach(docSnap => {
                 const d = docSnap.data();
                 allLogs.push({
-                    id:       docSnap.id,            // Firestore document ID (for deletes)
-                    employee: d.employee || "Unknown",
-                    action:   d.action   || "",
-                    timeStr:  d.time     || "",
-                    // Convert Firestore Timestamp to JS Date.
-                    // Falls back to parsing the string for old records.
-                    date: d.timestamp
-                            ? d.timestamp.toDate()
-                            : new Date(d.time)
+                    id:            docSnap.id,
+                    employee:      d.employee      || "Unknown",
+                    action:        d.action        || "",
+                    timeStr:       d.time          || "",
+                    paymentStatus: d.paymentStatus || "unpaid",
+                    date: d.timestamp ? d.timestamp.toDate() : new Date(d.time)
                 });
             });
 
-            renderTable(allLogs);
+            if (fortnightBounds) {
+                renderDashboard();
+            } else {
+                renderTable(allLogs);
+            }
 
         } catch (err) {
             console.error("loadLogs error:", err);
             tableBody.innerHTML = `<tr class="state-row"><td colspan="4" style="color:var(--status-error)">Error loading records.</td></tr>`;
         }
+    };
+
+    // =====================================================
+    // CALCULATE — entry point for Calculate button
+    // =====================================================
+    window.calculatePayroll = function () {
+        const sel = document.getElementById("payPeriodSelect");
+        const idx = parseInt(sel.value, 10);
+        if (isNaN(idx) || !PAY_PERIODS[idx]) {
+            alert("Please select a pay period first."); return;
+        }
+        const p     = PAY_PERIODS[idx];
+        fortnightBounds = { start: new Date(p.start), end: new Date(p.end) };
+        renderDashboard();
+    };
+
+    // =====================================================
+    // FEATURE 3 — 5 PM Auto Clock-Out computation
+    // Returns { results: {name: totalMinutes}, autoSet: Set }
+    // =====================================================
+    function computeHours(groupedLogs) {
+        const autoSet = new Set();
+        const results = {};
+
+        Object.entries(groupedLogs).forEach(([name, logs]) => {
+            const sorted = [...logs].sort((a, b) => a.date - b.date);
+            let totalMins  = 0;
+            let clockInAt  = null;
+            let clockInDay = null;
+
+            sorted.forEach(log => {
+                if (log.action === "Clocked In") {
+                    clockInAt  = log.date;
+                    clockInDay = log.date.toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+                } else if (log.action === "Clocked Out" && clockInAt !== null) {
+                    totalMins += (log.date - clockInAt) / 60000;
+                    clockInAt  = null;
+                    clockInDay = null;
+                }
+            });
+
+            if (clockInAt !== null && clockInDay !== null) {
+                const autoOut = new Date(`${clockInDay}T17:00:00`);
+                if (autoOut > clockInAt) totalMins += (autoOut - clockInAt) / 60000;
+                autoSet.add(`${name}|${clockInDay}`);
+            }
+
+            results[name] = totalMins;
+        });
+
+        return { results, autoSet };
     }
 
+    // Daily hours variant for Excel export
+    function computeDailyHours(empLogs) {
+        const byDay  = {};
+        const sorted = [...empLogs].sort((a, b) => a.date - b.date);
+        let clockInAt  = null;
+        let clockInDay = null;
 
-    // =================================================
-    // renderTable(logs)
-    //
-    // Renders a subset of allLogs into the detail table.
-    // Called by both the initial load and the filter.
-    // Each row gets a delete button (Feature 4).
-    // =================================================
+        sorted.forEach(log => {
+            const day = log.date.toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+            if (log.action === "Clocked In") {
+                clockInAt  = log.date;
+                clockInDay = day;
+            } else if (log.action === "Clocked Out" && clockInAt !== null) {
+                const hrs = (log.date - clockInAt) / 3600000;
+                byDay[clockInDay] = (byDay[clockInDay] || 0) + hrs;
+                clockInAt = null; clockInDay = null;
+            }
+        });
+        if (clockInAt !== null && clockInDay !== null) {
+            const autoOut = new Date(`${clockInDay}T17:00:00`);
+            if (autoOut > clockInAt) {
+                const hrs = (autoOut - clockInAt) / 3600000;
+                byDay[clockInDay] = (byDay[clockInDay] || 0) + hrs;
+            }
+        }
+        return byDay;
+    }
+
+    // =====================================================
+    // RENDER DASHBOARD (called by Calculate + employee filter)
+    // =====================================================
+    window.renderDashboard = function () {
+        if (!fortnightBounds) return;
+        const { start, end } = fortnightBounds;
+        const filterVal = document.getElementById("employeeFilter").value;
+
+        // Apply employee filter
+        const base = filterVal === "ALL"
+            ? allLogs
+            : allLogs.filter(l => l.employee === filterVal);
+
+        // Filter to fortnight window
+        const periodLogs   = base.filter(l => l.date >= start && l.date <= end);
+        currentPeriodLogs  = periodLogs;
+
+        // Paid state
+        const hasLogs  = periodLogs.length > 0;
+        const allPaid  = hasLogs && periodLogs.every(l => l.paymentStatus === "paid");
+        const btnPaid  = document.getElementById("btnMarkPaid");
+        btnPaid.disabled = allPaid || !hasLogs;
+        btnPaid.innerHTML = "&#128274; Close Period &amp; Mark Paid";
+        document.getElementById("paidBanner").style.display = allPaid ? "block" : "none";
+
+        // Group by employee
+        const grouped = {};
+        periodLogs.forEach(l => {
+            if (!grouped[l.employee]) grouped[l.employee] = [];
+            grouped[l.employee].push(l);
+        });
+
+        const { results, autoSet } = computeHours(grouped);
+
+        // ---- Ledger Card values ----
+        const totalMins    = Object.values(results).reduce((a, b) => a + b, 0);
+        const totalHours   = totalMins / 60;
+        const totalPayable = Object.entries(results)
+            .reduce((sum, [name, mins]) => sum + (mins / 60) * getRate(name), 0);
+
+        document.getElementById("ledgerAccrued").textContent    = `$${totalPayable.toFixed(2)}`;
+        document.getElementById("ledgerAccruedSub").textContent = `${fmtShort(start)} – ${fmtShort(end)}`;
+        document.getElementById("ledgerHours").textContent      = `${totalHours.toFixed(1)}h`;
+        document.getElementById("ledgerHoursSub").textContent   =
+            filterVal === "ALL" ? "All employees" : filterVal;
+
+        // ---- Payment Checklist ----
+        const checklistBody = document.getElementById("checklistBody");
+        if (!Object.keys(results).length) {
+            checklistBody.innerHTML = `<p class="checklist-empty">No employees found for this period.</p>`;
+        } else {
+            checklistBody.innerHTML = "";
+            Object.entries(results).forEach(([name, mins]) => {
+                const hrs  = (mins / 60).toFixed(1);
+                const pay  = ((mins / 60) * getRate(name)).toFixed(2);
+                const cbId = `chk_${name.replace(/\s+/g, "_")}`;
+                const item = document.createElement("div");
+                item.className = "checklist-item";
+                item.innerHTML = `
+                    <input type="checkbox" id="${cbId}"
+                           onchange="this.nextElementSibling.classList.toggle('checked', this.checked)">
+                    <label for="${cbId}">${name} — ${hrs}h — $${pay}</label>`;
+                checklistBody.appendChild(item);
+            });
+        }
+
+        // ---- Summary Tiles ----
+        const summarySection = document.getElementById("summarySection");
+        const summaryGrid    = document.getElementById("summaryGrid");
+        const summaryLabel   = document.getElementById("summaryWeekLabel");
+        summaryGrid.innerHTML = "";
+        summaryLabel.textContent = `Fortnight: ${fmtShort(start)} – ${fmtShort(end)}`;
+
+        if (!Object.keys(results).length) {
+            summaryGrid.innerHTML = `<p class="summary-empty">No logs for this period${filterVal !== "ALL" ? " / employee" : ""}.</p>`;
+        } else {
+            const maxMins = Math.max(...Object.values(results));
+            Object.entries(results).forEach(([name, mins]) => {
+                const hours   = (mins / 60).toFixed(2);
+                const isTop   = mins === maxMins && maxMins > 0;
+                const hasAuto = [...autoSet].some(k => k.startsWith(name + "|"));
+                const autoNote = hasAuto
+                    ? `<p class="tile-unit" style="color:#ffb74d;margin-top:6px;font-size:10px;">&#9888; auto clock-out applied</p>`
+                    : "";
+                const tile = document.createElement("div");
+                tile.className = `summary-tile${isTop ? " highlight" : ""}`;
+                tile.innerHTML = `
+                    <p class="tile-name">${name}</p>
+                    <p class="tile-hours">${hours}</p>
+                    <p class="tile-unit">hrs this fortnight</p>
+                    ${autoNote}`;
+                summaryGrid.appendChild(tile);
+            });
+        }
+        summarySection.style.display = "block";
+
+        // ---- Table ----
+        renderTableWithAutoFlag(periodLogs, autoSet);
+    };
+
+    // =====================================================
+    // RENDER TABLE — initial full-load view (no period set)
+    // =====================================================
     function renderTable(logs) {
-        const tableBody = document.getElementById("logTableBody");
-        tableBody.innerHTML = "";
+        const tb = document.getElementById("logTableBody");
+        tb.innerHTML = "";
 
         if (!logs.length) {
-            tableBody.innerHTML = `<tr class="state-row"><td colspan="4">No records match the current filter.</td></tr>`;
+            tb.innerHTML = `<tr class="state-row"><td colspan="4">No records found.</td></tr>`;
             return;
         }
 
@@ -524,77 +1117,136 @@
             const isIn       = log.action === "Clocked In";
             const badgeClass = isIn ? "badge-in" : "badge-out";
             const badgeText  = isIn ? "Clocked In" : "Clocked Out";
-
-            const badgeHTML = `
-                <span class="badge ${badgeClass}">
-                    <span class="badge-dot"></span>${badgeText}
-                </span>`;
+            const isPaid     = log.paymentStatus === "paid";
 
             const row = document.createElement("tr");
-            row.dataset.logId = log.id; // Store the Firestore doc ID on the row
-
+            if (isPaid) row.classList.add("row-paid");
             row.innerHTML = `
                 <td class="td-name">${log.employee}</td>
-                <td>${badgeHTML}</td>
-                <td class="td-time">${log.timeStr}</td>
                 <td>
-                    <!--
-                        FEATURE 4: Delete button.
-                        The trash-can icon calls deleteLog()
-                        with the Firestore document ID.
-                    -->
-                    <button class="btn-delete" title="Delete this record"
-                            onclick="deleteLog('${log.id}', this)">🗑</button>
-                </td>`;
-            tableBody.appendChild(row);
+                    <span class="badge ${badgeClass}"><span class="badge-dot"></span>${badgeText}</span>
+                    ${isPaid ? `<span class="badge badge-paid" style="margin-left:6px;">&#128274; Paid</span>` : ""}
+                </td>
+                <td class="td-time">${log.timeStr}</td>
+                <td>${isPaid ? "" : `<button class="btn-delete" title="Delete" onclick="deleteLog('${log.id}', this)">&#128465;</button>`}</td>`;
+            tb.appendChild(row);
         });
     }
 
+    // =====================================================
+    // RENDER TABLE WITH AUTO-OUT FLAGS + PAID LOCKING
+    // =====================================================
+    function renderTableWithAutoFlag(logs, autoSet) {
+        const tb = document.getElementById("logTableBody");
+        tb.innerHTML = "";
 
-    // =================================================
-    // FEATURE 4 — deleteLog(docId, btnEl)
-    //
-    // Deletes a single Firestore document and removes
-    // its row from the table + the allLogs cache so
-    // the payroll calculation stays accurate without
-    // needing a full reload.
-    // =================================================
-    window.deleteLog = async function(docId, btnEl) {
+        if (!logs.length) {
+            tb.innerHTML = `<tr class="state-row"><td colspan="4">No records for this selection.</td></tr>`;
+            return;
+        }
+
+        const sorted = [...logs].sort((a, b) => b.date - a.date);
+
+        sorted.forEach(log => {
+            const isIn       = log.action === "Clocked In";
+            const badgeClass = isIn ? "badge-in" : "badge-out";
+            const badgeText  = isIn ? "Clocked In" : "Clocked Out";
+            const logDay     = log.date.toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+            const isAutoOut  = isIn && autoSet.has(`${log.employee}|${logDay}`);
+            const isPaid     = log.paymentStatus === "paid";
+
+            const autoHTML = isAutoOut
+                ? `<span class="badge badge-auto" style="margin-left:6px;"><span class="badge-dot"></span>Auto Out @ 5 PM</span>`
+                : "";
+            const paidHTML = isPaid
+                ? `<span class="badge badge-paid" style="margin-left:6px;">&#128274; Paid</span>`
+                : "";
+
+            const row = document.createElement("tr");
+            if (isPaid) row.classList.add("row-paid");
+            row.innerHTML = `
+                <td class="td-name">${log.employee}</td>
+                <td>
+                    <span class="badge ${badgeClass}"><span class="badge-dot"></span>${badgeText}</span>
+                    ${autoHTML}${paidHTML}
+                </td>
+                <td class="td-time">${log.timeStr}</td>
+                <td>${isPaid ? "" : `<button class="btn-delete" title="Delete" onclick="deleteLog('${log.id}', this)">&#128465;</button>`}</td>`;
+            tb.appendChild(row);
+        });
+    }
+
+    // =====================================================
+    // DELETE LOG
+    // =====================================================
+    window.deleteLog = async function (docId, btnEl) {
         if (!confirm("Delete this record? This cannot be undone.")) return;
-
         try {
             await deleteDoc(doc(db, "timeLogs", docId));
-
-            // Remove from in-memory cache
             allLogs = allLogs.filter(l => l.id !== docId);
-
-            // Remove the row from the DOM
             const row = btnEl.closest("tr");
             row.style.opacity    = "0";
             row.style.transition = "opacity 0.3s";
             setTimeout(() => row.remove(), 320);
-
         } catch (err) {
             console.error("Delete failed:", err);
             alert("Could not delete the record. Check your Firestore permissions.");
         }
     };
 
+    // =====================================================
+    // MARK AS PAID — closes pay period, locks all logs
+    // =====================================================
+    window.markAsPaid = async function () {
+        if (!fortnightBounds || !currentPeriodLogs.length) return;
 
-    // =================================================
-    // FEATURE 4 — saveManualEntry()
-    //
-    // Reads the manual entry form, constructs a proper
-    // Firestore document with a real Timestamp, writes
-    // it, then reloads the full log list so the new
-    // entry is visible and payroll can find it.
-    // =================================================
-    window.saveManualEntry = async function() {
-        const employee  = document.getElementById("manualEmployee").value;
-        const dateVal   = document.getElementById("manualDate").value;    // "YYYY-MM-DD"
-        const timeVal   = document.getElementById("manualTime").value;    // "HH:MM"
-        const action    = document.getElementById("manualAction").value;
-        const feedback  = document.getElementById("manualFeedback");
+        const unpaid = currentPeriodLogs.filter(l => l.paymentStatus !== "paid");
+        if (!unpaid.length) { alert("All records in this period are already marked as paid."); return; }
+
+        const confirmed = confirm(
+            `Lock ${unpaid.length} record(s) as PAID for this pay period?\n\n` +
+            `Period: ${fmtShort(fortnightBounds.start)} – ${fmtShort(fortnightBounds.end)}\n\n` +
+            `This permanently locks those records and cannot be undone.`
+        );
+        if (!confirmed) return;
+
+        const btn = document.getElementById("btnMarkPaid");
+        btn.disabled   = true;
+        btn.textContent = "Processing…";
+
+        try {
+            // writeBatch supports up to 500 ops; chunk at 400 to be safe
+            const CHUNK = 400;
+            for (let i = 0; i < unpaid.length; i += CHUNK) {
+                const batch = writeBatch(db);
+                unpaid.slice(i, i + CHUNK).forEach(log => {
+                    batch.update(doc(db, "timeLogs", log.id), { paymentStatus: "paid" });
+                });
+                await batch.commit();
+            }
+
+            // Patch local cache (same object references in allLogs)
+            unpaid.forEach(log => { log.paymentStatus = "paid"; });
+
+            renderDashboard();
+
+        } catch (err) {
+            console.error("markAsPaid error:", err);
+            alert("Failed to mark as paid. Check console for details.");
+            btn.disabled  = false;
+            btn.innerHTML = "&#128274; Close Period &amp; Mark Paid";
+        }
+    };
+
+    // =====================================================
+    // SAVE MANUAL ENTRY
+    // =====================================================
+    window.saveManualEntry = async function () {
+        const employee = document.getElementById("manualEmployee").value;
+        const dateVal  = document.getElementById("manualDate").value;
+        const timeVal  = document.getElementById("manualTime").value;
+        const action   = document.getElementById("manualAction").value;
+        const feedback = document.getElementById("manualFeedback");
 
         feedback.className   = "";
         feedback.textContent = "";
@@ -605,15 +1257,10 @@
             return;
         }
 
-        // Build a JS Date from the local date+time string.
-        // Using "YYYY-MM-DDTHH:MM" format ensures Date() parses
-        // it as local time (not UTC), which is what we want.
         const manualDate = new Date(`${dateVal}T${timeVal}:00`);
 
         try {
-            // FEATURE 1: Store AU-formatted readable string
             const auTimeStr = getAUTimeString(manualDate);
-
             await addDoc(collection(db, "timeLogs"), {
                 employee:  employee,
                 action:    action,
@@ -621,14 +1268,11 @@
                 timestamp: Timestamp.fromDate(manualDate)
             });
 
-            feedback.textContent = `Manual entry saved: ${employee} — ${action} at ${auTimeStr}`;
+            feedback.textContent = `Saved: ${employee} — ${action} at ${auTimeStr}`;
             feedback.className   = "success";
-
-            // Clear the time/date fields (leave employee & action for quick repeat entry)
             document.getElementById("manualDate").value = "";
             document.getElementById("manualTime").value = "";
 
-            // Reload the log list so the new record appears in the table
             await loadLogs();
 
         } catch (err) {
@@ -638,236 +1282,157 @@
         }
     };
 
+    // =====================================================
+    // EXPORT TO EXCEL (ExcelJS)
+    // 14-day roster: dark-blue merged title row,
+    // per-employee daily hour columns,
+    // yellow Total Payable column.
+    // =====================================================
+    window.exportToExcel = async function () {
+        if (!fortnightBounds || !currentPeriodLogs.length) {
+            alert("Please calculate a pay period first."); return;
+        }
 
-    // =================================================
-    // calculatePayroll()
-    //
-    // Entry point when manager clicks "Calculate Hours".
-    // Parses the week picker, stores the bounds, then
-    // calls renderDashboard() which is also used by the
-    // employee filter (Feature 5).
-    // =================================================
-    window.calculatePayroll = function() {
-        const weekInput = document.getElementById("weekPicker").value;
-        if (!weekInput) { alert("Please select a week first."); return; }
+        if (typeof ExcelJS === "undefined") {
+            alert("ExcelJS library not loaded. Check your internet connection."); return;
+        }
 
-        // Parse "YYYY-W##" into a Monday–Sunday date range
-        const [yearStr, weekStr] = weekInput.split("-W");
-        const year = parseInt(yearStr, 10);
-        const week = parseInt(weekStr, 10);
+        const { start, end } = fortnightBounds;
 
-        // ISO week arithmetic: Jan 4 is always in week 1
-        const jan4    = new Date(year, 0, 4);
-        const jan4Day = (jan4.getDay() + 6) % 7; // 0=Mon … 6=Sun
-        const monday  = new Date(jan4);
-        monday.setDate(jan4.getDate() - jan4Day + (week - 1) * 7);
-        monday.setHours(0, 0, 0, 0);
+        // Build the 14 calendar-day Date objects
+        const days = [];
+        for (let i = 0; i < 14; i++) {
+            const d = new Date(start);
+            d.setDate(start.getDate() + i);
+            days.push(d);
+        }
+        const dayKeys = days.map(d => d.toLocaleDateString("en-CA")); // "YYYY-MM-DD"
 
-        const sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
-        sunday.setHours(23, 59, 59, 999);
-
-        weekBounds = { monday, sunday, year };
-        renderDashboard();
-    };
-
-
-    // =================================================
-    // renderDashboard()
-    //
-    // Called by calculatePayroll() and by the employee
-    // filter's onchange handler (Feature 5).
-    //
-    // Steps:
-    //   1. Apply employee filter if not "ALL"
-    //   2. Filter logs to the selected week
-    //   3. Calculate hours (with Feature 3 fallback)
-    //   4. Render summary tiles
-    //   5. Re-render the detail table for the filtered set
-    // =================================================
-    window.renderDashboard = function() {
-        if (!weekBounds) return; // No week calculated yet
-
-        const { monday, sunday, year } = weekBounds;
-        const filterVal = document.getElementById("employeeFilter").value;
-
-        // === FEATURE 5: Apply employee filter ===
-        // If a specific name is chosen, restrict allLogs before any other work.
-        const filteredByEmployee = filterVal === "ALL"
-            ? allLogs
-            : allLogs.filter(l => l.employee === filterVal);
-
-        // === Filter to the selected week ===
-        const weekLogs = filteredByEmployee.filter(l => l.date >= monday && l.date <= sunday);
-
-        // === Group logs by employee ===
-        const byEmployee = {};
-        weekLogs.forEach(log => {
-            if (!byEmployee[log.employee]) byEmployee[log.employee] = [];
-            byEmployee[log.employee].push(log);
+        // Group period logs by employee and pre-compute daily hours
+        const grouped = {};
+        currentPeriodLogs.forEach(l => {
+            if (!grouped[l.employee]) grouped[l.employee] = [];
+            grouped[l.employee].push(l);
         });
+        const employees = Object.keys(grouped).sort();
 
-        // =============================================
-        // FEATURE 3 — 5 PM Auto Clock-Out Fallback
-        //
-        // After pairing each In/Out, if an employee has
-        // a "Clocked In" with NO following "Clocked Out"
-        // on the same calendar day, we synthesise a
-        // clock-out at 17:00 on that day.
-        //
-        // We also track which employee-days used the
-        // fallback so the table can show an amber badge.
-        // =============================================
+        // Cache daily hours per employee
+        const dailyHrsCache = {};
+        employees.forEach(name => { dailyHrsCache[name] = computeDailyHours(grouped[name]); });
 
-        // autoClockOutDetails: Set of "<employee>|<YYYY-MM-DD>" strings for indicator rendering
-        const autoClockOutDetails = new Set();
+        // Column layout: Employee(1) + 14 days(2–15) + Total Hrs(16) + Total Payable(17) = 17 cols
+        const COL_COUNT = 17;
 
-        const results = {}; // { name: totalMinutes }
+        const wb = new ExcelJS.Workbook();
+        wb.creator = "InCar Detailing Manager";
+        wb.created = new Date();
+        const ws   = wb.addWorksheet("Pay Period");
 
-        Object.entries(byEmployee).forEach(([name, logs]) => {
-            // Sort chronologically (oldest first) for correct sequential pairing
-            logs.sort((a, b) => a.date - b.date);
+        // ---- Row 1: Merged dark-blue title ----
+        ws.addRow([`InCar Detailing — Pay Period: ${fmtShort(start)} – ${fmtShort(end)}`]);
+        ws.mergeCells(1, 1, 1, COL_COUNT);
+        const titleCell        = ws.getCell("A1");
+        titleCell.font         = { bold: true, size: 13, color: { argb: "FFFFFFFF" }, name: "Calibri" };
+        titleCell.fill         = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F3864" } };
+        titleCell.alignment    = { horizontal: "center", vertical: "middle" };
+        ws.getRow(1).height    = 32;
 
-            let totalMinutes = 0;
-            let clockInTime  = null; // JS Date of the open clock-in
-            let clockInDay   = null; // "YYYY-MM-DD" of the open clock-in
+        // ---- Row 2: Column headers ----
+        const dayHeaders = days.map(d =>
+            d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })
+        );
+        ws.addRow(["Employee", ...dayHeaders, "Total Hours", "Total Payable"]);
+        const hRow = ws.getRow(2);
+        hRow.height = 36;
+        hRow.eachCell(cell => {
+            cell.font      = { bold: true, size: 10, color: { argb: "FFFFFFFF" } };
+            cell.fill      = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2D3748" } };
+            cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+            cell.border    = { bottom: { style: "thin", color: { argb: "FF444444" } } };
+        });
+        hRow.getCell(1).alignment = { horizontal: "left", vertical: "middle" };
 
-            logs.forEach(log => {
-                if (log.action === "Clocked In") {
-                    clockInTime = log.date;
-                    // Store the calendar day in AU timezone so the auto-out
-                    // is placed at 17:00 on the correct local day.
-                    clockInDay = log.date.toLocaleDateString("en-CA", {
-                        timeZone: "Australia/Melbourne" // en-CA gives "YYYY-MM-DD" format
-                    });
+        // ---- Employee data rows ----
+        employees.forEach(name => {
+            const byDay   = dailyHrsCache[name];
+            const rate    = getRate(name);
+            const dayCells = dayKeys.map(k => byDay[k] ? +byDay[k].toFixed(2) : "–");
+            const totalHrs = dayKeys.reduce((s, k) => s + (byDay[k] || 0), 0);
+            const totalPay = totalHrs * rate;
 
-                } else if (log.action === "Clocked Out" && clockInTime !== null) {
-                    const diffMs = log.date - clockInTime;
-                    totalMinutes += diffMs / (1000 * 60);
-                    clockInTime  = null;
-                    clockInDay   = null;
-                }
-            });
+            const dRow = ws.addRow([name, ...dayCells, +totalHrs.toFixed(2), +totalPay.toFixed(2)]);
+            dRow.height = 22;
 
-            // After processing all logs: if there is still an open clock-in,
-            // synthesise a 5 PM clock-out on the same calendar day.
-            if (clockInTime !== null && clockInDay !== null) {
-                // Build the 17:00:00 boundary in the AU timezone for that day
-                const autoOutDate = new Date(`${clockInDay}T17:00:00`);
+            dRow.getCell(1).font      = { bold: true, size: 11 };
+            dRow.getCell(1).alignment = { horizontal: "left", vertical: "middle" };
 
-                // Only apply if 17:00 is actually AFTER the clock-in time
-                if (autoOutDate > clockInTime) {
-                    const diffMs = autoOutDate - clockInTime;
-                    totalMinutes += diffMs / (1000 * 60);
-                } else {
-                    // Clock-in was after 5 PM — count 0 minutes for this open shift
-                }
-
-                // Mark this employee+day as having used the auto-out fallback
-                autoClockOutDetails.add(`${name}|${clockInDay}`);
+            // Day cells (cols 2–15)
+            for (let c = 2; c <= 15; c++) {
+                const cell = dRow.getCell(c);
+                cell.alignment = { horizontal: "center", vertical: "middle" };
+                if (typeof cell.value === "number") cell.numFmt = "0.00";
             }
 
-            results[name] = totalMinutes;
+            // Total Hours (col 16)
+            const thCell      = dRow.getCell(16);
+            thCell.font       = { bold: true, size: 11 };
+            thCell.alignment  = { horizontal: "center", vertical: "middle" };
+            thCell.numFmt     = "0.00";
+
+            // Total Payable (col 17) — yellow fill
+            const tpCell      = dRow.getCell(17);
+            tpCell.font       = { bold: true, size: 11, color: { argb: "FF000000" } };
+            tpCell.fill       = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF176" } };
+            tpCell.alignment  = { horizontal: "center", vertical: "middle" };
+            tpCell.numFmt     = '"$"#,##0.00';
         });
 
-        // === Render summary tiles ===
-        const summarySection = document.getElementById("summarySection");
-        const summaryGrid    = document.getElementById("summaryGrid");
-        const summaryLabel   = document.getElementById("summaryWeekLabel");
+        // ---- Grand Totals row ----
+        let grandHrs = 0;
+        let grandPay = 0;
+        const totDayCells = dayKeys.map(k => {
+            const s = employees.reduce((acc, n) => acc + (dailyHrsCache[n][k] || 0), 0);
+            return s > 0 ? +s.toFixed(2) : "–";
+        });
+        employees.forEach(n => {
+            const h = dayKeys.reduce((s, k) => s + (dailyHrsCache[n][k] || 0), 0);
+            grandHrs += h;
+            grandPay += h * getRate(n);
+        });
 
-        summaryGrid.innerHTML = "";
+        const tRow = ws.addRow(["TOTAL", ...totDayCells, +grandHrs.toFixed(2), +grandPay.toFixed(2)]);
+        tRow.height = 26;
+        tRow.eachCell(cell => {
+            cell.font      = { bold: true, size: 11, color: { argb: "FFFFFFFF" } };
+            cell.fill      = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F3864" } };
+            cell.alignment = { horizontal: "center", vertical: "middle" };
+        });
+        tRow.getCell(1).alignment  = { horizontal: "left", vertical: "middle" };
+        tRow.getCell(17).fill      = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF176" } };
+        tRow.getCell(17).font      = { bold: true, size: 11, color: { argb: "FF000000" } };
+        tRow.getCell(17).numFmt    = '"$"#,##0.00';
 
-        const fmtDate = d => d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
-        summaryLabel.textContent = `Week of ${fmtDate(monday)} – ${fmtDate(sunday)}, ${year}`;
+        // ---- Column widths ----
+        ws.getColumn(1).width  = 18;
+        for (let c = 2; c <= 15; c++) ws.getColumn(c).width = 11;
+        ws.getColumn(16).width = 14;
+        ws.getColumn(17).width = 16;
 
-        if (!Object.keys(results).length) {
-            summaryGrid.innerHTML = `<p class="summary-empty">No logs for this week${filterVal !== "ALL" ? " / employee" : ""}.</p>`;
-        } else {
-            const maxMins = Math.max(...Object.values(results));
-            Object.entries(results).forEach(([name, mins]) => {
-                const hours = (mins / 60).toFixed(2);
-                const isTop = mins === maxMins && maxMins > 0;
-
-                // Show ⚠ icon on tile if auto clock-out was used for this employee
-                const hasAutoOut = [...autoClockOutDetails].some(k => k.startsWith(name + "|"));
-                const autoNote   = hasAutoOut
-                    ? `<p class="tile-unit" style="color:#ffb74d;margin-top:6px;font-size:10px;">⚠ auto clock-out applied</p>`
-                    : "";
-
-                const tile = document.createElement("div");
-                tile.className = `summary-tile${isTop ? " highlight" : ""}`;
-                tile.innerHTML = `
-                    <p class="tile-name">${name}</p>
-                    <p class="tile-hours">${hours}</p>
-                    <p class="tile-unit">hrs this week</p>
-                    ${autoNote}`;
-                summaryGrid.appendChild(tile);
-            });
-        }
-
-        summarySection.style.display = "block";
-
-        // === FEATURE 5: Re-render the detail table for the filtered employee ===
-        // We also want to tag rows that had auto clock-out applied (Feature 3).
-        renderTableWithAutoFlag(weekLogs, autoClockOutDetails);
+        // ---- Download ----
+        const buf    = await wb.xlsx.writeBuffer();
+        const blob   = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        const url    = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href     = url;
+        anchor.download = `InCar_Payroll_${start.toLocaleDateString("en-CA")}_to_${end.toLocaleDateString("en-CA")}.xlsx`;
+        anchor.click();
+        URL.revokeObjectURL(url);
     };
 
-
-    // =================================================
-    // renderTableWithAutoFlag(logs, autoSet)
-    //
-    // Like renderTable() but accepts the set of
-    // "employee|date" keys where Feature 3 auto-out
-    // was applied. Adds an amber "Auto Out" badge
-    // to the matching "Clocked In" rows.
-    // =================================================
-    function renderTableWithAutoFlag(logs, autoSet) {
-        const tableBody = document.getElementById("logTableBody");
-        tableBody.innerHTML = "";
-
-        if (!logs.length) {
-            tableBody.innerHTML = `<tr class="state-row"><td colspan="4">No records for this selection.</td></tr>`;
-            return;
-        }
-
-        // Table is sorted newest-first for display
-        const sorted = [...logs].sort((a, b) => b.date - a.date);
-
-        sorted.forEach(log => {
-            const isIn       = log.action === "Clocked In";
-            const badgeClass = isIn ? "badge-in" : "badge-out";
-            const badgeText  = isIn ? "Clocked In"  : "Clocked Out";
-
-            // Check if THIS specific "Clocked In" row triggered a Feature 3 auto-out
-            // by comparing employee + calendar day
-            const logDay     = log.date.toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
-            const isAutoOut  = isIn && autoSet.has(`${log.employee}|${logDay}`);
-
-            // Amber "Auto Out" badge appended next to the green badge
-            const autoHTML   = isAutoOut
-                ? `<span class="badge badge-auto" style="margin-left:6px;"><span class="badge-dot"></span>Auto Out @ 5 PM</span>`
-                : "";
-
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td class="td-name">${log.employee}</td>
-                <td>
-                    <span class="badge ${badgeClass}"><span class="badge-dot"></span>${badgeText}</span>
-                    ${autoHTML}
-                </td>
-                <td class="td-time">${log.timeStr}</td>
-                <td>
-                    <button class="btn-delete" title="Delete record" onclick="deleteLog('${log.id}', this)">🗑</button>
-                </td>`;
-            tableBody.appendChild(row);
-        });
-    }
-
-
-    // =================================================
-    // BOOTSTRAP — load logs on page ready
-    // =================================================
-    loadLogs();
+    // =====================================================
+    // INIT
+    // =====================================================
+    populatePayPeriodDropdown();
 
 </script>
 </body>
