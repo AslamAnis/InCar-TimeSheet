@@ -196,6 +196,15 @@
         .btn-teal:hover { background:#2bbdb0; transform:translateY(-2px); }
         .btn-ghost { background:rgba(255,255,255,.04); color:var(--text-muted); border:1px solid var(--accent-border); }
         .btn-ghost:hover { background:rgba(255,255,255,.08); color:var(--text-main); transform:translateY(-1px); }
+        .btn-sync-success { background:#2e7d32 !important; color:#e8f5e9 !important; }
+        .btn-view-sheets {
+            background:#1e1e1e; color:#9e9e9e; border:1px solid #333;
+            text-decoration:none; font-size:11px;
+            opacity:1; transition:opacity .3s ease, transform .25s ease, background .2s;
+        }
+        .btn-view-sheets:hover { background:#252525; color:#ccc; transform:translateY(-2px); }
+        .btn-view-sheets.hidden { opacity:0; pointer-events:none; }
+        .sheets-icon { width:16px; height:16px; flex-shrink:0; }
 
         /* ═══ LOG TABLE ════════════════════════════════════════════════════════════ */
         .table-wrapper { overflow-x:auto; border-radius:8px; border:1px solid var(--accent-border); }
@@ -434,6 +443,19 @@
                 <button class="btn btn-teal" id="btnSyncCurrent" onclick="syncCurrentPeriod()">
                     &#9729; Sync to Sheets
                 </button>
+                <a id="btnViewSheetsCurrent" class="btn btn-view-sheets hidden"
+                   href="" target="_blank" rel="noopener noreferrer"
+                   onclick="this.href = MASTER_SHEET_URL || '#';">
+                    <svg class="sheets-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <rect x="3" y="2" width="14" height="16" rx="1.5" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+                        <rect x="5.5" y="5.5" width="4" height="2.5" rx=".4" fill="#4caf50" opacity=".85"/>
+                        <rect x="10.5" y="5.5" width="4" height="2.5" rx=".4" fill="#4caf50" opacity=".55"/>
+                        <rect x="5.5" y="9.5" width="4" height="2.5" rx=".4" fill="#4caf50" opacity=".55"/>
+                        <rect x="10.5" y="9.5" width="4" height="2.5" rx=".4" fill="#4caf50" opacity=".35"/>
+                        <rect x="5.5" y="13.5" width="9" height="1.5" rx=".4" fill="#555"/>
+                    </svg>
+                    View in Sheets
+                </a>
             </div>
         </section>
 
@@ -551,6 +573,19 @@
                     <button class="btn btn-teal" id="btnArchiveSync" onclick="syncArchivePeriod()">
                         &#9729; Sync Selected Period
                     </button>
+                    <a id="btnViewSheetsArchive" class="btn btn-view-sheets hidden"
+                       href="" target="_blank" rel="noopener noreferrer"
+                       onclick="this.href = MASTER_SHEET_URL || '#';">
+                        <svg class="sheets-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <rect x="3" y="2" width="14" height="16" rx="1.5" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+                            <rect x="5.5" y="5.5" width="4" height="2.5" rx=".4" fill="#4caf50" opacity=".85"/>
+                            <rect x="10.5" y="5.5" width="4" height="2.5" rx=".4" fill="#4caf50" opacity=".55"/>
+                            <rect x="5.5" y="9.5" width="4" height="2.5" rx=".4" fill="#4caf50" opacity=".55"/>
+                            <rect x="10.5" y="9.5" width="4" height="2.5" rx=".4" fill="#4caf50" opacity=".35"/>
+                            <rect x="5.5" y="13.5" width="9" height="1.5" rx=".4" fill="#555"/>
+                        </svg>
+                        View in Sheets
+                    </a>
                 </div>
                 <div id="syncStatusLabel"></div>
             </div>
@@ -608,6 +643,9 @@
     const today      = new Date();
     const CUR_IDX    = (() => { const i = PAY_PERIODS.findIndex(p => today >= p.start && today <= p.end); return i >= 0 ? i : PAY_PERIODS.length - 1; })();
     const CUR_PERIOD = PAY_PERIODS[CUR_IDX];
+
+    /* ── Config ─────────────────────────────────────────────────────────────── */
+    const MASTER_SHEET_URL = "https://docs.google.com/spreadsheets/d/1XbxS4PjkmO1BurqvL2RDXnOKyBn5SbvrrTXIGEah9vE/edit?gid=0#gid=0"; // ← paste your Google Sheet URL here
 
     /* ── State ─────────────────────────────────────────────────────────────── */
     let allLogs           = [];
@@ -1033,35 +1071,31 @@
         pLogs.forEach(l => { if (!grouped[l.employee]) grouped[l.employee] = []; grouped[l.employee].push(l); });
         const employees = Object.keys(grouped).sort();
 
-        const employeeData = employees.map(name => {
-            const byDay   = computeDailyHours(grouped[name]);
-            const rate    = getRate(name);
-            const days_obj= {};
-            dayKeys.forEach(k => { if (byDay[k]) days_obj[k] = +byDay[k].toFixed(2); });
-            const totalHours   = dayKeys.reduce((s, k) => s + (byDay[k] || 0), 0);
-            const totalPayable = totalHours * rate; // pure number — no $ in value
-            return { name, rate, days: days_obj, totalHours: +totalHours.toFixed(2), "totalPayable ($)": +totalPayable.toFixed(2) };
-        });
-
-        const grandHrs = employeeData.reduce((s, e) => s + e.totalHours, 0);
-        const grandPay = employeeData.reduce((s, e) => s + e["totalPayable ($)"], 0);
-
         // Compute period label
         const past      = PAY_PERIODS.filter(p => p.end < CUR_PERIOD.start);
         const sameMonth = past.filter(p => fmtMonAbbr(p.start) === fmtMonAbbr(start));
         const pNum      = sameMonth.findIndex(p => p.start.getTime() === start.getTime()) + 1;
         const mo        = end.toLocaleDateString("en-AU", { month: "short" });
-        const periodLabel = `Period ${pNum || 1} (${ordinal(start.getDate())}–${ordinal(end.getDate())} ${mo})`;
+        const weekLabel   = `Period ${pNum || 1} (${ordinal(start.getDate())}–${ordinal(end.getDate())} ${mo})`;
+        const periodLabel = `Staff Working hours - ${fmtMonthYr(start)} - ${weekLabel}`;
 
-        return {
-            filename:  `Staff Working hours - ${fmtMonthYr(start)} - ${periodLabel}`,
-            period:    { start: start.toLocaleDateString("en-CA"), end: end.toLocaleDateString("en-CA"), label: periodLabel },
-            employees: employeeData,
-            summary:   { "totalHours": +grandHrs.toFixed(2), "totalPayable ($)": +grandPay.toFixed(2) }
-        };
+        // Flat headers: Employee | Rate ($/hr) | day1…day14 | Total Hours | Total Payable ($)
+        const headers = ["Employee", "Rate ($/hr)", ...dayKeys, "Total Hours", "Total Payable ($)"];
+
+        // Rows — pure numbers in value cells, no $ signs
+        const rows = employees.map(name => {
+            const byDay        = computeDailyHours(grouped[name]);
+            const rate         = getRate(name);
+            const dayValues    = dayKeys.map(k => byDay[k] ? +byDay[k].toFixed(2) : 0);
+            const totalHours   = +dayKeys.reduce((s, k) => s + (byDay[k] || 0), 0).toFixed(2);
+            const totalPayable = +(totalHours * rate).toFixed(2);
+            return [name, rate, ...dayValues, totalHours, totalPayable];
+        });
+
+        return { periodLabel, headers, rows };
     }
 
-    async function syncToSheets(period, btnEl, statusElId) {
+    async function syncToSheets(period, btnEl, viewBtnId, statusElId) {
         const webhookUrl = localStorage.getItem("incar_sheets_webhook") || "";
         if (!webhookUrl) {
             alert("Configure your Google Apps Script Webhook URL in Settings → Cloud Sync first.");
@@ -1069,40 +1103,61 @@
         }
 
         const statusEl = statusElId ? document.getElementById(statusElId) : null;
-        const origText = btnEl.innerHTML;
-        btnEl.disabled = true; btnEl.textContent = "Syncing…";
+        const viewBtn  = viewBtnId  ? document.getElementById(viewBtnId)  : null;
+        const origHTML = btnEl.innerHTML;
+        btnEl.disabled = true;
+        btnEl.textContent = "Syncing…";
+        btnEl.style.opacity = "0.7";
         if (statusEl) { statusEl.style.display = "none"; statusEl.textContent = ""; }
+        if (viewBtn)  { viewBtn.classList.add("hidden"); }
 
         try {
             const payload = buildSyncPayload(period);
-            // Use text/plain to avoid CORS preflight on Google Apps Script
-            await fetch(webhookUrl, {
+            // text/plain avoids CORS preflight on Google Apps Script
+            const res = await fetch(webhookUrl, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: JSON.stringify(payload)
             });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
+            // ── Success ────────────────────────────────────────────────────────
+            btnEl.disabled  = false;
+            btnEl.innerHTML = "&#10003; Data Synced!";
+            btnEl.classList.add("btn-sync-success");
+            btnEl.style.opacity = "";
+            if (viewBtn) viewBtn.classList.remove("hidden");
             if (statusEl) {
-                statusEl.textContent   = `✓ Synced: ${payload.filename}`;
+                statusEl.textContent   = `✓ Synced: ${payload.periodLabel}`;
                 statusEl.style.cssText = "display:block;font-size:11px;color:var(--status-success);margin-top:8px;";
             }
-            alert(`✓ Sync sent: ${payload.filename}`);
+            // Auto-reset button label after 4 s
+            setTimeout(() => {
+                btnEl.innerHTML = origHTML;
+                btnEl.classList.remove("btn-sync-success");
+            }, 4000);
         } catch (e) {
             console.error("syncToSheets:", e);
-            alert("Sync failed. Check your webhook URL and Apps Script deployment.");
-        } finally {
-            btnEl.disabled = false; btnEl.innerHTML = origText;
+            btnEl.disabled  = false;
+            btnEl.innerHTML = origHTML;
+            btnEl.style.opacity = "";
+            if (statusEl) {
+                statusEl.textContent   = "Sync failed — check webhook URL.";
+                statusEl.style.cssText = "display:block;font-size:11px;color:var(--status-danger,#e57373);margin-top:8px;";
+            } else {
+                alert("Sync failed. Check your webhook URL and Apps Script deployment.");
+            }
         }
     }
 
     window.syncCurrentPeriod = function () {
-        syncToSheets(CUR_PERIOD, document.getElementById("btnSyncCurrent"), null);
+        syncToSheets(CUR_PERIOD, document.getElementById("btnSyncCurrent"), "btnViewSheetsCurrent", null);
     };
 
     window.syncArchivePeriod = function () {
         const idx = parseInt(document.getElementById("archiveSelect").value, 10);
         if (isNaN(idx) || !PAY_PERIODS[idx]) { alert("Please select a past period first."); return; }
-        syncToSheets(PAY_PERIODS[idx], document.getElementById("btnArchiveSync"), "syncStatusLabel");
+        syncToSheets(PAY_PERIODS[idx], document.getElementById("btnArchiveSync"), "btnViewSheetsArchive", "syncStatusLabel");
     };
 
     /* ── Webhook URL persistence ─────────────────────────────────────────────── */
