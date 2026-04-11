@@ -453,13 +453,17 @@
             <label for="employeeName">Select Employee</label>
             <!-- onchange fires checkEmployeeState() immediately -->
             <select id="employeeName" onchange="onEmployeeChange()">
-                <option value="Aslam">Aslam</option>
+                <option value="" disabled selected>Select Name</option>
+                <option value="Vishwajith">Vishwajith</option>
+                <option value="Vimukthi">Vimukthi</option>
                 <option value="Farhan">Farhan</option>
-                <option value="Ifaz">Ifaz</option>
+                <option value="Nadith">Nadith</option>
+                <option value="Izac">Izac</option>
+                <option value="Wishvajith">Wishvajith</option>
+                <option value="Aslam">Aslam</option>
+                <option value="Karthick">Karthick</option>
                 <option value="Aymen">Aymen</option>
-                <option value="Faqi">Faqi</option>
-                <option value="Employee 6">Employee 6</option>
-                <option value="Employee 7">Employee 7</option>
+                <option value="Viknesh">Viknesh</option>
             </select>
         </div>
 
@@ -707,8 +711,13 @@
             if (e.key === "Escape") closeFaq();
         });
 
-        // ── Check state for the default-selected employee on page load ──
-        checkEmployeeState(document.getElementById("employeeName").value);
+        // ── Initial load: no employee pre-selected, keep buttons disabled ──
+        const _initName = document.getElementById("employeeName").value;
+        if (_initName) checkEmployeeState(_initName);
+        else {
+            document.getElementById("stateHint").textContent = "Select your name above to begin.";
+            document.getElementById("stateHint").className   = "state-hint is-out";
+        }
 
     </script>
 </body>
