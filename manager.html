@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Dashboard — InCar Detailing</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
+        /* ═══ CSS VARIABLES ═══════════════════════════════════════════════════════ */
         :root {
             --bg-primary:          #121212;
             --bg-card:             #181818;
@@ -29,6 +28,8 @@
             --btn-primary-hover:   #c8d8ec;
             --status-success:      #4CAF50;
             --status-error:        #F44336;
+            --green:               #6fcf74;
+            --green-glow:          rgba(76,175,80,0.18);
             --badge-in-bg:         rgba(76, 175, 80, 0.12);
             --badge-in-text:       #6fcf74;
             --badge-in-border:     rgba(76, 175, 80, 0.3);
@@ -45,9 +46,7 @@
             --shadow-card:         0 8px 32px rgba(0,0,0,0.6);
             --shadow-btn:          0 4px 16px rgba(0,0,0,0.5);
         }
-
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             font-family: var(--font-body);
             background-color: var(--bg-primary);
@@ -58,345 +57,305 @@
             min-height: 100vh;
         }
 
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes spin   { to   { transform: rotate(360deg); } }
+        /* ═══ KEYFRAMES ═══════════════════════════════════════════════════════════ */
+        @keyframes fadeUp         { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeIn         { from { opacity:0; } to { opacity:1; } }
+        @keyframes spin           { to   { transform:rotate(360deg); } }
+        @keyframes activeGlowPulse{ 0%,100%{background-color:rgba(76,175,80,0);}50%{background-color:rgba(76,175,80,0.055);} }
+        @keyframes checkGlowBurst { 0%{box-shadow:0 0 0 0 rgba(76,175,80,0.55);}100%{box-shadow:0 0 0 14px rgba(76,175,80,0);} }
 
-        /* =============================================
-           LOGIN SCREEN
-        ============================================= */
-        #loginScreen {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
-        .login-card {
-            background: var(--bg-card);
-            border: 1px solid var(--accent-border);
-            border-radius: var(--radius-card);
-            box-shadow: var(--shadow-card);
-            padding: 48px 40px;
-            width: 100%; max-width: 400px;
-            animation: fadeUp 0.4s ease both;
-        }
-        .login-brand    { font-family: var(--font-header); font-size: 10px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-        .login-title    { font-family: var(--font-header); font-size: 22px; font-weight: 700; color: var(--text-header); margin-bottom: 6px; }
-        .login-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 32px; }
-        .login-field    { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-        .login-field label { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-label); }
-        .login-field input {
-            width: 100%; padding: 12px 16px;
-            font-family: var(--font-body); font-size: 14px;
-            color: var(--text-main); background: var(--bg-input);
-            border: 1px solid var(--accent-border); border-radius: var(--radius-input);
-            outline: none; color-scheme: dark;
-            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
-        }
-        .login-field input:focus { border-color: var(--accent-border-focus); box-shadow: 0 0 0 3px rgba(192,192,192,0.12); }
-        .btn-login {
-            width: 100%; padding: 14px; margin-top: 8px;
-            font-family: var(--font-header); font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
-            color: var(--btn-primary-text); background: var(--btn-primary-bg);
-            border: none; border-radius: var(--radius-btn); cursor: pointer; box-shadow: var(--shadow-btn);
-            transition: background var(--transition-speed), transform var(--transition-speed);
-        }
-        .btn-login:hover  { background: var(--btn-primary-hover); transform: translateY(-2px); }
-        .btn-login:active { transform: translateY(0); }
-        #loginError {
-            margin-top: 14px; font-size: 12px; font-weight: 600;
-            color: var(--status-error); background: rgba(244,67,54,0.08);
-            border-left: 3px solid var(--status-error);
-            padding: 9px 14px; border-radius: 6px; display: none;
-        }
+        /* ═══ LOGIN ════════════════════════════════════════════════════════════════ */
+        #loginScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+        .login-card  { background:var(--bg-card); border:1px solid var(--accent-border); border-radius:var(--radius-card); box-shadow:var(--shadow-card); padding:48px 40px; width:100%; max-width:400px; animation:fadeUp .4s ease both; }
+        .login-brand    { font-family:var(--font-header); font-size:10px; font-weight:600; letter-spacing:4px; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
+        .login-title    { font-family:var(--font-header); font-size:22px; font-weight:700; color:var(--text-header); margin-bottom:6px; }
+        .login-subtitle { font-size:12px; color:var(--text-muted); margin-bottom:32px; }
+        .login-field    { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+        .login-field label { font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-label); }
+        .login-field input { width:100%; padding:12px 16px; font-family:var(--font-body); font-size:14px; color:var(--text-main); background:var(--bg-input); border:1px solid var(--accent-border); border-radius:var(--radius-input); outline:none; color-scheme:dark; transition:border-color .3s, box-shadow .3s; }
+        .login-field input:focus { border-color:var(--accent-border-focus); box-shadow:0 0 0 3px rgba(192,192,192,.12); }
+        .btn-login { width:100%; padding:14px; margin-top:8px; font-family:var(--font-header); font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--btn-primary-text); background:var(--btn-primary-bg); border:none; border-radius:var(--radius-btn); cursor:pointer; box-shadow:var(--shadow-btn); transition:background .3s, transform .3s; }
+        .btn-login:hover  { background:var(--btn-primary-hover); transform:translateY(-2px); }
+        .btn-login:active { transform:translateY(0); }
+        #loginError { margin-top:14px; font-size:12px; font-weight:600; color:var(--status-error); background:rgba(244,67,54,.08); border-left:3px solid var(--status-error); padding:9px 14px; border-radius:6px; display:none; }
 
-        /* =============================================
-           DASHBOARD SHELL
-        ============================================= */
-        #dashboard { display: none; }
-
-        /* Sticky frosted header */
+        /* ═══ DASHBOARD SHELL ══════════════════════════════════════════════════════ */
+        #dashboard { display:none; }
         .dash-header {
-            position: sticky; top: 0; z-index: 50;
-            background: rgba(18,18,18,0.9);
-            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-            border-bottom: 1px solid var(--accent-border);
-            height: 62px; padding: 0 32px;
-            display: flex; align-items: center; justify-content: space-between;
+            position:sticky; top:0; z-index:50;
+            background:rgba(18,18,18,.92); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+            border-bottom:1px solid var(--accent-border);
+            height:62px; padding:0 32px;
+            display:flex; align-items:center; justify-content:space-between;
         }
-        .dash-header-left .brand-sm  { font-family: var(--font-header); font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
-        .dash-header-left .title-sm  { font-family: var(--font-header); font-size: 15px; font-weight: 700; color: var(--text-header); letter-spacing: -0.3px; }
-        .dash-header-right { display: flex; align-items: center; gap: 10px; }
+        .dash-header-left .brand-sm  { font-family:var(--font-header); font-size:9px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--text-muted); }
+        .dash-header-left .title-sm  { font-family:var(--font-header); font-size:15px; font-weight:700; color:var(--text-header); letter-spacing:-.3px; }
+        .dash-header-right { display:flex; align-items:center; gap:10px; }
+        .btn-icon-circle { width:36px; height:36px; border-radius:50%; background:var(--bg-card); border:1px solid var(--accent-border); color:var(--text-muted); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color .3s, color .3s, transform .3s; }
+        .btn-icon-circle:hover { border-color:var(--accent-silver); color:var(--text-header); transform:scale(1.1); }
+        .btn-logout { font-family:var(--font-header); font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#e84a6f; background:rgba(220,20,60,.1); border:1px solid rgba(220,20,60,.25); border-radius:var(--radius-btn); padding:8px 14px; cursor:pointer; transition:background .3s; }
+        .btn-logout:hover { background:rgba(220,20,60,.2); }
+        .dash-body { padding:32px 32px 60px; max-width:900px; margin:0 auto; }
 
-        .btn-icon-circle {
-            width: 36px; height: 36px; border-radius: 50%;
-            background: var(--bg-card); border: 1px solid var(--accent-border);
-            color: var(--text-muted); font-size: 16px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            transition: border-color var(--transition-speed), color var(--transition-speed), transform var(--transition-speed);
-        }
-        .btn-icon-circle:hover { border-color: var(--accent-silver); color: var(--text-header); transform: scale(1.1); }
+        /* ═══ PERIOD BANNER ════════════════════════════════════════════════════════ */
+        .period-banner { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:17px 22px; margin-bottom:22px; background:var(--bg-card); border:1px solid var(--accent-border); border-radius:10px; animation:fadeUp .4s ease both; }
+        .period-banner-label { font-family:var(--font-header); font-size:9px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--text-muted); margin-bottom:3px; }
+        .period-banner-dates { font-family:var(--font-header); font-size:16px; font-weight:700; color:var(--text-header); }
+        .period-status-badge { font-family:var(--font-header); font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:5px 12px; border-radius:20px; }
+        .period-status-badge.active { background:rgba(76,175,80,.12); color:var(--green); border:1px solid rgba(76,175,80,.3); }
+        .period-status-badge.paid   { background:rgba(255,193,7,.1);  color:#FFC107;     border:1px solid rgba(255,193,7,.3); }
 
-        .btn-logout {
-            font-family: var(--font-header); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-            color: #e84a6f; background: rgba(220,20,60,0.1); border: 1px solid rgba(220,20,60,0.25);
-            border-radius: var(--radius-btn); padding: 8px 14px; cursor: pointer;
-            transition: background var(--transition-speed);
-        }
-        .btn-logout:hover { background: rgba(220,20,60,0.2); }
+        /* ═══ LEDGER CARDS ═════════════════════════════════════════════════════════ */
+        .ledger-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; animation:fadeUp .45s ease both; }
+        @media (max-width:560px) { .ledger-row { grid-template-columns:1fr; } }
+        .ledger-card { background:var(--bg-card); border:1px solid var(--accent-border); border-radius:var(--radius-card); box-shadow:var(--shadow-card); padding:22px 20px; }
+        .ledger-card.accent-green { border-color:rgba(76,175,80,.3); }
+        .ledger-card.accent-blue  { border-color:rgba(176,196,222,.35); }
+        .ledger-label { font-family:var(--font-header); font-size:9px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; }
+        .ledger-value { font-family:var(--font-header); font-size:32px; font-weight:700; line-height:1; margin-bottom:4px; }
+        .ledger-value.green { color:var(--green); }
+        .ledger-value.blue  { color:var(--btn-primary-bg); }
+        .ledger-sub { font-size:11px; color:var(--text-muted); }
 
-        /* Main content body */
-        .dash-body { padding: 36px 32px 60px; max-width: 880px; margin: 0 auto; }
+        /* ═══ CARDS ════════════════════════════════════════════════════════════════ */
+        .card { background:var(--bg-card); border:1px solid var(--accent-border); border-radius:var(--radius-card); box-shadow:var(--shadow-card); padding:26px 30px; margin-bottom:20px; animation:fadeUp .5s ease both; }
+        .card-title { font-family:var(--font-header); font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--text-muted); margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--accent-border); }
 
-        /* ---- Period Banner ---- */
-        .period-banner {
-            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
-            padding: 18px 22px; margin-bottom: 24px;
-            background: var(--bg-card); border: 1px solid var(--accent-border);
-            border-radius: 10px; animation: fadeUp 0.4s ease both;
-        }
-        .period-banner-label { font-family: var(--font-header); font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
-        .period-banner-dates { font-family: var(--font-header); font-size: 16px; font-weight: 700; color: var(--text-header); }
-        .period-status-badge { font-family: var(--font-header); font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; }
-        .period-status-badge.active { background: rgba(76,175,80,0.12); color: #6fcf74; border: 1px solid rgba(76,175,80,0.3); }
-        .period-status-badge.paid   { background: rgba(255,193,7,0.1);  color: #FFC107; border: 1px solid rgba(255,193,7,0.3); }
+        /* ═══ PAYMENT CHECKLIST ════════════════════════════════════════════════════ */
+        .paid-banner { display:none; margin-bottom:16px; padding:11px 16px; border-radius:8px; background:rgba(255,193,7,.07); border:1px solid rgba(255,193,7,.3); font-size:12px; font-weight:600; color:#FFC107; }
+        .checklist-list { list-style:none; margin-bottom:22px; }
 
-        /* ---- Ledger Cards ---- */
-        .ledger-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; animation: fadeUp 0.45s ease both; }
-        @media (max-width: 560px) { .ledger-row { grid-template-columns: 1fr; } }
-        .ledger-card {
-            background: var(--bg-card); border: 1px solid var(--accent-border);
-            border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 22px 20px;
-        }
-        .ledger-card.accent-green { border-color: rgba(76,175,80,0.3); }
-        .ledger-card.accent-blue  { border-color: rgba(176,196,222,0.35); }
-        .ledger-label { font-family: var(--font-header); font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
-        .ledger-value { font-family: var(--font-header); font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
-        .ledger-value.green { color: #6fcf74; }
-        .ledger-value.blue  { color: var(--btn-primary-bg); }
-        .ledger-sub { font-size: 11px; color: var(--text-muted); }
-
-        /* ---- Cards ---- */
-        .card {
-            background: var(--bg-card); border: 1px solid var(--accent-border);
-            border-radius: var(--radius-card); box-shadow: var(--shadow-card);
-            padding: 28px 30px; margin-bottom: 20px; animation: fadeUp 0.5s ease both;
-        }
-        .card-title {
-            font-family: var(--font-header); font-size: 10px; font-weight: 700;
-            letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted);
-            margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--accent-border);
-        }
-
-        /* ---- Payment Checklist ---- */
-        .paid-banner {
-            display: none; margin-bottom: 16px; padding: 11px 16px; border-radius: 8px;
-            background: rgba(255,193,7,0.07); border: 1px solid rgba(255,193,7,0.3);
-            font-size: 12px; font-weight: 600; color: #FFC107;
-        }
-        .checklist-list { list-style: none; margin-bottom: 22px; }
         .checklist-item {
-            display: flex; align-items: center; gap: 14px;
-            padding: 11px 0; border-bottom: 1px solid var(--accent-border);
+            display:flex; align-items:center; gap:14px;
+            padding:10px 8px; border-radius:10px; margin:0 -8px;
+            border-bottom:1px solid var(--accent-border);
+            cursor:pointer;
+            transition:background .25s ease;
+            user-select:none;
         }
-        .checklist-item:last-child { border-bottom: none; }
-        .checklist-item input[type="checkbox"] {
-            width: 15px; height: 15px; flex-shrink: 0;
-            accent-color: var(--btn-primary-bg); cursor: pointer;
-        }
-        .checklist-item label { cursor: pointer; font-size: 13px; flex: 1; line-height: 1.5; }
-        .checklist-item label.checked { text-decoration: line-through; color: var(--text-muted); }
-        .cl-name  { font-family: var(--font-header); font-weight: 700; color: var(--text-header); }
-        .cl-calc  { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
-        .cl-total { font-family: var(--font-header); font-weight: 700; color: #6fcf74; }
-        .checklist-empty { font-size: 13px; color: var(--text-muted); padding: 10px 0; }
+        .checklist-item:last-child { border-bottom:none; }
+        .checklist-item:hover { background:rgba(255,255,255,.025); }
 
-        /* ---- Buttons ---- */
+        /* Checked row */
+        .checklist-item.checked { background:rgba(76,175,80,.04); border-color:rgba(76,175,80,.1); }
+        .checklist-item.checked:hover { background:rgba(76,175,80,.07); }
+
+        /* Custom circle */
+        .check-circle {
+            width:24px; height:24px; border-radius:50%; flex-shrink:0;
+            border:2px solid rgba(176,196,222,.25);
+            background:transparent;
+            display:flex; align-items:center; justify-content:center;
+            transition:border-color .3s, background .3s, box-shadow .3s;
+        }
+        .checklist-item:hover .check-circle { border-color:rgba(176,196,222,.5); }
+        .checklist-item.checked .check-circle {
+            border-color:var(--green);
+            background:rgba(76,175,80,.18);
+            box-shadow:0 0 0 4px rgba(76,175,80,.1);
+        }
+        .check-circle.glow-burst { animation:checkGlowBurst .55s ease-out; }
+
+        /* Checkmark SVG inside circle */
+        .check-svg { opacity:0; transform:scale(.2) rotate(-20deg); transition:opacity .25s cubic-bezier(.34,1.56,.64,1), transform .25s cubic-bezier(.34,1.56,.64,1); }
+        .checklist-item.checked .check-svg { opacity:1; transform:scale(1) rotate(0deg); }
+
+        /* Checklist text */
+        .cl-text  { flex:1; font-size:13px; line-height:1.5; }
+        .cl-name  { font-family:var(--font-header); font-weight:700; color:var(--text-header); position:relative; display:inline; }
+        .cl-calc  { font-family:var(--font-mono); font-size:12px; color:var(--text-muted); position:relative; display:inline; }
+        .cl-total { font-family:var(--font-header); font-weight:700; color:var(--green); }
+
+        /* Strikethrough animation */
+        .cl-name::after, .cl-calc::after {
+            content:''; position:absolute; left:0; top:50%; height:1.5px; width:0;
+            background:currentColor; opacity:.55;
+            transition:width .38s ease;
+        }
+        .checklist-item.checked .cl-name::after { width:100%; transition-delay:.04s; }
+        .checklist-item.checked .cl-calc::after  { width:100%; transition-delay:.16s; }
+
+        .checklist-empty { font-size:13px; color:var(--text-muted); padding:10px 0; }
+
+        /* ═══ ACTION BUTTONS ROW ═══════════════════════════════════════════════════ */
+        .action-row { display:flex; gap:10px; flex-wrap:wrap; }
         .btn {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 12px 22px; font-family: var(--font-header); font-size: 11px;
-            font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
-            border: none; border-radius: var(--radius-btn); cursor: pointer;
-            box-shadow: var(--shadow-btn); white-space: nowrap;
-            transition: background var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+            display:inline-flex; align-items:center; gap:7px;
+            padding:11px 20px; font-family:var(--font-header); font-size:11px;
+            font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
+            border:none; border-radius:var(--radius-btn); cursor:pointer;
+            box-shadow:var(--shadow-btn); white-space:nowrap;
+            transition:background .3s, transform .3s, box-shadow .3s;
         }
-        .btn-primary { background: var(--btn-primary-bg); color: var(--btn-primary-text); }
-        .btn-primary:hover { background: var(--btn-primary-hover); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.5); }
-        .btn-primary:active { transform: translateY(0); }
-        .btn-gold { background: #FFC107; color: #121212; }
-        .btn-gold:hover:not(:disabled) { background: #ffd54f; transform: translateY(-2px); }
-        .btn-gold:disabled { background: #252525; color: #444; cursor: not-allowed; box-shadow: none; transform: none; }
-        .btn-green { background: #4CAF50; color: #121212; }
-        .btn-green:hover { background: #5dbb63; transform: translateY(-2px); }
+        .btn-primary { background:var(--btn-primary-bg); color:var(--btn-primary-text); }
+        .btn-primary:hover { background:var(--btn-primary-hover); transform:translateY(-2px); box-shadow:0 6px 24px rgba(0,0,0,.5); }
+        .btn-gold { background:#FFC107; color:#121212; }
+        .btn-gold:hover:not(:disabled) { background:#ffd54f; transform:translateY(-2px); }
+        .btn-gold:disabled { background:#242424; color:#444; cursor:not-allowed; box-shadow:none; transform:none; }
+        .btn-teal { background:#26a69a; color:#121212; }
+        .btn-teal:hover { background:#2bbdb0; transform:translateY(-2px); }
+        .btn-ghost { background:rgba(255,255,255,.04); color:var(--text-muted); border:1px solid var(--accent-border); }
+        .btn-ghost:hover { background:rgba(255,255,255,.08); color:var(--text-main); transform:translateY(-1px); }
 
-        /* ---- Table ---- */
-        .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--accent-border); }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        thead tr { background: #0f0f0f; }
-        th {
-            font-family: var(--font-header); font-size: 10px; font-weight: 700; letter-spacing: 2px;
-            text-transform: uppercase; color: var(--text-muted);
-            padding: 13px 18px; text-align: left; border-bottom: 1px solid var(--accent-border); white-space: nowrap;
+        /* ═══ LOG TABLE ════════════════════════════════════════════════════════════ */
+        .table-wrapper { overflow-x:auto; border-radius:8px; border:1px solid var(--accent-border); }
+        table { width:100%; border-collapse:collapse; font-size:13px; }
+        thead tr { background:#0f0f0f; }
+        th { font-family:var(--font-header); font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); padding:13px 18px; text-align:left; border-bottom:1px solid var(--accent-border); white-space:nowrap; }
+
+        tbody tr { transition:none; }
+        tbody tr:nth-child(odd)  { background:var(--bg-card); }
+        tbody tr:nth-child(even) { background:var(--bg-card-alt); }
+
+        /* Hover glow — dimensionality-lifting */
+        tbody tr:hover:not(.date-header-row):not(.state-row) td {
+            background:linear-gradient(135deg, rgba(176,196,222,.055) 0%, rgba(176,196,222,.025) 100%) !important;
+            border-top:1px solid rgba(176,196,222,.07);
+            border-bottom:1px solid rgba(176,196,222,.07);
         }
-        tbody tr:nth-child(odd)  { background: var(--bg-card); }
-        tbody tr:nth-child(even) { background: var(--bg-card-alt); }
-        tbody tr { transition: background var(--transition-speed); }
-        tbody tr:hover { background: #222; }
-        td { padding: 11px 18px; color: var(--text-main); border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle; }
-        tbody tr:last-child td { border-bottom: none; }
-        td.td-name { font-family: var(--font-header); font-weight: 600; color: var(--text-header); }
-        td.td-time { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
-        tbody tr.row-paid { opacity: 0.5; }
-        .state-row td { text-align: center; padding: 38px 20px; color: var(--text-muted); font-size: 13px; }
-        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(192,192,192,0.2); border-top-color: var(--accent-silver); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
 
-        /* ---- Badges ---- */
-        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px 3px 7px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border: 1px solid transparent; }
-        .badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-        .badge-in   { background: var(--badge-in-bg);  color: var(--badge-in-text);  border-color: var(--badge-in-border); }
-        .badge-in   .badge-dot { background: var(--badge-in-text); }
-        .badge-out  { background: var(--badge-out-bg); color: var(--badge-out-text); border-color: var(--badge-out-border); }
-        .badge-out  .badge-dot { background: var(--badge-out-text); }
-        .badge-auto { background: rgba(255,152,0,0.1); color: #ffb74d; border-color: rgba(255,152,0,0.3); }
-        .badge-auto .badge-dot { background: #ffb74d; }
-        .badge-paid { background: rgba(255,193,7,0.1); color: #FFC107; border-color: rgba(255,193,7,0.3); font-size: 9px; }
-        .btn-delete { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 14px; padding: 4px 6px; border-radius: 4px; transition: color var(--transition-speed), background var(--transition-speed); }
-        .btn-delete:hover { color: #e84a6f; background: rgba(220,20,60,0.1); }
+        td { padding:11px 18px; color:var(--text-main); border-bottom:1px solid rgba(255,255,255,.03); vertical-align:middle; }
+        tbody tr:last-child td { border-bottom:none; }
+        td.td-name { font-family:var(--font-header); font-weight:700; color:var(--text-header); font-size:13px; }
+        td.td-time { font-family:var(--font-mono); font-size:12px; color:var(--text-muted); white-space:nowrap; }
 
-        /* ---- Manual Entry (collapsible) ---- */
-        .manual-toggle {
-            display: flex; align-items: center; justify-content: space-between;
-            cursor: pointer; user-select: none;
-            font-family: var(--font-header); font-size: 10px; font-weight: 700;
-            letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted);
+        /* Date group header row */
+        .date-header-row td {
+            padding:9px 18px 7px;
+            background:#0d0d0d !important;
+            border-top:2px solid #1e1e1e;
+            border-bottom:1px solid #1e1e1e;
+            font-family:var(--font-header);
+            font-size:9px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
+            color:var(--text-muted);
         }
-        .toggle-arrow { font-size: 10px; transition: transform var(--transition-speed); }
-        .toggle-arrow.open { transform: rotate(180deg); }
-        .manual-body { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
-        .manual-body.open { max-height: 360px; }
-        .manual-inner { padding-top: 20px; border-top: 1px solid var(--accent-border); margin-top: 14px; }
+        .date-header-row:first-child td { border-top:none; }
 
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 12px; align-items: flex-end; }
-        @media (max-width: 720px) { .form-grid { grid-template-columns: 1fr 1fr; } }
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-group label { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-label); }
+        /* Paid + active row states */
+        tbody tr.row-paid { opacity:.48; }
+        tbody tr.row-active-in { animation:activeGlowPulse 2.6s ease-in-out infinite; }
+        tbody tr.row-active-in td:first-child { border-left:2px solid rgba(76,175,80,.55); padding-left:16px; }
+
+        /* Badges — redesigned with arrow icons */
+        .badge {
+            display:inline-flex; align-items:center; gap:5px;
+            padding:3px 9px 3px 7px; border-radius:6px;
+            font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase;
+            border:1px solid transparent;
+        }
+        .badge-in  { background:var(--badge-in-bg);  color:var(--badge-in-text);  border-color:var(--badge-in-border); }
+        .badge-out { background:var(--badge-out-bg); color:var(--badge-out-text); border-color:var(--badge-out-border); }
+        .badge-paid{ background:rgba(255,193,7,.1);  color:#FFC107; border-color:rgba(255,193,7,.3); font-size:9px; }
+        .badge-icon { width:9px; height:9px; flex-shrink:0; }
+
+        /* (i) Info icon for auto-clock-out */
+        .info-icon { position:relative; display:inline-flex; margin-left:6px; vertical-align:middle; }
+        .info-inner {
+            width:16px; height:16px; border-radius:50%;
+            background:rgba(255,152,0,.15); border:1px solid rgba(255,152,0,.35);
+            color:#ffb74d; font-size:9px; font-weight:700; font-style:italic;
+            font-family:var(--font-header);
+            display:flex; align-items:center; justify-content:center;
+            cursor:help;
+            transition:background .2s, box-shadow .2s;
+        }
+        .info-inner:hover { background:rgba(255,152,0,.28); box-shadow:0 0 8px rgba(255,152,0,.22); }
+        .info-tooltip {
+            display:none; position:absolute; bottom:calc(100% + 9px); left:50%; transform:translateX(-50%);
+            background:#1c1c1c; border:1px solid rgba(255,152,0,.35); border-radius:8px;
+            padding:9px 13px; font-size:11px; line-height:1.65; color:var(--text-main);
+            white-space:nowrap; z-index:200; font-family:var(--font-body);
+            box-shadow:0 10px 28px rgba(0,0,0,.55); pointer-events:none;
+        }
+        .info-tooltip::before { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:6px solid transparent; border-top-color:rgba(255,152,0,.35); }
+        .info-tooltip::after  { content:''; position:absolute; top:calc(100% - 1px); left:50%; transform:translateX(-50%); border:5px solid transparent; border-top-color:#1c1c1c; }
+        .info-icon:hover .info-tooltip { display:block; animation:fadeIn .15s ease both; }
+
+        /* Loading state */
+        .state-row td { text-align:center; padding:38px 20px; color:var(--text-muted); font-size:13px; }
+        .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(192,192,192,.2); border-top-color:var(--accent-silver); border-radius:50%; animation:spin .8s linear infinite; margin-right:8px; vertical-align:middle; }
+
+        /* Delete button */
+        .btn-delete { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:14px; padding:4px 6px; border-radius:4px; transition:color .3s, background .3s; }
+        .btn-delete:hover { color:#e84a6f; background:rgba(220,20,60,.1); }
+
+        /* ═══ FORM SHARED STYLES ═══════════════════════════════════════════════════ */
+        .form-group { display:flex; flex-direction:column; gap:6px; }
+        .form-group label { font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-label); }
         .ctrl-input {
-            width: 100%; padding: 11px 14px; font-family: var(--font-body); font-size: 13px;
-            color: var(--text-main); background: var(--bg-input);
-            border: 1px solid var(--accent-border); border-radius: var(--radius-input);
-            appearance: none; outline: none; color-scheme: dark;
-            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+            width:100%; padding:11px 14px; font-family:var(--font-body); font-size:13px;
+            color:var(--text-main); background:var(--bg-input);
+            border:1px solid var(--accent-border); border-radius:var(--radius-input);
+            appearance:none; outline:none; color-scheme:dark;
+            transition:border-color .3s, box-shadow .3s;
         }
-        .ctrl-input:hover { border-color: var(--accent-silver); }
-        .ctrl-input:focus { border-color: var(--accent-border-focus); box-shadow: 0 0 0 3px rgba(192,192,192,0.12); }
+        .ctrl-input:hover { border-color:var(--accent-silver); }
+        .ctrl-input:focus { border-color:var(--accent-border-focus); box-shadow:0 0 0 3px rgba(192,192,192,.12); }
         select.ctrl-input {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C0C0C0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C0C0C0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat:no-repeat; background-position:right 14px center; padding-right:36px;
         }
-        select.ctrl-input option { background: #1e1e1e; }
-        .manual-feedback { font-size: 12px; font-weight: 600; margin-top: 10px; padding: 8px 12px; border-radius: 6px; display: none; }
-        .manual-feedback.success { display: block; color: var(--status-success); background: rgba(76,175,80,0.08); border-left: 3px solid var(--status-success); }
-        .manual-feedback.error   { display: block; color: var(--status-error);   background: rgba(244,67,54,0.08);  border-left: 3px solid var(--status-error); }
+        select.ctrl-input option { background:#1e1e1e; }
+        .form-feedback { font-size:12px; font-weight:600; margin-top:10px; padding:9px 13px; border-radius:6px; display:none; }
+        .form-feedback.success { display:block; color:var(--status-success); background:rgba(76,175,80,.08); border-left:3px solid var(--status-success); }
+        .form-feedback.error   { display:block; color:var(--status-error);   background:rgba(244,67,54,.08);  border-left:3px solid var(--status-error); }
 
-        /* =============================================
-           SETTINGS / ARCHIVE MODAL
-        ============================================= */
-        .modal-backdrop {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.76); backdrop-filter: blur(5px);
-            z-index: 200; align-items: center; justify-content: center; padding: 24px;
-        }
-        .modal-backdrop.open { display: flex; animation: fadeIn 0.2s ease both; }
+        /* ═══ MODALS (shared) ══════════════════════════════════════════════════════ */
+        .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.78); backdrop-filter:blur(5px); z-index:200; align-items:center; justify-content:center; padding:24px; }
+        .modal-backdrop.open { display:flex; animation:fadeIn .2s ease both; }
+        .modal-panel { background:var(--bg-card); border:1px solid #333; border-radius:14px; box-shadow:0 24px 64px rgba(0,0,0,.85); width:100%; max-height:90vh; display:flex; flex-direction:column; animation:fadeUp .25s ease both; }
+        .modal-header { display:flex; align-items:center; justify-content:space-between; padding:20px 26px 16px; border-bottom:1px solid var(--accent-border); flex-shrink:0; }
+        .modal-header-title { font-family:var(--font-header); font-size:12px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--text-header); }
+        .modal-close { background:transparent; border:1px solid var(--accent-border); border-radius:6px; color:var(--text-muted); font-size:18px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:color .3s, border-color .3s; }
+        .modal-close:hover { color:var(--text-header); border-color:var(--accent-silver); }
+        .modal-body { overflow-y:auto; flex:1; padding:22px 26px 28px; }
 
-        .modal-panel {
-            background: var(--bg-card); border: 1px solid #333;
-            border-radius: 14px; box-shadow: 0 24px 64px rgba(0,0,0,0.85);
-            width: 100%; max-width: 540px; max-height: 88vh;
-            display: flex; flex-direction: column;
-            animation: fadeUp 0.25s ease both;
-        }
-        .modal-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 20px 26px 16px; border-bottom: 1px solid var(--accent-border); flex-shrink: 0;
-        }
-        .modal-header-title { font-family: var(--font-header); font-size: 12px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-header); }
-        .modal-close {
-            background: transparent; border: 1px solid var(--accent-border); border-radius: 6px;
-            color: var(--text-muted); font-size: 18px; width: 30px; height: 30px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            transition: color var(--transition-speed), border-color var(--transition-speed);
-        }
-        .modal-close:hover { color: var(--text-header); border-color: var(--accent-silver); }
+        /* ═══ MANUAL CORRECTION MODAL ══════════════════════════════════════════════ */
+        #correctionModal .modal-panel { max-width:480px; }
+        .correction-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
+        .correction-grid .full-width { grid-column:1/-1; }
+        .time-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
-        /* Tabs */
-        .modal-tabs { display: flex; border-bottom: 1px solid var(--accent-border); flex-shrink: 0; }
-        .modal-tab {
-            flex: 1; padding: 13px 16px; font-family: var(--font-header); font-size: 10px;
-            font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-            color: var(--text-muted); background: none; border: none; cursor: pointer;
-            border-bottom: 2px solid transparent; margin-bottom: -1px;
-            transition: color var(--transition-speed), border-color var(--transition-speed);
-        }
-        .modal-tab:hover  { color: var(--text-main); }
-        .modal-tab.active { color: var(--btn-primary-bg); border-bottom-color: var(--btn-primary-bg); }
-
-        /* Scrollable body */
-        .modal-body { overflow-y: auto; flex: 1; padding: 22px 26px 28px; }
+        /* ═══ SETTINGS MODAL ═══════════════════════════════════════════════════════ */
+        #settingsModal .modal-panel { max-width:540px; }
+        .modal-tabs { display:flex; border-bottom:1px solid var(--accent-border); flex-shrink:0; }
+        .modal-tab { flex:1; padding:13px 16px; font-family:var(--font-header); font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); background:none; border:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:color .3s, border-color .3s; }
+        .modal-tab:hover { color:var(--text-main); }
+        .modal-tab.active { color:var(--btn-primary-bg); border-bottom-color:var(--btn-primary-bg); }
 
         /* Rates form */
-        .rates-grid  { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-        .rate-row    { display: flex; align-items: center; gap: 14px; }
-        .rate-name   { font-family: var(--font-header); font-size: 12px; font-weight: 600; color: var(--text-main); width: 110px; flex-shrink: 0; }
-        .rate-input-wrap { display: flex; align-items: stretch; flex: 1; max-width: 150px; }
-        .rate-currency {
-            background: #0a0a0a; border: 1px solid var(--accent-border); border-right: none;
-            border-radius: var(--radius-input) 0 0 var(--radius-input);
-            padding: 9px 11px; font-size: 13px; color: var(--text-muted);
-            display: flex; align-items: center;
-        }
-        .rate-input {
-            flex: 1; padding: 9px 11px; font-family: var(--font-body); font-size: 13px;
-            color: var(--text-main); background: var(--bg-input);
-            border: 1px solid var(--accent-border); border-radius: 0 var(--radius-input) var(--radius-input) 0;
-            outline: none; color-scheme: dark;
-            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
-        }
-        .rate-input:focus { border-color: var(--accent-border-focus); box-shadow: 0 0 0 3px rgba(192,192,192,0.12); }
-        .rate-per-hr { font-size: 11px; color: var(--text-muted); }
-        .rates-feedback { font-size: 12px; font-weight: 600; margin-top: 12px; padding: 9px 14px; border-radius: 6px; display: none; }
-        .rates-feedback.success { display: block; color: var(--status-success); background: rgba(76,175,80,0.08); border-left: 3px solid var(--status-success); }
-        .rates-feedback.error   { display: block; color: var(--status-error);   background: rgba(244,67,54,0.08);  border-left: 3px solid var(--status-error); }
+        .rates-grid  { display:flex; flex-direction:column; gap:12px; margin-bottom:20px; }
+        .rate-row    { display:flex; align-items:center; gap:14px; }
+        .rate-name   { font-family:var(--font-header); font-size:12px; font-weight:600; color:var(--text-main); width:110px; flex-shrink:0; }
+        .rate-input-wrap { display:flex; align-items:stretch; flex:1; max-width:150px; }
+        .rate-currency { background:#0a0a0a; border:1px solid var(--accent-border); border-right:none; border-radius:var(--radius-input) 0 0 var(--radius-input); padding:9px 11px; font-size:13px; color:var(--text-muted); display:flex; align-items:center; }
+        .rate-input { flex:1; padding:9px 11px; font-family:var(--font-body); font-size:13px; color:var(--text-main); background:var(--bg-input); border:1px solid var(--accent-border); border-radius:0 var(--radius-input) var(--radius-input) 0; outline:none; color-scheme:dark; transition:border-color .3s, box-shadow .3s; }
+        .rate-input:focus { border-color:var(--accent-border-focus); box-shadow:0 0 0 3px rgba(192,192,192,.12); }
+        .rate-per-hr { font-size:11px; color:var(--text-muted); }
 
-        /* Archive section */
-        .archive-desc  { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.6; }
-        .archive-label { font-family: var(--font-header); font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
-        .archive-select {
-            width: 100%; padding: 12px 16px; font-family: var(--font-body); font-size: 13px;
-            color: var(--text-main); background: var(--bg-input);
-            border: 1px solid var(--accent-border); border-radius: var(--radius-input);
-            appearance: none; outline: none; color-scheme: dark; margin-bottom: 20px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C0C0C0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
-        }
-        .archive-select option, .archive-select optgroup { background: #1e1e1e; }
-        .archive-export-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-        #archiveExportLabel { font-size: 11px; color: var(--status-success); }
+        /* Archive / Sync tab */
+        .archive-label { font-family:var(--font-header); font-size:9px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; }
+        .archive-select { width:100%; padding:12px 36px 12px 16px; font-family:var(--font-body); font-size:13px; color:var(--text-main); background:var(--bg-input); border:1px solid var(--accent-border); border-radius:var(--radius-input); appearance:none; outline:none; color-scheme:dark; margin-bottom:14px; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C0C0C0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; }
+        .archive-select option, .archive-select optgroup { background:#1e1e1e; }
+        .webhook-row { display:flex; gap:10px; align-items:flex-end; margin-bottom:18px; }
+        .webhook-row .form-group { flex:1; }
+        #syncStatusLabel { font-size:11px; color:var(--status-success); margin-top:8px; display:none; }
 
-        @media (max-width: 640px) {
-            .dash-body   { padding: 20px 16px 40px; }
-            .dash-header { padding: 0 16px; }
-            .card        { padding: 20px 18px; }
-            .form-grid   { grid-template-columns: 1fr 1fr; }
+        @media (max-width:640px) {
+            .dash-body   { padding:20px 16px 40px; }
+            .dash-header { padding:0 16px; }
+            .card        { padding:20px 18px; }
+            .correction-grid, .time-row { grid-template-columns:1fr; }
+            .correction-grid .full-width { grid-column:1; }
+            .action-row  { flex-direction:column; }
         }
     </style>
 </head>
 <body>
 
-<!-- =====================================================
+<!-- ═══════════════════════════════════════════════════════
      LOGIN SCREEN
-===================================================== -->
+════════════════════════════════════════════════════════ -->
 <div id="loginScreen">
     <div class="login-card">
         <p class="login-brand">InCar Detailing</p>
@@ -416,12 +375,11 @@
 </div>
 
 
-<!-- =====================================================
+<!-- ═══════════════════════════════════════════════════════
      DASHBOARD
-===================================================== -->
+════════════════════════════════════════════════════════ -->
 <div id="dashboard">
 
-    <!-- Sticky Header -->
     <header class="dash-header">
         <div class="dash-header-left">
             <div class="brand-sm">InCar Detailing</div>
@@ -429,14 +387,14 @@
         </div>
         <div class="dash-header-right">
             <button class="btn-icon-circle" onclick="openSettings()" title="Settings &amp; Archive">&#9881;</button>
-            <a href="index.html" style="font-family:var(--font-header);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='var(--accent-silver)'" onmouseout="this.style.color='var(--text-muted)'">&#8592; Portal</a>
+            <a href="index.html" style="font-family:var(--font-header);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);text-decoration:none;transition:color .3s" onmouseover="this.style.color='var(--accent-silver)'" onmouseout="this.style.color='var(--text-muted)'">&#8592; Portal</a>
             <button class="btn-logout" onclick="doLogout()">Log Out</button>
         </div>
     </header>
 
     <div class="dash-body">
 
-        <!-- Current Period Banner -->
+        <!-- Period Banner -->
         <div class="period-banner">
             <div>
                 <div class="period-banner-label">Current Pay Period</div>
@@ -445,7 +403,7 @@
             <span class="period-status-badge active" id="periodStatusBadge">Active</span>
         </div>
 
-        <!-- Ledger Summary Cards -->
+        <!-- Ledger Summary -->
         <div class="ledger-row">
             <div class="ledger-card accent-green">
                 <p class="ledger-label">Fortnight Accrued</p>
@@ -459,19 +417,27 @@
             </div>
         </div>
 
-        <!-- Payment Checklist + Mark Paid -->
+        <!-- Payment Checklist -->
         <section class="card">
             <p class="card-title">Payment Checklist</p>
             <div class="paid-banner" id="paidBanner">&#128274; This pay period is fully locked — all records are marked as paid.</div>
             <ul class="checklist-list" id="checklistItems">
                 <li style="padding:10px 0;font-size:13px;color:var(--text-muted)">Loading…</li>
             </ul>
-            <button class="btn btn-gold" id="btnMarkPaid" onclick="markAsPaid()" disabled>
-                &#128274; Close Period &amp; Mark Paid
-            </button>
+            <div class="action-row">
+                <button class="btn btn-gold" id="btnMarkPaid" onclick="markAsPaid()" disabled>
+                    &#128274; Close Period &amp; Mark Paid
+                </button>
+                <button class="btn btn-ghost" onclick="openCorrection()">
+                    &#43; Add Correction
+                </button>
+                <button class="btn btn-teal" id="btnSyncCurrent" onclick="syncCurrentPeriod()">
+                    &#9729; Sync to Sheets
+                </button>
+            </div>
         </section>
 
-        <!-- Time Logs Table -->
+        <!-- Time Logs Table (date-grouped) -->
         <section class="card">
             <p class="card-title">Time Logs — Current Period</p>
             <div class="table-wrapper">
@@ -480,8 +446,8 @@
                         <tr>
                             <th>Employee</th>
                             <th>Action</th>
-                            <th>Date &amp; Time</th>
-                            <th style="width:56px;"></th>
+                            <th>Time</th>
+                            <th style="width:52px;"></th>
                         </tr>
                     </thead>
                     <tbody id="logTableBody">
@@ -491,89 +457,107 @@
             </div>
         </section>
 
-        <!-- Manual Entry (collapsible) -->
-        <section class="card">
-            <div class="manual-toggle" onclick="toggleManual()">
-                <span>&#9998; Manual Entry / Correction</span>
-                <span class="toggle-arrow" id="manualArrow">&#9660;</span>
-            </div>
-            <div class="manual-body" id="manualBody">
-                <div class="manual-inner">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="manualEmployee">Employee</label>
-                            <select id="manualEmployee" class="ctrl-input"></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="manualDate">Date</label>
-                            <input type="date" id="manualDate" class="ctrl-input">
-                        </div>
-                        <div class="form-group">
-                            <label for="manualTime">Time</label>
-                            <input type="time" id="manualTime" class="ctrl-input">
-                        </div>
-                        <div class="form-group">
-                            <label for="manualAction">Action</label>
-                            <select id="manualAction" class="ctrl-input">
-                                <option value="Clocked In">Clocked In</option>
-                                <option value="Clocked Out">Clocked Out</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-primary" onclick="saveManualEntry()">&#43; Save</button>
-                    </div>
-                    <p class="manual-feedback" id="manualFeedback"></p>
-                </div>
-            </div>
-        </section>
-
     </div><!-- /.dash-body -->
 </div><!-- /#dashboard -->
 
 
-<!-- =====================================================
+<!-- ═══════════════════════════════════════════════════════
+     MANUAL CORRECTION MODAL
+════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="correctionModal" onclick="closeCorrectionOnBackdrop(event)">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <span class="modal-header-title">&#9998; Manual Correction</span>
+            <button class="modal-close" onclick="closeCorrection()">&#215;</button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px;line-height:1.7;">
+                Enter a complete shift. Both a Clock&#8209;In and Clock&#8209;Out record will be written to Firestore as a single batch operation.
+            </p>
+            <div class="correction-grid">
+                <div class="form-group full-width">
+                    <label for="corrEmployee">Employee</label>
+                    <select id="corrEmployee" class="ctrl-input"></select>
+                </div>
+                <div class="form-group full-width">
+                    <label for="corrDate">Date</label>
+                    <input type="date" id="corrDate" class="ctrl-input">
+                </div>
+                <div class="form-group">
+                    <label for="corrClockIn">Clock-In Time</label>
+                    <input type="time" id="corrClockIn" class="ctrl-input" value="09:00">
+                </div>
+                <div class="form-group">
+                    <label for="corrClockOut">Clock-Out Time</label>
+                    <input type="time" id="corrClockOut" class="ctrl-input" value="17:00">
+                </div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="saveCorrection()">
+                &#128190; Save Both Records
+            </button>
+            <p class="form-feedback" id="corrFeedback"></p>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
      SETTINGS & ARCHIVE MODAL
-===================================================== -->
+════════════════════════════════════════════════════════ -->
 <div class="modal-backdrop" id="settingsModal" onclick="closeSettingsOnBackdrop(event)">
     <div class="modal-panel">
-
         <div class="modal-header">
             <span class="modal-header-title">&#9881; Settings &amp; Archive</span>
             <button class="modal-close" onclick="closeSettings()">&#215;</button>
         </div>
-
         <div class="modal-tabs">
             <button class="modal-tab active" id="tabBtnRates"   onclick="switchTab('rates')"  >&#128178; Manage Rates</button>
-            <button class="modal-tab"         id="tabBtnArchive" onclick="switchTab('archive')">&#128196; History Archive</button>
+            <button class="modal-tab"         id="tabBtnArchive" onclick="switchTab('archive')">&#9729; Cloud Sync</button>
         </div>
-
         <div class="modal-body">
 
-            <!-- TAB: Manage Rates -->
+            <!-- TAB: Rates -->
             <div id="tabRates">
                 <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px;line-height:1.7;">
-                    Set each employee's hourly rate (AUD). Rates are saved to Firestore and apply immediately to all calculations.
+                    Set hourly rates (AUD). Saved to Firestore <code style="font-family:var(--font-mono);font-size:11px;background:#111;padding:1px 5px;border-radius:3px;">settings/rates</code> and applied immediately.
                 </p>
-                <div class="rates-grid" id="ratesGrid"><!-- populated by JS --></div>
+                <div class="rates-grid" id="ratesGrid"></div>
                 <button class="btn btn-primary" onclick="saveRates()">&#128190; Save Rates</button>
-                <p class="rates-feedback" id="ratesFeedback"></p>
+                <p class="form-feedback" id="ratesFeedback"></p>
             </div>
 
-            <!-- TAB: History Archive -->
+            <!-- TAB: Cloud Sync -->
             <div id="tabArchive" style="display:none;">
-                <p class="archive-desc">Select a completed pay period to export a full 14-day hours roster. Currency symbols appear in column headers only — cells contain clean numbers for further calculations.</p>
-                <p class="archive-label">Select Pay Period</p>
-                <select id="archiveSelect" class="archive-select" onchange="document.getElementById('archiveExportLabel').textContent='';">
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:18px;line-height:1.7;">
+                    Syncs pay period data to Google Sheets via an Apps Script webhook. The payload uses clean numbers — currency symbols appear only in the <code style="font-family:var(--font-mono);font-size:11px;background:#111;padding:1px 5px;border-radius:3px;">"Total Payable ($)"</code> key name.
+                </p>
+
+                <!-- Webhook URL config -->
+                <p class="archive-label">Google Apps Script Webhook URL</p>
+                <div class="webhook-row">
+                    <div class="form-group">
+                        <input type="url" id="webhookUrl" class="ctrl-input"
+                               placeholder="https://script.google.com/macros/s/…/exec"
+                               oninput="saveWebhookUrl()">
+                    </div>
+                </div>
+
+                <!-- Historical sync -->
+                <p class="archive-label" style="margin-top:4px;">Sync a Past Pay Period</p>
+                <select id="archiveSelect" class="archive-select" onchange="document.getElementById('syncStatusLabel').style.display='none';">
                     <option value="">— Select a past period —</option>
                 </select>
-                <div class="archive-export-row">
-                    <button class="btn btn-green" onclick="exportArchive()">&#11123; Export to Excel</button>
-                    <span id="archiveExportLabel"></span>
+                <div class="action-row">
+                    <button class="btn btn-teal" id="btnArchiveSync" onclick="syncArchivePeriod()">
+                        &#9729; Sync Selected Period
+                    </button>
                 </div>
+                <div id="syncStatusLabel"></div>
             </div>
 
-        </div><!-- /.modal-body -->
-    </div><!-- /.modal-panel -->
-</div><!-- /#settingsModal -->
+        </div>
+    </div>
+</div>
 
 
 <script type="module">
@@ -591,9 +575,7 @@
              setPersistence,
              browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-    // =====================================================
-    // FIREBASE INIT
-    // =====================================================
+    /* ── Firebase init ─────────────────────────────────────────────────────── */
     const firebaseConfig = {
         apiKey:            "AIzaSyAiplwGT8bfv-lXp8T7UX0_GhCFpnBzxH4",
         authDomain:        "incar-detailing.firebaseapp.com",
@@ -606,21 +588,16 @@
     const db   = getFirestore(app);
     const auth = getAuth(app);
 
-    // LOCAL persistence — manager stays logged in across browser sessions
+    // Auth persists across sessions — manager logs in once per device
     setPersistence(auth, browserLocalPersistence).catch(console.error);
 
-    // =====================================================
-    // CONSTANTS
-    // =====================================================
+    /* ── Constants ─────────────────────────────────────────────────────────── */
     const EMPLOYEE_NAMES = ["Aslam", "Farhan", "Infaz", "Aymen", "Faqi", "Employee 6", "Employee 7"];
 
-    // PAY PERIOD GENERATOR — Anchor: Monday 2024-01-01
-    const ANCHOR      = new Date(2024, 0, 1);
     const PAY_PERIODS = (() => {
-        const arr   = [];
-        const limit = new Date(); limit.setDate(limit.getDate() + 90);
-        let s = new Date(ANCHOR);
-        while (s <= limit) {
+        const arr = [], lim = new Date(); lim.setDate(lim.getDate() + 90);
+        let s = new Date(2024, 0, 1); // Anchor: Mon 2024-01-01
+        while (s <= lim) {
             const e = new Date(s); e.setDate(s.getDate() + 13); e.setHours(23, 59, 59, 999);
             arr.push({ start: new Date(s), end: new Date(e) });
             s.setDate(s.getDate() + 14);
@@ -628,23 +605,19 @@
         return arr;
     })();
 
-    const today       = new Date();
-    const CUR_IDX     = (() => { const i = PAY_PERIODS.findIndex(p => today >= p.start && today <= p.end); return i >= 0 ? i : PAY_PERIODS.length - 1; })();
-    const CUR_PERIOD  = PAY_PERIODS[CUR_IDX];
+    const today      = new Date();
+    const CUR_IDX    = (() => { const i = PAY_PERIODS.findIndex(p => today >= p.start && today <= p.end); return i >= 0 ? i : PAY_PERIODS.length - 1; })();
+    const CUR_PERIOD = PAY_PERIODS[CUR_IDX];
 
-    // =====================================================
-    // MODULE STATE
-    // =====================================================
+    /* ── State ─────────────────────────────────────────────────────────────── */
     let allLogs           = [];
     let hourlyRates       = Object.fromEntries(EMPLOYEE_NAMES.map(n => [n, 25]));
     let currentPeriodLogs = [];
 
-    // =====================================================
-    // UTILITIES
-    // =====================================================
+    /* ── Utilities ─────────────────────────────────────────────────────────── */
     const fmtShort   = d => d.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
-    const fmtMonthYr = d => d.toLocaleDateString("en-AU", { month: "long",  year: "numeric" }); // "January 2026"
-    const fmtMonAbbr = d => d.toLocaleDateString("en-AU", { month: "short", year: "numeric" }); // "Jan 2026"
+    const fmtMonthYr = d => d.toLocaleDateString("en-AU", { month: "long",  year: "numeric" });
+    const fmtMonAbbr = d => d.toLocaleDateString("en-AU", { month: "short", year: "numeric" });
 
     function ordinal(n) {
         const v = n % 100;
@@ -659,11 +632,21 @@
         });
     }
 
+    function formatTimeOnly(date) {
+        return date.toLocaleTimeString("en-AU", {
+            timeZone: "Australia/Melbourne", hour: "numeric", minute: "2-digit", hour12: true
+        });
+    }
+
+    function formatDateHeader(dateKey) {
+        const [y, m, d] = dateKey.split("-").map(Number);
+        const dt = new Date(y, m - 1, d);
+        return `${dt.toLocaleDateString("en-AU", { weekday: "long" })}, ${ordinal(d)} ${dt.toLocaleDateString("en-AU", { month: "long" })} ${y}`;
+    }
+
     const getRate = name => hourlyRates[name] ?? 25;
 
-    // =====================================================
-    // AUTH — onAuthStateChanged bypasses login on return visits
-    // =====================================================
+    /* ── Auth ──────────────────────────────────────────────────────────────── */
     onAuthStateChanged(auth, async user => {
         if (user) {
             document.getElementById("loginScreen").style.display = "none";
@@ -676,32 +659,23 @@
     });
 
     window.doLogin = async function () {
-        const email    = document.getElementById("loginEmail").value.trim();
-        const password = document.getElementById("loginPassword").value;
-        const errEl    = document.getElementById("loginError");
-        errEl.style.display = "none";
-        if (!email || !password) {
-            errEl.textContent = "Please enter your email and password.";
-            errEl.style.display = "block"; return;
-        }
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-        } catch {
-            errEl.textContent   = "Invalid credentials. Please try again.";
-            errEl.style.display = "block";
-        }
+        const email = document.getElementById("loginEmail").value.trim();
+        const pass  = document.getElementById("loginPassword").value;
+        const err   = document.getElementById("loginError");
+        err.style.display = "none";
+        if (!email || !pass) { err.textContent = "Please enter your email and password."; err.style.display = "block"; return; }
+        try { await signInWithEmailAndPassword(auth, email, pass); }
+        catch { err.textContent = "Invalid credentials. Please try again."; err.style.display = "block"; }
     };
-
     window.doLogout = () => signOut(auth);
+    ["loginPassword","loginEmail"].forEach(id =>
+        document.getElementById(id).addEventListener("keydown", e => { if (e.key === "Enter") window.doLogin(); })
+    );
 
-    document.getElementById("loginPassword").addEventListener("keydown", e => { if (e.key === "Enter") window.doLogin(); });
-    document.getElementById("loginEmail").addEventListener("keydown",    e => { if (e.key === "Enter") window.doLogin(); });
-
-    // =====================================================
-    // DATA LOADING
-    // =====================================================
+    /* ── Data Loading ──────────────────────────────────────────────────────── */
     async function loadData() {
-        populateEmployeeDropdown();
+        populateEmployeeDropdowns();
+        loadWebhookUrl();
         await Promise.all([loadRates(), loadLogs()]);
         populateRatesForm();
         populateArchiveDropdown();
@@ -714,7 +688,7 @@
                 const d = snap.data();
                 EMPLOYEE_NAMES.forEach(n => { if (d[n] != null) hourlyRates[n] = d[n]; });
             }
-        } catch (err) { console.warn("loadRates:", err); }
+        } catch (e) { console.warn("loadRates:", e); }
     }
 
     window.loadLogs = async function () {
@@ -735,20 +709,16 @@
                 });
             });
             renderDashboard();
-        } catch (err) {
-            console.error("loadLogs:", err);
+        } catch (e) {
+            console.error("loadLogs:", e);
             tb.innerHTML = `<tr class="state-row"><td colspan="4" style="color:var(--status-error)">Error loading records.</td></tr>`;
         }
     };
 
-    // =====================================================
-    // RENDER DASHBOARD — always uses CUR_PERIOD
-    // =====================================================
+    /* ── Render Dashboard ──────────────────────────────────────────────────── */
     function renderDashboard() {
         const { start, end } = CUR_PERIOD;
-
-        document.getElementById("periodDates").textContent =
-            `${fmtShort(start)} – ${fmtShort(end)}`;
+        document.getElementById("periodDates").textContent = `${fmtShort(start)} – ${fmtShort(end)}`;
 
         const periodLogs  = allLogs.filter(l => l.date >= start && l.date <= end);
         currentPeriodLogs = periodLogs;
@@ -756,52 +726,39 @@
         const hasLogs = periodLogs.length > 0;
         const allPaid = hasLogs && periodLogs.every(l => l.paymentStatus === "paid");
 
-        // Period badge
         const badge = document.getElementById("periodStatusBadge");
         badge.textContent = allPaid ? "✓ Paid & Locked" : "Active";
         badge.className   = `period-status-badge ${allPaid ? "paid" : "active"}`;
-
-        // Paid banner + Mark Paid button
         document.getElementById("paidBanner").style.display = allPaid ? "block" : "none";
+
         const btn = document.getElementById("btnMarkPaid");
         btn.disabled  = allPaid || !hasLogs;
         btn.innerHTML = "&#128274; Close Period &amp; Mark Paid";
 
-        // Group logs by employee and compute hours
+        // Compute hours
         const grouped = {};
         periodLogs.forEach(l => { if (!grouped[l.employee]) grouped[l.employee] = []; grouped[l.employee].push(l); });
-        const { results, autoSet } = computeHours(grouped);
+        const { results, autoSet, liveClockInIds } = computeHours(grouped);
 
-        // Ledger values
+        // Ledger
         const totalMins    = Object.values(results).reduce((a, b) => a + b, 0);
-        const totalHrs     = totalMins / 60;
         const totalPayable = Object.entries(results).reduce((s, [n, m]) => s + (m / 60) * getRate(n), 0);
         const activeCount  = Object.values(results).filter(m => m > 0).length;
-
         document.getElementById("ledgerAccrued").textContent    = `$${totalPayable.toFixed(2)}`;
         document.getElementById("ledgerAccruedSub").textContent = `${activeCount} employee${activeCount !== 1 ? "s" : ""}`;
-        document.getElementById("ledgerHours").textContent      = `${totalHrs.toFixed(1)}h`;
+        document.getElementById("ledgerHours").textContent      = `${(totalMins / 60).toFixed(1)}h`;
         document.getElementById("ledgerHoursSub").textContent   = `${fmtShort(start)} – ${fmtShort(end)}`;
 
-        // Payment checklist
         renderChecklist(results);
-
-        // Log table
-        renderTableWithAutoFlag(periodLogs, autoSet);
+        renderTable(periodLogs, autoSet, liveClockInIds);
     }
 
-    // =====================================================
-    // PAYMENT CHECKLIST — ordered by most hours
-    // Format: [Name] - "[X] hours * $[Rate]" - $[Total]
-    // =====================================================
+    /* ── Payment Checklist (custom circles + micro-animations) ─────────────── */
     function renderChecklist(results) {
         const list = document.getElementById("checklistItems");
         list.innerHTML = "";
 
-        const sorted = Object.entries(results)
-            .filter(([, m]) => m > 0)
-            .sort((a, b) => b[1] - a[1]);
-
+        const sorted = Object.entries(results).filter(([, m]) => m > 0).sort((a, b) => b[1] - a[1]);
         if (!sorted.length) {
             list.innerHTML = `<li class="checklist-empty">No hours logged for this pay period yet.</li>`;
             return;
@@ -811,48 +768,76 @@
             const hrs  = (mins / 60).toFixed(1);
             const rate = getRate(name);
             const pay  = ((mins / 60) * rate).toFixed(2);
-            const cbId = `chk_${name.replace(/\s+/g, "_")}`;
 
             const li = document.createElement("li");
             li.className = "checklist-item";
             li.innerHTML = `
-                <input type="checkbox" id="${cbId}"
-                       onchange="this.nextElementSibling.classList.toggle('checked',this.checked)">
-                <label for="${cbId}">
+                <div class="check-circle" aria-hidden="true">
+                    <svg class="check-svg" viewBox="0 0 12 10" width="12" height="10" fill="none">
+                        <polyline points="1.5,5 4.5,8.5 10.5,1.5" stroke="#6fcf74" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="cl-text">
                     <span class="cl-name">${name}</span>
                     <span class="cl-calc"> - "${hrs} hours * $${rate}"</span>
                     <span class="cl-total"> - $${pay}</span>
-                </label>`;
+                </div>`;
+            li.addEventListener("click", () => toggleChecklist(li));
             list.appendChild(li);
         });
     }
 
-    // =====================================================
-    // FEATURE 3 — 5 PM Auto Clock-Out
-    // =====================================================
+    window.toggleChecklist = function (li) {
+        const circle   = li.querySelector(".check-circle");
+        const wasCheck = !li.classList.contains("checked");
+        li.classList.toggle("checked");
+        if (wasCheck) {
+            circle.classList.add("glow-burst");
+            circle.addEventListener("animationend", () => circle.classList.remove("glow-burst"), { once: true });
+        }
+    };
+
+    /* ── computeHours (Feature 3: 5 PM auto-out + live detection) ──────────── */
     function computeHours(groupedLogs) {
-        const autoSet = new Set();
-        const results = {};
+        const autoSet       = new Set(); // "name|YYYY-MM-DD" — auto-out applied
+        const results       = {};
+        const liveClockInIds= new Set(); // IDs of currently-open clock-ins (today, before 5 PM)
+        const autoClockInIds= new Set(); // IDs where auto-out was applied (for (i) icon)
+
+        const todayKey   = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+        const nowMs      = Date.now();
+
         Object.entries(groupedLogs).forEach(([name, logs]) => {
             const sorted = [...logs].sort((a, b) => a.date - b.date);
-            let mins = 0, clockInAt = null, clockInDay = null;
+            let mins = 0, clockInAt = null, clockInDay = null, clockInId = null;
+
             sorted.forEach(log => {
                 if (log.action === "Clocked In") {
                     clockInAt  = log.date;
                     clockInDay = log.date.toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+                    clockInId  = log.id;
                 } else if (log.action === "Clocked Out" && clockInAt) {
                     mins += (log.date - clockInAt) / 60000;
-                    clockInAt = null; clockInDay = null;
+                    clockInAt = null; clockInDay = null; clockInId = null;
                 }
             });
-            if (clockInAt && clockInDay) {
+
+            if (clockInAt && clockInDay && clockInId) {
                 const autoOut = new Date(`${clockInDay}T17:00:00`);
                 if (autoOut > clockInAt) mins += (autoOut - clockInAt) / 60000;
+
                 autoSet.add(`${name}|${clockInDay}`);
+                autoClockInIds.add(clockInId);
+
+                // Live = today's open clock-in where 5 PM hasn't passed yet
+                if (clockInDay === todayKey && autoOut.getTime() > nowMs) {
+                    liveClockInIds.add(clockInId);
+                }
             }
             results[name] = mins;
         });
-        return { results, autoSet };
+
+        return { results, autoSet, liveClockInIds, autoClockInIds };
     }
 
     function computeDailyHours(empLogs) {
@@ -861,9 +846,8 @@
         let clockInAt = null, clockInDay = null;
         sorted.forEach(log => {
             const day = log.date.toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
-            if (log.action === "Clocked In") {
-                clockInAt = log.date; clockInDay = day;
-            } else if (log.action === "Clocked Out" && clockInAt) {
+            if (log.action === "Clocked In") { clockInAt = log.date; clockInDay = day; }
+            else if (log.action === "Clocked Out" && clockInAt) {
                 byDay[clockInDay] = (byDay[clockInDay] || 0) + (log.date - clockInAt) / 3600000;
                 clockInAt = null; clockInDay = null;
             }
@@ -876,70 +860,101 @@
         return byDay;
     }
 
-    // =====================================================
-    // TABLE RENDER
-    // =====================================================
-    function renderTableWithAutoFlag(logs, autoSet) {
+    /* ── Render Table (date-grouped, new badges, (i) tooltip, active glow) ─── */
+    function renderTable(logs, autoSet, liveClockInIds) {
         const tb = document.getElementById("logTableBody");
         tb.innerHTML = "";
         if (!logs.length) {
             tb.innerHTML = `<tr class="state-row"><td colspan="4">No records for this period.</td></tr>`;
             return;
         }
-        [...logs].sort((a, b) => b.date - a.date).forEach(log => {
-            const isIn      = log.action === "Clocked In";
-            const logDay    = log.date.toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
-            const isAutoOut = isIn && autoSet.has(`${log.employee}|${logDay}`);
-            const isPaid    = log.paymentStatus === "paid";
-            const row = document.createElement("tr");
-            if (isPaid) row.classList.add("row-paid");
-            row.innerHTML = `
-                <td class="td-name">${log.employee}</td>
-                <td>
-                    <span class="badge ${isIn ? "badge-in" : "badge-out"}">
-                        <span class="badge-dot"></span>${isIn ? "Clocked In" : "Clocked Out"}
-                    </span>
-                    ${isAutoOut ? `<span class="badge badge-auto" style="margin-left:5px;"><span class="badge-dot"></span>Auto@5PM</span>` : ""}
-                    ${isPaid    ? `<span class="badge badge-paid"  style="margin-left:5px;">&#128274; Paid</span>` : ""}
-                </td>
-                <td class="td-time">${log.timeStr}</td>
-                <td>${isPaid ? "" : `<button class="btn-delete" onclick="deleteLog('${log.id}',this)">&#128465;</button>`}</td>`;
-            tb.appendChild(row);
+
+        // Re-compute autoClockInIds from autoSet for (i) icon logic
+        const autoClockInIds = new Set();
+        logs.forEach(log => {
+            if (log.action !== "Clocked In") return;
+            const day = log.date.toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+            if (autoSet.has(`${log.employee}|${day}`)) autoClockInIds.add(log.id);
+        });
+
+        // Sort newest first, then group by date
+        const sorted = [...logs].sort((a, b) => b.date - a.date);
+        const groups = []; const groupMap = {};
+        sorted.forEach(log => {
+            const key = log.date.toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+            if (!groupMap[key]) { groupMap[key] = { key, logs: [] }; groups.push(groupMap[key]); }
+            groupMap[key].logs.push(log);
+        });
+
+        const arrowUp = `<svg class="badge-icon" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="5,8.5 5,1.5"/><polyline points="2,4.5 5,1.5 8,4.5"/></svg>`;
+        const arrowDn = `<svg class="badge-icon" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="5,1.5 5,8.5"/><polyline points="2,5.5 5,8.5 8,5.5"/></svg>`;
+
+        groups.forEach(({ key, logs: grpLogs }) => {
+            // Date header row
+            const hrow = document.createElement("tr");
+            hrow.className = "date-header-row";
+            hrow.innerHTML = `<td colspan="4">${formatDateHeader(key)}</td>`;
+            tb.appendChild(hrow);
+
+            grpLogs.forEach(log => {
+                const isIn      = log.action === "Clocked In";
+                const isPaid    = log.paymentStatus === "paid";
+                const isLive    = liveClockInIds.has(log.id);
+                const hasAutoOut= autoClockInIds.has(log.id) && !isLive;
+
+                // (i) info icon for auto-out
+                const infoHTML = (isIn && hasAutoOut)
+                    ? `<span class="info-icon">
+                           <span class="info-inner">i</span>
+                           <div class="info-tooltip">Lazy evaluation applied — no clock&#8209;out was recorded.<br>Auto clock&#8209;out set to 5:00&nbsp;PM.</div>
+                       </span>`
+                    : "";
+
+                const paidHTML = isPaid
+                    ? `<span class="badge badge-paid" style="margin-left:5px;">&#128274; Paid</span>`
+                    : "";
+
+                const row = document.createElement("tr");
+                if (isPaid)  row.classList.add("row-paid");
+                if (isLive)  row.classList.add("row-active-in");
+
+                row.innerHTML = `
+                    <td class="td-name">${log.employee}</td>
+                    <td>
+                        <span class="badge ${isIn ? "badge-in" : "badge-out"}">
+                            ${isIn ? arrowUp : arrowDn}
+                            ${isIn ? "Clock In" : "Clock Out"}
+                        </span>
+                        ${infoHTML}${paidHTML}
+                    </td>
+                    <td class="td-time">${formatTimeOnly(log.date)}</td>
+                    <td>${isPaid ? "" : `<button class="btn-delete" onclick="deleteLog('${log.id}',this)">&#128465;</button>`}</td>`;
+                tb.appendChild(row);
+            });
         });
     }
 
-    // =====================================================
-    // DELETE LOG
-    // =====================================================
+    /* ── Delete Log ─────────────────────────────────────────────────────────── */
     window.deleteLog = async function (docId, btnEl) {
         if (!confirm("Delete this record? This cannot be undone.")) return;
         try {
             await deleteDoc(doc(db, "timeLogs", docId));
             allLogs = allLogs.filter(l => l.id !== docId);
             const row = btnEl.closest("tr");
-            row.style.transition = "opacity 0.3s"; row.style.opacity = "0";
+            row.style.transition = "opacity .3s"; row.style.opacity = "0";
             setTimeout(() => row.remove(), 320);
-        } catch (err) {
-            console.error("Delete:", err);
-            alert("Could not delete record. Check Firestore permissions.");
-        }
+        } catch (e) { console.error("Delete:", e); alert("Could not delete record."); }
     };
 
-    // =====================================================
-    // MARK AS PAID — locks current period
-    // =====================================================
+    /* ── Mark as Paid ───────────────────────────────────────────────────────── */
     window.markAsPaid = async function () {
         const unpaid = currentPeriodLogs.filter(l => l.paymentStatus !== "paid");
         if (!unpaid.length) return;
         if (!confirm(
-            `Lock ${unpaid.length} record(s) as PAID?\n\n` +
-            `Period: ${fmtShort(CUR_PERIOD.start)} – ${fmtShort(CUR_PERIOD.end)}\n\n` +
-            `This permanently locks records and cannot be undone.`
+            `Lock ${unpaid.length} record(s) as PAID?\n\nPeriod: ${fmtShort(CUR_PERIOD.start)} – ${fmtShort(CUR_PERIOD.end)}\n\nThis permanently locks records and cannot be undone.`
         )) return;
-
         const btn = document.getElementById("btnMarkPaid");
         btn.disabled = true; btn.textContent = "Processing…";
-
         try {
             const CHUNK = 400;
             for (let i = 0; i < unpaid.length; i += CHUNK) {
@@ -951,61 +966,164 @@
             }
             unpaid.forEach(l => { l.paymentStatus = "paid"; });
             renderDashboard();
-        } catch (err) {
-            console.error("markAsPaid:", err);
-            alert("Failed to mark as paid. Check console.");
-            btn.disabled  = false;
-            btn.innerHTML = "&#128274; Close Period &amp; Mark Paid";
+        } catch (e) {
+            console.error("markAsPaid:", e); alert("Failed to mark as paid.");
+            btn.disabled = false; btn.innerHTML = "&#128274; Close Period &amp; Mark Paid";
         }
     };
 
-    // =====================================================
-    // MANUAL ENTRY
-    // =====================================================
-    window.saveManualEntry = async function () {
-        const employee = document.getElementById("manualEmployee").value;
-        const dateVal  = document.getElementById("manualDate").value;
-        const timeVal  = document.getElementById("manualTime").value;
-        const action   = document.getElementById("manualAction").value;
-        const fb       = document.getElementById("manualFeedback");
+    /* ── Manual Correction Modal ────────────────────────────────────────────── */
+    window.openCorrection  = () => document.getElementById("correctionModal").classList.add("open");
+    window.closeCorrection = () => document.getElementById("correctionModal").classList.remove("open");
+    window.closeCorrectionOnBackdrop = e => { if (e.target === document.getElementById("correctionModal")) window.closeCorrection(); };
+
+    window.saveCorrection = async function () {
+        const employee  = document.getElementById("corrEmployee").value;
+        const dateVal   = document.getElementById("corrDate").value;
+        const clockIn   = document.getElementById("corrClockIn").value;
+        const clockOut  = document.getElementById("corrClockOut").value;
+        const fb        = document.getElementById("corrFeedback");
         fb.className = ""; fb.textContent = "";
-        if (!dateVal || !timeVal) {
-            fb.textContent = "Please fill in both date and time.";
-            fb.className   = "manual-feedback error"; return;
+
+        if (!dateVal || !clockIn || !clockOut) {
+            fb.textContent = "Please fill in all fields."; fb.className = "form-feedback error"; return;
         }
+
+        const inDate  = new Date(`${dateVal}T${clockIn}:00`);
+        const outDate = new Date(`${dateVal}T${clockOut}:00`);
+
+        if (outDate <= inDate) {
+            fb.textContent = "Clock-Out time must be after Clock-In time."; fb.className = "form-feedback error"; return;
+        }
+
         try {
-            const d   = new Date(`${dateVal}T${timeVal}:00`);
-            const str = getAUTimeString(d);
-            await addDoc(collection(db, "timeLogs"), {
-                employee: employee, action: action,
-                time: str, timestamp: Timestamp.fromDate(d)
+            const inStr  = getAUTimeString(inDate);
+            const outStr = getAUTimeString(outDate);
+
+            // Batch write: both records atomically
+            const batch  = writeBatch(db);
+            batch.set(doc(collection(db, "timeLogs")), {
+                employee, action: "Clocked In",  time: inStr,  timestamp: Timestamp.fromDate(inDate)
             });
-            fb.textContent = `Saved: ${employee} — ${action} at ${str}`;
-            fb.className   = "manual-feedback success";
-            document.getElementById("manualDate").value = "";
-            document.getElementById("manualTime").value = "";
+            batch.set(doc(collection(db, "timeLogs")), {
+                employee, action: "Clocked Out", time: outStr, timestamp: Timestamp.fromDate(outDate)
+            });
+            await batch.commit();
+
+            fb.textContent = `Saved: ${employee} — ${inStr} → ${outStr}`;
+            fb.className   = "form-feedback success";
+            document.getElementById("corrDate").value    = "";
+            document.getElementById("corrClockIn").value = "09:00";
+            document.getElementById("corrClockOut").value= "17:00";
             await window.loadLogs();
-        } catch (err) {
-            console.error("Manual save:", err);
-            fb.textContent = "Save failed. Check console.";
-            fb.className   = "manual-feedback error";
+        } catch (e) {
+            console.error("saveCorrection:", e);
+            fb.textContent = "Save failed. Check console."; fb.className = "form-feedback error";
         }
     };
 
-    window.toggleManual = function () {
-        const body = document.getElementById("manualBody");
-        const arr  = document.getElementById("manualArrow");
-        const open = body.classList.toggle("open");
-        arr.classList.toggle("open", open);
+    /* ── Google Sheets Sync ─────────────────────────────────────────────────── */
+    function buildSyncPayload(period) {
+        const { start, end } = period;
+        const days    = Array.from({ length: 14 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
+        const dayKeys = days.map(d => d.toLocaleDateString("en-CA"));
+
+        const pLogs   = allLogs.filter(l => l.date >= start && l.date <= end);
+        const grouped = {};
+        pLogs.forEach(l => { if (!grouped[l.employee]) grouped[l.employee] = []; grouped[l.employee].push(l); });
+        const employees = Object.keys(grouped).sort();
+
+        const employeeData = employees.map(name => {
+            const byDay   = computeDailyHours(grouped[name]);
+            const rate    = getRate(name);
+            const days_obj= {};
+            dayKeys.forEach(k => { if (byDay[k]) days_obj[k] = +byDay[k].toFixed(2); });
+            const totalHours   = dayKeys.reduce((s, k) => s + (byDay[k] || 0), 0);
+            const totalPayable = totalHours * rate; // pure number — no $ in value
+            return { name, rate, days: days_obj, totalHours: +totalHours.toFixed(2), "totalPayable ($)": +totalPayable.toFixed(2) };
+        });
+
+        const grandHrs = employeeData.reduce((s, e) => s + e.totalHours, 0);
+        const grandPay = employeeData.reduce((s, e) => s + e["totalPayable ($)"], 0);
+
+        // Compute period label
+        const past      = PAY_PERIODS.filter(p => p.end < CUR_PERIOD.start);
+        const sameMonth = past.filter(p => fmtMonAbbr(p.start) === fmtMonAbbr(start));
+        const pNum      = sameMonth.findIndex(p => p.start.getTime() === start.getTime()) + 1;
+        const mo        = end.toLocaleDateString("en-AU", { month: "short" });
+        const periodLabel = `Period ${pNum || 1} (${ordinal(start.getDate())}–${ordinal(end.getDate())} ${mo})`;
+
+        return {
+            filename:  `Staff Working hours - ${fmtMonthYr(start)} - ${periodLabel}`,
+            period:    { start: start.toLocaleDateString("en-CA"), end: end.toLocaleDateString("en-CA"), label: periodLabel },
+            employees: employeeData,
+            summary:   { "totalHours": +grandHrs.toFixed(2), "totalPayable ($)": +grandPay.toFixed(2) }
+        };
+    }
+
+    async function syncToSheets(period, btnEl, statusElId) {
+        const webhookUrl = localStorage.getItem("incar_sheets_webhook") || "";
+        if (!webhookUrl) {
+            alert("Configure your Google Apps Script Webhook URL in Settings → Cloud Sync first.");
+            return;
+        }
+
+        const statusEl = statusElId ? document.getElementById(statusElId) : null;
+        const origText = btnEl.innerHTML;
+        btnEl.disabled = true; btnEl.textContent = "Syncing…";
+        if (statusEl) { statusEl.style.display = "none"; statusEl.textContent = ""; }
+
+        try {
+            const payload = buildSyncPayload(period);
+            // Use text/plain to avoid CORS preflight on Google Apps Script
+            await fetch(webhookUrl, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(payload)
+            });
+
+            if (statusEl) {
+                statusEl.textContent   = `✓ Synced: ${payload.filename}`;
+                statusEl.style.cssText = "display:block;font-size:11px;color:var(--status-success);margin-top:8px;";
+            }
+            alert(`✓ Sync sent: ${payload.filename}`);
+        } catch (e) {
+            console.error("syncToSheets:", e);
+            alert("Sync failed. Check your webhook URL and Apps Script deployment.");
+        } finally {
+            btnEl.disabled = false; btnEl.innerHTML = origText;
+        }
+    }
+
+    window.syncCurrentPeriod = function () {
+        syncToSheets(CUR_PERIOD, document.getElementById("btnSyncCurrent"), null);
     };
 
-    // =====================================================
-    // SETTINGS MODAL
-    // =====================================================
-    window.openSettings  = () => document.getElementById("settingsModal").classList.add("open");
+    window.syncArchivePeriod = function () {
+        const idx = parseInt(document.getElementById("archiveSelect").value, 10);
+        if (isNaN(idx) || !PAY_PERIODS[idx]) { alert("Please select a past period first."); return; }
+        syncToSheets(PAY_PERIODS[idx], document.getElementById("btnArchiveSync"), "syncStatusLabel");
+    };
+
+    /* ── Webhook URL persistence ─────────────────────────────────────────────── */
+    function loadWebhookUrl() {
+        const url = localStorage.getItem("incar_sheets_webhook") || "";
+        document.getElementById("webhookUrl").value = url;
+    }
+    window.saveWebhookUrl = function () {
+        localStorage.setItem("incar_sheets_webhook", document.getElementById("webhookUrl").value.trim());
+    };
+
+    /* ── Settings Modal ─────────────────────────────────────────────────────── */
+    window.openSettings  = () => { document.getElementById("settingsModal").classList.add("open"); loadWebhookUrl(); };
     window.closeSettings = () => document.getElementById("settingsModal").classList.remove("open");
     window.closeSettingsOnBackdrop = e => { if (e.target === document.getElementById("settingsModal")) window.closeSettings(); };
-    document.addEventListener("keydown", e => { if (e.key === "Escape") window.closeSettings(); });
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+            window.closeSettings();
+            window.closeCorrection();
+        }
+    });
 
     window.switchTab = function (tab) {
         document.getElementById("tabRates").style.display   = tab === "rates"   ? "block" : "none";
@@ -1014,9 +1132,7 @@
         document.getElementById("tabBtnArchive").classList.toggle("active", tab === "archive");
     };
 
-    // =====================================================
-    // MANAGE RATES — reads/writes Firestore settings/rates
-    // =====================================================
+    /* ── Manage Rates ───────────────────────────────────────────────────────── */
     function populateRatesForm() {
         const grid = document.getElementById("ratesGrid");
         grid.innerHTML = "";
@@ -1037,206 +1153,52 @@
 
     window.saveRates = async function () {
         const newRates = {};
-        document.querySelectorAll(".rate-input").forEach(inp => {
-            newRates[inp.dataset.employee] = parseFloat(inp.value) || 0;
-        });
+        document.querySelectorAll(".rate-input").forEach(i => { newRates[i.dataset.employee] = parseFloat(i.value) || 0; });
         const fb = document.getElementById("ratesFeedback");
         fb.className = ""; fb.textContent = "";
         try {
             await setDoc(doc(db, "settings", "rates"), newRates);
             Object.assign(hourlyRates, newRates);
-            renderDashboard(); // Refresh totals immediately
-            fb.textContent = "Rates saved and applied.";
-            fb.className   = "rates-feedback success";
-        } catch (err) {
-            console.error("saveRates:", err);
-            fb.textContent = "Failed to save rates.";
-            fb.className   = "rates-feedback error";
+            renderDashboard();
+            fb.textContent = "Rates saved and applied."; fb.className = "form-feedback success";
+        } catch (e) {
+            console.error("saveRates:", e);
+            fb.textContent = "Failed to save rates."; fb.className = "form-feedback error";
         }
     };
 
-    // =====================================================
-    // ARCHIVE DROPDOWN — past periods grouped by month
-    // =====================================================
+    /* ── Archive Dropdown ───────────────────────────────────────────────────── */
     function populateArchiveDropdown() {
         const sel  = document.getElementById("archiveSelect");
         const past = PAY_PERIODS.filter(p => p.end < CUR_PERIOD.start);
-
         if (!past.length) {
-            const o = document.createElement("option");
-            o.disabled = true; o.textContent = "No past periods available yet";
-            sel.appendChild(o); return;
+            const o = document.createElement("option"); o.disabled = true; o.textContent = "No past periods yet"; sel.appendChild(o); return;
         }
-
-        // Group by start month (newest first)
         const groups = {};
-        past.forEach((p, realIdx) => {
-            const key = fmtMonAbbr(p.start); // "Jan 2026"
+        past.forEach((p, idx) => {
+            const key = fmtMonAbbr(p.start);
             if (!groups[key]) groups[key] = [];
-            groups[key].push({ p, realIdx });
+            groups[key].push({ p, idx });
         });
-
         Object.entries(groups).reverse().forEach(([monthLabel, items]) => {
-            const grp   = document.createElement("optgroup");
-            grp.label   = monthLabel;
-            items.forEach(({ p, realIdx }, localIdx) => {
-                const opt  = document.createElement("option");
-                opt.value  = realIdx;
-                const d1   = ordinal(p.start.getDate());
-                const d2   = ordinal(p.end.getDate());
-                const mo   = p.end.toLocaleDateString("en-AU", { month: "short" });
-                opt.textContent = `Period ${localIdx + 1} (${d1}–${d2} ${mo})`;
-                grp.appendChild(opt);
+            const grp = document.createElement("optgroup"); grp.label = monthLabel;
+            items.forEach(({ p, idx }, local) => {
+                const o = document.createElement("option"); o.value = idx;
+                const mo = p.end.toLocaleDateString("en-AU", { month: "short" });
+                o.textContent = `Period ${local + 1} (${ordinal(p.start.getDate())}–${ordinal(p.end.getDate())} ${mo})`;
+                grp.appendChild(o);
             });
             sel.appendChild(grp);
         });
     }
 
-    // =====================================================
-    // EXPORT ARCHIVE TO EXCEL (ExcelJS)
-    // Spec: currency symbols in headers ONLY — cells are
-    // pure numbers so data stays clean for spreadsheet use.
-    // Filename: "Staff Working hours - [Month] - [Label].xlsx"
-    // =====================================================
-    window.exportArchive = async function () {
-        if (typeof ExcelJS === "undefined") { alert("ExcelJS not loaded."); return; }
-
-        const sel = document.getElementById("archiveSelect");
-        const idx = parseInt(sel.value, 10);
-        if (isNaN(idx) || !PAY_PERIODS[idx]) { alert("Please select a pay period first."); return; }
-
-        const { start, end } = PAY_PERIODS[idx];
-
-        // 14-day array
-        const days    = Array.from({ length: 14 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
-        const dayKeys = days.map(d => d.toLocaleDateString("en-CA"));
-
-        // Logs for this period
-        const pLogs = allLogs.filter(l => l.date >= start && l.date <= end);
-
-        // Group by employee
-        const grouped = {};
-        pLogs.forEach(l => { if (!grouped[l.employee]) grouped[l.employee] = []; grouped[l.employee].push(l); });
-        const employees = Object.keys(grouped).sort();
-
-        // Cache daily hours
-        const cache = {};
-        employees.forEach(n => { cache[n] = computeDailyHours(grouped[n]); });
-
-        // ---- Filename components ----
-        const monthFull  = fmtMonthYr(start);  // "January 2026"
-        const past       = PAY_PERIODS.filter(p => p.end < CUR_PERIOD.start);
-        const sameMonth  = past.filter(p => fmtMonAbbr(p.start) === fmtMonAbbr(start));
-        const localNum   = sameMonth.findIndex(p => p.start.getTime() === start.getTime()) + 1;
-        const d1Ord      = ordinal(start.getDate());
-        const d2Ord      = ordinal(end.getDate());
-        const endMoAbbr  = end.toLocaleDateString("en-AU", { month: "short" });
-        const periodLabel = `Period ${localNum} (${d1Ord}-${d2Ord} ${endMoAbbr})`;
-        const filename    = `Staff Working hours - ${monthFull} - ${periodLabel}.xlsx`;
-
-        // ---- Build workbook ----
-        const COL_COUNT = 17; // Employee + 14 days + Total Hours + Total Payable
-        const wb = new ExcelJS.Workbook();
-        wb.creator = "InCar Detailing Manager"; wb.created = new Date();
-        const ws   = wb.addWorksheet("Pay Period");
-
-        // Row 1 — merged dark-blue title
-        ws.addRow([`InCar Detailing — ${monthFull} — ${periodLabel}`]);
-        ws.mergeCells(1, 1, 1, COL_COUNT);
-        const tc = ws.getCell("A1");
-        tc.font = { bold: true, size: 13, color: { argb: "FFFFFFFF" } };
-        tc.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F3864" } };
-        tc.alignment = { horizontal: "center", vertical: "middle" };
-        ws.getRow(1).height = 32;
-
-        // Row 2 — column headers
-        // ★ Currency ($) lives ONLY in the "Total Payable ($)" header — not in any cell
-        const dayHdrs = days.map(d => d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" }));
-        ws.addRow(["Employee", ...dayHdrs, "Total Hours", "Total Payable ($)"]);
-        const hr = ws.getRow(2); hr.height = 36;
-        hr.eachCell(cell => {
-            cell.font      = { bold: true, size: 10, color: { argb: "FFFFFFFF" } };
-            cell.fill      = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2D3748" } };
-            cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-            cell.border    = { bottom: { style: "thin", color: { argb: "FF444444" } } };
-        });
-        hr.getCell(1).alignment = { horizontal: "left", vertical: "middle" };
-
-        // Employee data rows — pure numbers in all value cells
-        employees.forEach(name => {
-            const byDay   = cache[name];
-            const rate    = getRate(name);
-            const dayVals = dayKeys.map(k => byDay[k] ? +byDay[k].toFixed(2) : "–");
-            const totHrs  = dayKeys.reduce((s, k) => s + (byDay[k] || 0), 0);
-            const totPay  = totHrs * rate;
-
-            const dr = ws.addRow([name, ...dayVals, +totHrs.toFixed(2), +totPay.toFixed(2)]);
-            dr.height = 22;
-            dr.getCell(1).font = { bold: true, size: 11 };
-            dr.getCell(1).alignment = { horizontal: "left", vertical: "middle" };
-            for (let c = 2; c <= 15; c++) {
-                const cell = dr.getCell(c);
-                cell.alignment = { horizontal: "center", vertical: "middle" };
-                if (typeof cell.value === "number") cell.numFmt = "0.00"; // clean number
-            }
-            // Total Hours — pure number
-            dr.getCell(16).font      = { bold: true, size: 11 };
-            dr.getCell(16).alignment = { horizontal: "center", vertical: "middle" };
-            dr.getCell(16).numFmt    = "0.00";
-            // Total Payable — yellow fill, pure number (no $ — it's in the header)
-            dr.getCell(17).font      = { bold: true, size: 11, color: { argb: "FF000000" } };
-            dr.getCell(17).fill      = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF176" } };
-            dr.getCell(17).alignment = { horizontal: "center", vertical: "middle" };
-            dr.getCell(17).numFmt    = "0.00"; // pure number — $ is in the column header
-        });
-
-        // Grand totals row
-        let grandHrs = 0, grandPay = 0;
-        const totDays = dayKeys.map(k => {
-            const s = employees.reduce((acc, n) => acc + (cache[n][k] || 0), 0);
-            return s > 0 ? +s.toFixed(2) : "–";
-        });
-        employees.forEach(n => {
-            const h = dayKeys.reduce((s, k) => s + (cache[n][k] || 0), 0);
-            grandHrs += h; grandPay += h * getRate(n);
-        });
-        const tr = ws.addRow(["TOTAL", ...totDays, +grandHrs.toFixed(2), +grandPay.toFixed(2)]);
-        tr.height = 26;
-        tr.eachCell(cell => {
-            cell.font      = { bold: true, size: 11, color: { argb: "FFFFFFFF" } };
-            cell.fill      = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F3864" } };
-            cell.alignment = { horizontal: "center", vertical: "middle" };
-        });
-        tr.getCell(1).alignment  = { horizontal: "left", vertical: "middle" };
-        tr.getCell(17).fill      = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF176" } };
-        tr.getCell(17).font      = { bold: true, size: 11, color: { argb: "FF000000" } };
-        tr.getCell(17).numFmt    = "0.00";
-
-        // Column widths
-        ws.getColumn(1).width = 18;
-        for (let c = 2; c <= 15; c++) ws.getColumn(c).width = 11;
-        ws.getColumn(16).width = 14; ws.getColumn(17).width = 17;
-
-        // Download
-        const buf  = await wb.xlsx.writeBuffer();
-        const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement("a");
-        a.href = url; a.download = filename; a.click();
-        URL.revokeObjectURL(url);
-
-        document.getElementById("archiveExportLabel").textContent = `✓ ${filename}`;
-    };
-
-    // =====================================================
-    // POPULATE DROPDOWNS
-    // =====================================================
-    function populateEmployeeDropdown() {
-        const sel = document.getElementById("manualEmployee");
-        sel.innerHTML = "";
-        EMPLOYEE_NAMES.forEach(n => {
-            const o = document.createElement("option");
-            o.value = n; o.textContent = n; sel.appendChild(o);
+    /* ── Employee Dropdowns ─────────────────────────────────────────────────── */
+    function populateEmployeeDropdowns() {
+        ["corrEmployee"].forEach(id => {
+            const sel = document.getElementById(id);
+            if (!sel) return;
+            sel.innerHTML = "";
+            EMPLOYEE_NAMES.forEach(n => { const o = document.createElement("option"); o.value = n; o.textContent = n; sel.appendChild(o); });
         });
     }
 
