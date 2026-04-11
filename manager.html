@@ -443,9 +443,8 @@
                 <button class="btn btn-teal" id="btnSyncCurrent" onclick="syncCurrentPeriod()">
                     &#9729; Sync to Sheets
                 </button>
-                <a id="btnViewSheetsCurrent" class="btn btn-view-sheets hidden"
-                   href="" target="_blank" rel="noopener noreferrer"
-                   onclick="this.href = MASTER_SHEET_URL || '#';">
+                <button type="button" id="btnViewSheetsCurrent" class="btn btn-view-sheets"
+                        onclick="window.open(MASTER_SHEET_URL, '_blank')">
                     <svg class="sheets-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <rect x="3" y="2" width="14" height="16" rx="1.5" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
                         <rect x="5.5" y="5.5" width="4" height="2.5" rx=".4" fill="#4caf50" opacity=".85"/>
@@ -455,7 +454,7 @@
                         <rect x="5.5" y="13.5" width="9" height="1.5" rx=".4" fill="#555"/>
                     </svg>
                     View in Sheets
-                </a>
+                </button>
             </div>
         </section>
 
@@ -573,9 +572,8 @@
                     <button class="btn btn-teal" id="btnArchiveSync" onclick="syncArchivePeriod()">
                         &#9729; Sync Selected Period
                     </button>
-                    <a id="btnViewSheetsArchive" class="btn btn-view-sheets hidden"
-                       href="" target="_blank" rel="noopener noreferrer"
-                       onclick="this.href = MASTER_SHEET_URL || '#';">
+                    <button type="button" id="btnViewSheetsArchive" class="btn btn-view-sheets"
+                            onclick="window.open(MASTER_SHEET_URL, '_blank')">
                         <svg class="sheets-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <rect x="3" y="2" width="14" height="16" rx="1.5" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
                             <rect x="5.5" y="5.5" width="4" height="2.5" rx=".4" fill="#4caf50" opacity=".85"/>
@@ -585,7 +583,7 @@
                             <rect x="5.5" y="13.5" width="9" height="1.5" rx=".4" fill="#555"/>
                         </svg>
                         View in Sheets
-                    </a>
+                    </button>
                 </div>
                 <div id="syncStatusLabel"></div>
             </div>
@@ -627,7 +625,7 @@
     setPersistence(auth, browserLocalPersistence).catch(console.error);
 
     /* ── Constants ─────────────────────────────────────────────────────────── */
-    const EMPLOYEE_NAMES = ["Aslam", "Farhan", "Infaz", "Aymen", "Faqi", "Employee 6", "Employee 7"];
+    const EMPLOYEE_NAMES = ["Vishwajith", "Vimukthi", "Farhan", "Nadith", "Izac", "Wishvajith", "Aslam", "Karthick", "Aymen", "Viknesh"];
 
     const PAY_PERIODS = (() => {
         const arr = [], lim = new Date(); lim.setDate(lim.getDate() + 90);
@@ -649,7 +647,7 @@
 
     /* ── State ─────────────────────────────────────────────────────────────── */
     let allLogs           = [];
-    let hourlyRates       = Object.fromEntries(EMPLOYEE_NAMES.map(n => [n, 25]));
+    let hourlyRates       = { Vishwajith: 19, Vimukthi: 29, Farhan: 25, Nadith: 19, Izac: 30, Wishvajith: 19, Aslam: 20, Karthick: 25, Aymen: 25, Viknesh: 20 };
     let currentPeriodLogs = [];
 
     /* ── Utilities ─────────────────────────────────────────────────────────── */
@@ -1069,33 +1067,40 @@
         const pLogs   = allLogs.filter(l => l.date >= start && l.date <= end);
         const grouped = {};
         pLogs.forEach(l => { if (!grouped[l.employee]) grouped[l.employee] = []; grouped[l.employee].push(l); });
-        const employees = Object.keys(grouped).sort();
 
-        // Compute period label
-        const past      = PAY_PERIODS.filter(p => p.end < CUR_PERIOD.start);
-        const sameMonth = past.filter(p => fmtMonAbbr(p.start) === fmtMonAbbr(start));
-        const pNum      = sameMonth.findIndex(p => p.start.getTime() === start.getTime()) + 1;
-        const mo        = end.toLocaleDateString("en-AU", { month: "short" });
-        const weekLabel   = `Period ${pNum || 1} (${ordinal(start.getDate())}–${ordinal(end.getDate())} ${mo})`;
-        const periodLabel = `Staff Working hours - ${fmtMonthYr(start)} - ${weekLabel}`;
+        // Period label parts
+        const w1End  = days[6];  const w2End = days[13];
+        const moFull = start.toLocaleDateString("en-AU", { month: "long",    timeZone: "Australia/Melbourne" });
+        const yr     = start.toLocaleDateString("en-AU", { year:  "numeric", timeZone: "Australia/Melbourne" });
+        const moShrt = w1End.toLocaleDateString("en-AU", { month: "short" });
+        const mo2    = w2End.toLocaleDateString("en-AU", { month: "short" });
+        const sheetName  = `${moFull.toUpperCase()} ${yr}`;
+        const mainTitle  = `InCar Detailing Payroll (${moFull} ${yr})`;
+        const week1Label = `Week 1 (${ordinal(days[0].getDate())}–${ordinal(w1End.getDate())} ${moShrt})`;
+        const week2Label = `Week 2 (${ordinal(days[7].getDate())}–${ordinal(w2End.getDate())} ${mo2})`;
 
-        // Flat headers: Employee | Rate ($/hr) | day1…day14 | Total Hours | Total Payable ($)
-        const headers = ["Employee", "Rate ($/hr)", ...dayKeys, "Total Hours", "Total Payable ($)"];
+        // Fixed day-name headers — fortnight always starts on Monday
+        const headers = ["Employee", "Rate ($/hr)",
+            "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday",
+            "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday",
+            "Total Hours", "Total Payable ($)"];
 
-        // Rows — pure numbers in value cells, no $ signs
+        // Only employees who have logs this period; preserve EMPLOYEE_NAMES order
+        const employees = EMPLOYEE_NAMES.filter(n => grouped[n]);
         const rows = employees.map(name => {
             const byDay        = computeDailyHours(grouped[name]);
             const rate         = getRate(name);
             const dayValues    = dayKeys.map(k => byDay[k] ? +byDay[k].toFixed(2) : 0);
             const totalHours   = +dayKeys.reduce((s, k) => s + (byDay[k] || 0), 0).toFixed(2);
             const totalPayable = +(totalHours * rate).toFixed(2);
-            return [name, rate, ...dayValues, totalHours, totalPayable];
+            const isPaid       = (grouped[name] || []).some(l => l.paymentStatus === "paid");
+            return { values: [name, rate, ...dayValues, totalHours, totalPayable], isPaid };
         });
 
-        return { periodLabel, headers, rows };
+        return { sheetName, mainTitle, week1Label, week2Label, headers, rows };
     }
 
-    async function syncToSheets(period, btnEl, viewBtnId, statusElId) {
+    async function syncToSheets(period, btnEl, _viewBtnId, statusElId) {
         const webhookUrl = localStorage.getItem("incar_sheets_webhook") || "";
         if (!webhookUrl) {
             alert("Configure your Google Apps Script Webhook URL in Settings → Cloud Sync first.");
@@ -1103,13 +1108,11 @@
         }
 
         const statusEl = statusElId ? document.getElementById(statusElId) : null;
-        const viewBtn  = viewBtnId  ? document.getElementById(viewBtnId)  : null;
         const origHTML = btnEl.innerHTML;
         btnEl.disabled = true;
         btnEl.textContent = "Syncing…";
         btnEl.style.opacity = "0.7";
         if (statusEl) { statusEl.style.display = "none"; statusEl.textContent = ""; }
-        if (viewBtn)  { viewBtn.classList.add("hidden"); }
 
         try {
             const payload = buildSyncPayload(period);
@@ -1126,12 +1129,10 @@
             btnEl.innerHTML = "&#10003; Data Synced!";
             btnEl.classList.add("btn-sync-success");
             btnEl.style.opacity = "";
-            if (viewBtn) viewBtn.classList.remove("hidden");
             if (statusEl) {
-                statusEl.textContent   = `✓ Synced: ${payload.periodLabel}`;
+                statusEl.textContent   = `✓ Synced: ${payload.mainTitle}`;
                 statusEl.style.cssText = "display:block;font-size:11px;color:var(--status-success);margin-top:8px;";
             }
-            // Auto-reset button label after 4 s
             setTimeout(() => {
                 btnEl.innerHTML = origHTML;
                 btnEl.classList.remove("btn-sync-success");
@@ -1149,7 +1150,6 @@
             }
         }
     }
-
     window.syncCurrentPeriod = function () {
         syncToSheets(CUR_PERIOD, document.getElementById("btnSyncCurrent"), "btnViewSheetsCurrent", null);
     };
