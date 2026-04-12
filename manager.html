@@ -1210,7 +1210,16 @@
 
     /* ── Google Sheets Sync ─────────────────────────────────────────────────── */
     // checklistState: Map<name, isChecked> captured from the live DOM (null for archive mode)
-    function buildSyncPayload(period, checklistState) {
+    /*function buildSyncPayload(period, checklistState) {
+        const { start, end } = period;
+        const days    = Array.from({ length: 14 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
+        const dayKeys = days.map(d => d.toLocaleDateString("en-CA"));
+
+        const pLogs   = allLogs.filter(l => l.date >= start && l.date <= end);
+        const grouped = {};
+        pLogs.forEach(l => { if (!grouped[l.employee]) grouped[l.employee] = []; grouped[l.employee].push(l); });*/
+// 13/4/26 NEW SYNC ERROR FIX (GEMINI)
+    function buildSyncPayload(period) {
         const { start, end } = period;
         const days    = Array.from({ length: 14 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
         const dayKeys = days.map(d => d.toLocaleDateString("en-CA"));
@@ -1218,6 +1227,43 @@
         const pLogs   = allLogs.filter(l => l.date >= start && l.date <= end);
         const grouped = {};
         pLogs.forEach(l => { if (!grouped[l.employee]) grouped[l.employee] = []; grouped[l.employee].push(l); });
+
+        const w1End  = days[6];  const w2End = days[13];
+        const moFull = start.toLocaleDateString("en-AU", { month: "long",    timeZone: "Australia/Melbourne" });
+        const yr     = start.toLocaleDateString("en-AU", { year:  "numeric", timeZone: "Australia/Melbourne" });
+        const moShrt = w1End.toLocaleDateString("en-AU", { month: "short" });
+        const mo2    = w2End.toLocaleDateString("en-AU", { month: "short" });
+        const sheetName  = `${moFull.toUpperCase()} ${yr}`;
+        const mainTitle  = `InCar Detailing Payroll (${moFull} ${yr})`;
+        const week1Label = `Week 1 (${ordinal(days[0].getDate())}–${ordinal(w1End.getDate())} ${moShrt})`;
+        const week2Label = `Week 2 (${ordinal(days[7].getDate())}–${ordinal(w2End.getDate())} ${mo2})`;
+
+        const headers = ["Employee", "Rate ($/hr)",
+            "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday",
+            "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday",
+            "Total Hours", "Total Payable ($)"];
+
+        // 1. Grab exactly who is visually checked on the screen right now
+        const checkedElements = document.querySelectorAll('#checklistItems .checklist-item.checked .cl-name');
+        const visuallyCheckedNames = Array.from(checkedElements).map(el => el.textContent.trim());
+
+        const employees = EMPLOYEE_NAMES.filter(n => grouped[n]);
+        const rows = employees.map(name => {
+            const byDay        = computeDailyHours(grouped[name]);
+            const rate         = getRate(name);
+            const dayValues    = dayKeys.map(k => byDay[k] ? +byDay[k].toFixed(2) : 0);
+            const totalHours   = +dayKeys.reduce((s, k) => s + (byDay[k] || 0), 0).toFixed(2);
+            const totalPayable = +(totalHours * rate).toFixed(2);
+            
+            // 2. It is 'paid' if it's visually checked OR if the database says so
+            const isPaid = visuallyCheckedNames.includes(name) || (grouped[name] || []).some(l => l.paymentStatus === "paid");
+
+            // 3. Send isPaid explicitly to Google
+            return { values: [name, rate, ...dayValues, totalHours, totalPayable], isPaid: isPaid };
+        });
+
+        return { sheetName, mainTitle, week1Label, week2Label, headers, rows };
+    }
 
         // Period label parts
         const w1End  = days[6];  const w2End = days[13];
@@ -1260,7 +1306,7 @@
         });
 
         return { sheetName, mainTitle, week1Label, week2Label, headers, rows };
-    }
+    
 
     // checklistState: Map<name, isChecked> | null (null = archive mode, filter to isPaidInDatabase only)
     async function syncToSheets(period, btnEl, _viewBtnId, statusElId, checklistState) {
