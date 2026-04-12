@@ -325,27 +325,61 @@
         .correction-grid .full-width { grid-column:1/-1; }
         .time-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
-        /* Duration picker — segmented HH/MM input */
-        .duration-picker {
-            display:flex; align-items:center; gap:8px;
+        /* ═══ iOS SCROLL-SNAP PICKER ══════════════════════════════════════════════ */
+        .scroll-picker-wrap {
+            position:relative; height:132px;
             background:var(--bg-input); border:1px solid var(--accent-border);
-            border-radius:var(--radius-input); padding:6px 14px;
-            transition:border-color .3s, box-shadow .3s;
+            border-radius:var(--radius-input); overflow:hidden;
+            transition:border-color .3s;
         }
-        .duration-picker:focus-within {
-            border-color:var(--accent-border-focus);
-            box-shadow:0 0 0 3px rgba(192,192,192,.12);
+        .scroll-picker-wrap:focus-within { border-color:var(--accent-border-focus); }
+
+        .scroll-picker {
+            display:flex; align-items:stretch;
+            justify-content:center; height:100%; gap:0;
         }
-        .dur-seg {
-            width:52px; padding:6px 4px; text-align:center;
-            font-family:var(--font-header); font-size:22px; font-weight:700;
-            color:var(--text-header); background:transparent; border:none; outline:none;
-            color-scheme:dark; appearance:textfield; -moz-appearance:textfield;
+
+        .scroll-col {
+            width:62px; height:100%;
+            overflow-y:scroll; scroll-snap-type:y mandatory;
+            -webkit-overflow-scrolling:touch;
+            scrollbar-width:none; padding:44px 0;
+            scroll-behavior:auto;
         }
-        .dur-seg::-webkit-inner-spin-button,
-        .dur-seg::-webkit-outer-spin-button { -webkit-appearance:none; }
-        .dur-colon { font-family:var(--font-header); font-size:22px; font-weight:700; color:var(--text-muted); line-height:1; }
-        .dur-label { font-family:var(--font-body); font-size:11px; font-weight:500; color:var(--text-muted); letter-spacing:.5px; }
+        .scroll-col::-webkit-scrollbar { display:none; }
+
+        .scroll-item {
+            height:44px; display:flex; align-items:center; justify-content:center;
+            scroll-snap-align:center;
+            font-family:var(--font-header); font-size:24px; font-weight:700;
+            color:var(--text-muted); user-select:none; cursor:default;
+            transition:color .15s;
+        }
+
+        /* Selection-window highlight bar */
+        .picker-frame {
+            position:absolute; top:50%; left:10px; right:10px;
+            transform:translateY(-50%); height:44px;
+            border-top:1px solid rgba(192,192,192,.3);
+            border-bottom:1px solid rgba(192,192,192,.3);
+            border-radius:6px; pointer-events:none; z-index:2;
+        }
+
+        /* Top & bottom fade masks */
+        .picker-mask {
+            position:absolute; left:0; right:0; height:50px;
+            pointer-events:none; z-index:3;
+        }
+        .picker-mask-top    { top:0;    background:linear-gradient(to bottom, var(--bg-input) 20%, transparent); }
+        .picker-mask-bottom { bottom:0; background:linear-gradient(to top,   var(--bg-input) 20%, transparent); }
+
+        /* Separator label between columns */
+        .picker-sep {
+            display:flex; align-items:center; justify-content:center;
+            font-family:var(--font-header); font-size:16px; font-weight:700;
+            color:var(--text-muted); padding:0 4px; z-index:4;
+            pointer-events:none; flex-shrink:0;
+        }
 
         /* ═══ SETTINGS MODAL ═══════════════════════════════════════════════════════ */
         #settingsModal .modal-panel { max-width:540px; }
@@ -534,18 +568,33 @@
                     <label for="corrDate">Date</label>
                     <input type="date" id="corrDate" class="ctrl-input">
                 </div>
+                <!-- Clock-In scroll picker -->
                 <div class="form-group">
-                    <label for="corrClockIn">Clock-In Time</label>
-                    <input type="time" id="corrClockIn" class="ctrl-input" value="09:00">
+                    <label>Clock-In Time</label>
+                    <div class="scroll-picker-wrap">
+                        <div class="scroll-picker">
+                            <div class="scroll-col" id="ciHourCol" data-max="23"></div>
+                            <div class="picker-sep">:</div>
+                            <div class="scroll-col" id="ciMinCol"  data-max="59"></div>
+                        </div>
+                        <div class="picker-frame"></div>
+                        <div class="picker-mask picker-mask-top"></div>
+                        <div class="picker-mask picker-mask-bottom"></div>
+                    </div>
                 </div>
+                <!-- Shift Duration scroll picker -->
                 <div class="form-group">
                     <label>Shift Duration</label>
-                    <div class="duration-picker">
-                        <input type="number" id="corrDurHrs"  class="dur-seg" min="0" max="23" value="8"  placeholder="00">
-                        <span class="dur-label">hrs</span>
-                        <span class="dur-colon">:</span>
-                        <input type="number" id="corrDurMins" class="dur-seg" min="0" max="59" value="0"  placeholder="00">
-                        <span class="dur-label">min</span>
+                    <div class="scroll-picker-wrap">
+                        <div class="scroll-picker">
+                            <div class="scroll-col" id="durHourCol" data-max="23"></div>
+                            <div class="picker-sep">h</div>
+                            <div class="scroll-col" id="durMinCol"  data-max="59"></div>
+                            <div class="picker-sep">m</div>
+                        </div>
+                        <div class="picker-frame"></div>
+                        <div class="picker-mask picker-mask-top"></div>
+                        <div class="picker-mask picker-mask-bottom"></div>
                     </div>
                 </div>
             </div>
@@ -1062,27 +1111,76 @@
         }
     };
 
+    /* ── iOS Scroll-Snap Picker helpers ────────────────────────────────────── */
+    const PICKER_ITEM_H = 44;
+
+    function buildScrollCol(col) {
+        if (col.dataset.built) return;
+        const max = parseInt(col.dataset.max, 10);
+        for (let i = 0; i <= max; i++) {
+            const div = document.createElement("div");
+            div.className = "scroll-item";
+            div.textContent = String(i).padStart(2, "0");
+            col.appendChild(div);
+        }
+        col.dataset.built = "1";
+    }
+
+    function scrollPickerTo(colId, value) {
+        const col = document.getElementById(colId);
+        // scroll-behavior:auto so it snaps instantly on open (no slow animation)
+        col.scrollTop = value * PICKER_ITEM_H;
+    }
+
+    function getPickerValue(colId) {
+        const col = document.getElementById(colId);
+        return Math.min(
+            Math.round(col.scrollTop / PICKER_ITEM_H),
+            parseInt(col.dataset.max, 10)
+        );
+    }
+
+    function initPickers(ciHour = 9, ciMin = 0, durH = 8, durM = 0) {
+        ["ciHourCol","ciMinCol","durHourCol","durMinCol"].forEach(id =>
+            buildScrollCol(document.getElementById(id))
+        );
+        // rAF ensures items are in the DOM before we scroll
+        requestAnimationFrame(() => {
+            scrollPickerTo("ciHourCol",  ciHour);
+            scrollPickerTo("ciMinCol",   ciMin);
+            scrollPickerTo("durHourCol", durH);
+            scrollPickerTo("durMinCol",  durM);
+        });
+    }
+
     /* ── Manual Correction Modal ────────────────────────────────────────────── */
-    window.openCorrection  = () => document.getElementById("correctionModal").classList.add("open");
+    window.openCorrection = () => {
+        document.getElementById("correctionModal").classList.add("open");
+        initPickers(); // reset to defaults on every open
+    };
     window.closeCorrection = () => document.getElementById("correctionModal").classList.remove("open");
     window.closeCorrectionOnBackdrop = e => { if (e.target === document.getElementById("correctionModal")) window.closeCorrection(); };
 
     window.saveCorrection = async function () {
         const employee = document.getElementById("corrEmployee").value;
         const dateVal  = document.getElementById("corrDate").value;
-        const clockIn  = document.getElementById("corrClockIn").value;
-        const durHrs   = parseInt(document.getElementById("corrDurHrs").value,  10) || 0;
-        const durMins  = parseInt(document.getElementById("corrDurMins").value, 10) || 0;
         const fb       = document.getElementById("corrFeedback");
         fb.className = ""; fb.textContent = "";
 
-        if (!dateVal || !clockIn) {
-            fb.textContent = "Please fill in all fields."; fb.className = "form-feedback error"; return;
+        // Read values from the scroll pickers
+        const ciHour  = getPickerValue("ciHourCol");
+        const ciMin   = getPickerValue("ciMinCol");
+        const durHrs  = getPickerValue("durHourCol");
+        const durMins = getPickerValue("durMinCol");
+
+        if (!dateVal) {
+            fb.textContent = "Please select a date."; fb.className = "form-feedback error"; return;
         }
         if (durHrs === 0 && durMins === 0) {
             fb.textContent = "Duration must be greater than zero."; fb.className = "form-feedback error"; return;
         }
 
+        const clockIn = `${String(ciHour).padStart(2,"0")}:${String(ciMin).padStart(2,"0")}`;
         const inDate  = new Date(`${dateVal}T${clockIn}:00`);
         const outDate = new Date(inDate.getTime() + (durHrs * 60 + durMins) * 60000);
 
@@ -1090,7 +1188,6 @@
             const inStr  = getAUTimeString(inDate);
             const outStr = getAUTimeString(outDate);
 
-            // Batch write: both records atomically
             const batch = writeBatch(db);
             batch.set(doc(collection(db, "timeLogs")), {
                 employee, action: "Clocked In",  time: inStr,  timestamp: Timestamp.fromDate(inDate)
@@ -1102,10 +1199,8 @@
 
             fb.textContent = `Saved: ${employee} — ${inStr} → ${outStr}`;
             fb.className   = "form-feedback success";
-            document.getElementById("corrDate").value     = "";
-            document.getElementById("corrClockIn").value  = "09:00";
-            document.getElementById("corrDurHrs").value   = "8";
-            document.getElementById("corrDurMins").value  = "0";
+            document.getElementById("corrDate").value = "";
+            initPickers(); // reset pickers to defaults after save
             await window.loadLogs();
         } catch (e) {
             console.error("saveCorrection:", e);
@@ -1204,17 +1299,24 @@
                 statusEl.style.cssText = "display:block;font-size:11px;color:var(--status-success);margin-top:8px;";
             }
             setTimeout(() => { btnEl.classList.remove("btn-sync-success"); }, 4000);
-        } catch (e) {
-            console.error("syncToSheets:", e);
-            btnEl.disabled  = false;
-            btnEl.innerHTML = origHTML;
+        } catch (error) {
+            console.error("SYNC FATAL ERROR:", error);
+            btnEl.disabled   = false;
             btnEl.style.opacity = "";
+            // Turn button red with warning text
+            btnEl.innerHTML  = "&#9888; Sync Failed";
+            btnEl.style.background = "#F44336";
+            btnEl.style.color      = "#ffffff";
             if (statusEl) {
-                statusEl.textContent   = "Sync failed — check webhook URL.";
-                statusEl.style.cssText = "display:block;font-size:11px;color:var(--status-danger,#e57373);margin-top:8px;";
-            } else {
-                alert("Sync failed. Check your webhook URL and Apps Script deployment.");
+                statusEl.textContent   = "Sync failed — check console for details.";
+                statusEl.style.cssText = "display:block;font-size:11px;color:#e57373;margin-top:8px;";
             }
+            // Revert button to original state after 4 seconds
+            setTimeout(() => {
+                btnEl.innerHTML        = origHTML;
+                btnEl.style.background = "";
+                btnEl.style.color      = "";
+            }, 4000);
         }
     }
 
