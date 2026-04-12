@@ -1141,6 +1141,11 @@
             "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday",
             "Total Hours", "Total Payable ($)"];
 
+        // Capture which employees have their checklist circle visually ticked in the DOM
+        const visuallyCheckedNames = [
+            ...document.querySelectorAll("#checklistItems .checklist-item.checked .cl-name")
+        ].map(el => el.textContent.trim());
+
         // Only employees who have logs this period; preserve EMPLOYEE_NAMES order
         const employees = EMPLOYEE_NAMES.filter(n => grouped[n]);
         const rows = employees.map(name => {
@@ -1150,8 +1155,8 @@
             const totalHours       = +dayKeys.reduce((s, k) => s + (byDay[k] || 0), 0).toFixed(2);
             const totalPayable     = +(totalHours * rate).toFixed(2);
             const isPaidInDatabase = (grouped[name] || []).some(l => l.paymentStatus === "paid");
-            // isChecked: live DOM circle state for current-period sync; falls back to DB state for archive
-            const isChecked = checklistState ? (checklistState.get(name) ?? false) : isPaidInDatabase;
+            // isChecked: true if visually ticked in the DOM OR confirmed paid in the database
+            const isChecked = visuallyCheckedNames.includes(name) || isPaidInDatabase;
             return {
                 name, hours: totalHours, payable: totalPayable,
                 isPaidInDatabase, isChecked,
