@@ -366,19 +366,15 @@
      LOGIN SCREEN
 ════════════════════════════════════════════════════════ -->
 <div id="loginScreen">
-    <div class="login-card">
+    <div class="login-card" style="text-align: center;">
         <p class="login-brand">InCar Detailing</p>
         <h1 class="login-title">Manager Access</h1>
-        <p class="login-subtitle">Secure dashboard — authorised personnel only.</p>
+        <p class="login-subtitle">Enter 4-Digit Kiosk PIN</p>
         <div class="login-field">
-            <label for="loginEmail">Email</label>
-            <input type="email" id="loginEmail" placeholder="manager@incar.com.au" autocomplete="email">
+            <input type="password" id="pinInput" placeholder="••••" maxlength="4" 
+                   style="text-align:center; font-size: 28px; letter-spacing: 12px; font-weight: 700;">
         </div>
-        <div class="login-field">
-            <label for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <button class="btn-login" onclick="doLogin()">&#128274; Sign In</button>
+        <button class="btn-login" id="btnPinLogin" onclick="doPinLogin()">&#128274; Unlock</button>
         <div id="loginError"></div>
     </div>
 </div>
@@ -698,19 +694,34 @@
         }
     });
 
-    window.doLogin = async function () {
-        const email = document.getElementById("loginEmail").value.trim();
-        const pass  = document.getElementById("loginPassword").value;
-        const err   = document.getElementById("loginError");
+    window.doPinLogin = async function () {
+        const pin = document.getElementById("pinInput").value;
+        const err = document.getElementById("loginError");
+        const btn = document.getElementById("btnPinLogin");
         err.style.display = "none";
-        if (!email || !pass) { err.textContent = "Please enter your email and password."; err.style.display = "block"; return; }
-        try { await signInWithEmailAndPassword(auth, email, pass); }
-        catch { err.textContent = "Invalid credentials. Please try again."; err.style.display = "block"; }
+
+        // Set your desired 4-digit PIN here
+        if (pin === "2026") { 
+            try {
+                btn.textContent = "Unlocking...";
+                // Insert the actual email and password you set up in Firebase here
+                await signInWithEmailAndPassword(auth, "manager@incardetailing.com", "123456");
+            } catch (e) {
+                err.textContent = "System error. Check master credentials."; 
+                err.style.display = "block";
+                btn.innerHTML = "&#128274; Unlock";
+            }
+        } else {
+            err.textContent = "Incorrect PIN."; 
+            err.style.display = "block";
+            document.getElementById("pinInput").value = "";
+        }
     };
-    window.doLogout = () => signOut(auth);
-    ["loginPassword","loginEmail"].forEach(id =>
-        document.getElementById(id).addEventListener("keydown", e => { if (e.key === "Enter") window.doLogin(); })
-    );
+
+    // Allow hitting "Enter" to submit the PIN
+    document.getElementById("pinInput").addEventListener("keydown", e => { 
+        if (e.key === "Enter") window.doPinLogin(); 
+    });
 
     /* ── Data Loading ──────────────────────────────────────────────────────── */
     async function loadData() {
