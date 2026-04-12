@@ -1265,49 +1265,6 @@
         return { sheetName, mainTitle, week1Label, week2Label, headers, rows };
     }
 
-        // Period label parts
-        const w1End  = days[6];  const w2End = days[13];
-        const moFull = start.toLocaleDateString("en-AU", { month: "long",    timeZone: "Australia/Melbourne" });
-        const yr     = start.toLocaleDateString("en-AU", { year:  "numeric", timeZone: "Australia/Melbourne" });
-        const moShrt = w1End.toLocaleDateString("en-AU", { month: "short" });
-        const mo2    = w2End.toLocaleDateString("en-AU", { month: "short" });
-        const sheetName  = `${moFull.toUpperCase()} ${yr}`;
-        const mainTitle  = `InCar Detailing Payroll (${moFull} ${yr})`;
-        const week1Label = `Week 1 (${ordinal(days[0].getDate())}–${ordinal(w1End.getDate())} ${moShrt})`;
-        const week2Label = `Week 2 (${ordinal(days[7].getDate())}–${ordinal(w2End.getDate())} ${mo2})`;
-
-        // Fixed day-name headers — fortnight always starts on Monday
-        const headers = ["Employee", "Rate ($/hr)",
-            "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday",
-            "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday",
-            "Total Hours", "Total Payable ($)"];
-
-        // Capture which employees have their checklist circle visually ticked in the DOM
-        const visuallyCheckedNames = [
-            ...document.querySelectorAll("#checklistItems .checklist-item.checked .cl-name")
-        ].map(el => el.textContent.trim());
-
-        // Only employees who have logs this period; preserve EMPLOYEE_NAMES order
-        const employees = EMPLOYEE_NAMES.filter(n => grouped[n]);
-        const rows = employees.map(name => {
-            const byDay            = computeDailyHours(grouped[name]);
-            const rate             = getRate(name);
-            const dayValues        = dayKeys.map(k => byDay[k] ? +byDay[k].toFixed(2) : 0);
-            const totalHours       = +dayKeys.reduce((s, k) => s + (byDay[k] || 0), 0).toFixed(2);
-            const totalPayable     = +(totalHours * rate).toFixed(2);
-            const isPaidInDatabase = (grouped[name] || []).some(l => l.paymentStatus === "paid");
-            // isChecked: true if visually ticked in the DOM OR confirmed paid in the database
-            const isChecked = visuallyCheckedNames.includes(name) || isPaidInDatabase;
-            return {
-                name, hours: totalHours, payable: totalPayable,
-                isPaidInDatabase, isChecked,
-                values: [name, rate, ...dayValues, totalHours, totalPayable]
-            };
-        });
-
-        return { sheetName, mainTitle, week1Label, week2Label, headers, rows };
-    
-
     // checklistState: Map<name, isChecked> | null (null = archive mode, filter to isPaidInDatabase only)
     async function syncToSheets(period, btnEl, _viewBtnId, statusElId, checklistState) {
         const webhookUrl = "https://script.google.com/macros/s/AKfycbzeFcSyIXAWu0MfaKxnyBAHUodXxz7l94zRxxS5QSkRIvLlNeF9efIZZeXiKbE9S6ZA/exec";
