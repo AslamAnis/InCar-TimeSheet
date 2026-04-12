@@ -325,61 +325,17 @@
         .correction-grid .full-width { grid-column:1/-1; }
         .time-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
-        /* ═══ iOS SCROLL-SNAP PICKER ══════════════════════════════════════════════ */
-        .scroll-picker-wrap {
-            position:relative; height:132px;
-            background:var(--bg-input); border:1px solid var(--accent-border);
-            border-radius:var(--radius-input); overflow:hidden;
-            transition:border-color .3s;
+        /* ═══ PREMIUM TIME INPUTS ═════════════════════════════════════════════════ */
+        .time-ctrl {
+            font-family:var(--font-header); font-size:20px; font-weight:700;
+            letter-spacing:2px; text-align:center; padding:14px 10px;
+            cursor:pointer; color-scheme:dark;
         }
-        .scroll-picker-wrap:focus-within { border-color:var(--accent-border-focus); }
-
-        .scroll-picker {
-            display:flex; align-items:stretch;
-            justify-content:center; height:100%; gap:0;
+        .time-ctrl::-webkit-calendar-picker-indicator {
+            filter:invert(.65) brightness(1.2); cursor:pointer; opacity:.7;
+            transition:opacity .2s;
         }
-
-        .scroll-col {
-            width:62px; height:100%;
-            overflow-y:scroll; scroll-snap-type:y mandatory;
-            -webkit-overflow-scrolling:touch;
-            scrollbar-width:none; padding:44px 0;
-            scroll-behavior:auto;
-        }
-        .scroll-col::-webkit-scrollbar { display:none; }
-
-        .scroll-item {
-            height:44px; display:flex; align-items:center; justify-content:center;
-            scroll-snap-align:center;
-            font-family:var(--font-header); font-size:24px; font-weight:700;
-            color:var(--text-muted); user-select:none; cursor:default;
-            transition:color .15s;
-        }
-
-        /* Selection-window highlight bar */
-        .picker-frame {
-            position:absolute; top:50%; left:10px; right:10px;
-            transform:translateY(-50%); height:44px;
-            border-top:1px solid rgba(192,192,192,.3);
-            border-bottom:1px solid rgba(192,192,192,.3);
-            border-radius:6px; pointer-events:none; z-index:2;
-        }
-
-        /* Top & bottom fade masks */
-        .picker-mask {
-            position:absolute; left:0; right:0; height:50px;
-            pointer-events:none; z-index:3;
-        }
-        .picker-mask-top    { top:0;    background:linear-gradient(to bottom, var(--bg-input) 20%, transparent); }
-        .picker-mask-bottom { bottom:0; background:linear-gradient(to top,   var(--bg-input) 20%, transparent); }
-
-        /* Separator label between columns */
-        .picker-sep {
-            display:flex; align-items:center; justify-content:center;
-            font-family:var(--font-header); font-size:16px; font-weight:700;
-            color:var(--text-muted); padding:0 4px; z-index:4;
-            pointer-events:none; flex-shrink:0;
-        }
+        .time-ctrl:hover::-webkit-calendar-picker-indicator { opacity:1; }
 
         /* ═══ SETTINGS MODAL ═══════════════════════════════════════════════════════ */
         #settingsModal .modal-panel { max-width:540px; }
@@ -568,34 +524,13 @@
                     <label for="corrDate">Date</label>
                     <input type="date" id="corrDate" class="ctrl-input">
                 </div>
-                <!-- Clock-In scroll picker -->
                 <div class="form-group">
-                    <label>Clock-In Time</label>
-                    <div class="scroll-picker-wrap">
-                        <div class="scroll-picker">
-                            <div class="scroll-col" id="ciHourCol" data-max="23"></div>
-                            <div class="picker-sep">:</div>
-                            <div class="scroll-col" id="ciMinCol"  data-max="59"></div>
-                        </div>
-                        <div class="picker-frame"></div>
-                        <div class="picker-mask picker-mask-top"></div>
-                        <div class="picker-mask picker-mask-bottom"></div>
-                    </div>
+                    <label for="corrClockIn">Clock In</label>
+                    <input type="time" id="corrClockIn" class="ctrl-input time-ctrl" value="09:00">
                 </div>
-                <!-- Shift Duration scroll picker -->
                 <div class="form-group">
-                    <label>Shift Duration</label>
-                    <div class="scroll-picker-wrap">
-                        <div class="scroll-picker">
-                            <div class="scroll-col" id="durHourCol" data-max="23"></div>
-                            <div class="picker-sep">h</div>
-                            <div class="scroll-col" id="durMinCol"  data-max="59"></div>
-                            <div class="picker-sep">m</div>
-                        </div>
-                        <div class="picker-frame"></div>
-                        <div class="picker-mask picker-mask-top"></div>
-                        <div class="picker-mask picker-mask-bottom"></div>
-                    </div>
+                    <label for="corrClockOut">Clock Out</label>
+                    <input type="time" id="corrClockOut" class="ctrl-input time-ctrl" value="17:00">
                 </div>
             </div>
             <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="saveCorrection()">
@@ -1111,78 +1046,30 @@
         }
     };
 
-    /* ── iOS Scroll-Snap Picker helpers ────────────────────────────────────── */
-    const PICKER_ITEM_H = 44;
-
-    function buildScrollCol(col) {
-        if (col.dataset.built) return;
-        const max = parseInt(col.dataset.max, 10);
-        for (let i = 0; i <= max; i++) {
-            const div = document.createElement("div");
-            div.className = "scroll-item";
-            div.textContent = String(i).padStart(2, "0");
-            col.appendChild(div);
-        }
-        col.dataset.built = "1";
-    }
-
-    function scrollPickerTo(colId, value) {
-        const col = document.getElementById(colId);
-        // scroll-behavior:auto so it snaps instantly on open (no slow animation)
-        col.scrollTop = value * PICKER_ITEM_H;
-    }
-
-    function getPickerValue(colId) {
-        const col = document.getElementById(colId);
-        return Math.min(
-            Math.round(col.scrollTop / PICKER_ITEM_H),
-            parseInt(col.dataset.max, 10)
-        );
-    }
-
-    function initPickers(ciHour = 9, ciMin = 0, durH = 8, durM = 0) {
-        ["ciHourCol","ciMinCol","durHourCol","durMinCol"].forEach(id =>
-            buildScrollCol(document.getElementById(id))
-        );
-        // rAF ensures items are in the DOM before we scroll
-        requestAnimationFrame(() => {
-            scrollPickerTo("ciHourCol",  ciHour);
-            scrollPickerTo("ciMinCol",   ciMin);
-            scrollPickerTo("durHourCol", durH);
-            scrollPickerTo("durMinCol",  durM);
-        });
-    }
-
     /* ── Manual Correction Modal ────────────────────────────────────────────── */
-    window.openCorrection = () => {
-        document.getElementById("correctionModal").classList.add("open");
-        initPickers(); // reset to defaults on every open
-    };
+    window.openCorrection = () => document.getElementById("correctionModal").classList.add("open");
     window.closeCorrection = () => document.getElementById("correctionModal").classList.remove("open");
     window.closeCorrectionOnBackdrop = e => { if (e.target === document.getElementById("correctionModal")) window.closeCorrection(); };
 
     window.saveCorrection = async function () {
-        const employee = document.getElementById("corrEmployee").value;
-        const dateVal  = document.getElementById("corrDate").value;
-        const fb       = document.getElementById("corrFeedback");
+        const employee    = document.getElementById("corrEmployee").value;
+        const dateVal     = document.getElementById("corrDate").value;
+        const clockInVal  = document.getElementById("corrClockIn").value;
+        const clockOutVal = document.getElementById("corrClockOut").value;
+        const fb          = document.getElementById("corrFeedback");
         fb.className = ""; fb.textContent = "";
 
-        // Read values from the scroll pickers
-        const ciHour  = getPickerValue("ciHourCol");
-        const ciMin   = getPickerValue("ciMinCol");
-        const durHrs  = getPickerValue("durHourCol");
-        const durMins = getPickerValue("durMinCol");
-
-        if (!dateVal) {
-            fb.textContent = "Please select a date."; fb.className = "form-feedback error"; return;
-        }
-        if (durHrs === 0 && durMins === 0) {
-            fb.textContent = "Duration must be greater than zero."; fb.className = "form-feedback error"; return;
+        if (!dateVal || !clockInVal || !clockOutVal) {
+            fb.textContent = "Please fill in all fields."; fb.className = "form-feedback error"; return;
         }
 
-        const clockIn = `${String(ciHour).padStart(2,"0")}:${String(ciMin).padStart(2,"0")}`;
-        const inDate  = new Date(`${dateVal}T${clockIn}:00`);
-        const outDate = new Date(inDate.getTime() + (durHrs * 60 + durMins) * 60000);
+        let inDate  = new Date(`${dateVal}T${clockInVal}:00`);
+        let outDate = new Date(`${dateVal}T${clockOutVal}:00`);
+
+        // Overnight shift: if clock-out is at or before clock-in, it crossed midnight
+        if (outDate <= inDate) {
+            outDate = new Date(outDate.getTime() + 24 * 60 * 60 * 1000);
+        }
 
         try {
             const inStr  = getAUTimeString(inDate);
@@ -1190,18 +1077,22 @@
 
             const batch = writeBatch(db);
             batch.set(doc(collection(db, "timeLogs")), {
-                employee, action: "Clocked In",  time: inStr,  timestamp: Timestamp.fromDate(inDate)
+                employee, action: "Clocked In",  time: inStr,  timestamp: Timestamp.fromDate(inDate),
+                paymentStatus: "unpaid", type: "manual"
             });
             batch.set(doc(collection(db, "timeLogs")), {
-                employee, action: "Clocked Out", time: outStr, timestamp: Timestamp.fromDate(outDate)
+                employee, action: "Clocked Out", time: outStr, timestamp: Timestamp.fromDate(outDate),
+                paymentStatus: "unpaid", type: "manual"
             });
             await batch.commit();
 
             fb.textContent = `Saved: ${employee} — ${inStr} → ${outStr}`;
             fb.className   = "form-feedback success";
-            document.getElementById("corrDate").value = "";
-            initPickers(); // reset pickers to defaults after save
-            await window.loadLogs();
+            document.getElementById("corrDate").value     = "";
+            document.getElementById("corrClockIn").value  = "09:00";
+            document.getElementById("corrClockOut").value = "17:00";
+            window.closeCorrection();
+            await loadData();
         } catch (e) {
             console.error("saveCorrection:", e);
             fb.textContent = "Save failed. Check console."; fb.className = "form-feedback error";
