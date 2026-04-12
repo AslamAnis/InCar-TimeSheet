@@ -827,6 +827,13 @@
     /* ── Payment Checklist (custom circles + micro-animations) ─────────────── */
     function renderChecklist(results) {
         const list = document.getElementById("checklistItems");
+
+        // Snapshot which employees are currently ticked before wiping the DOM
+        const previouslyChecked = new Set(
+            Array.from(list.querySelectorAll(".checklist-item.checked .cl-name"))
+                 .map(el => el.textContent.trim())
+        );
+
         list.innerHTML = "";
 
         const sorted = Object.entries(results).filter(([, m]) => m > 0).sort((a, b) => b[1] - a[1]);
@@ -840,11 +847,12 @@
             const rate = getRate(name);
             const pay  = ((mins / 60) * rate).toFixed(2);
 
-            // FIX: Check the database to see if this employee is already locked as paid
+            // Checked if DB marks paid OR the user had it ticked before the reload
             const isPaid = currentPeriodLogs.some(l => l.employee === name && l.paymentStatus === "paid");
+            const isChecked = isPaid || previouslyChecked.has(name);
 
             const li = document.createElement("li");
-            li.className = isPaid ? "checklist-item checked" : "checklist-item";
+            li.className = isChecked ? "checklist-item checked" : "checklist-item";
             li.innerHTML = `
                 <div class="check-circle" aria-hidden="true">
                     <svg class="check-svg" viewBox="0 0 12 10" width="12" height="10" fill="none">
@@ -1184,15 +1192,20 @@
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
             // ── Success ────────────────────────────────────────────────────────
-            btnEl.disabled  = false;
-            btnEl.innerHTML = origHTML;
-            btnEl.classList.add("btn-sync-success");
-            btnEl.style.opacity = "";
+            btnEl.disabled         = false;
+            btnEl.style.opacity    = "";
+            btnEl.innerHTML        = "&#10004; Synced!";
+            btnEl.style.background = "#10B981";
+            btnEl.style.color      = "#ffffff";
             if (statusEl) {
                 statusEl.textContent   = `✓ Synced: ${payload.mainTitle}`;
                 statusEl.style.cssText = "display:block;font-size:11px;color:var(--status-success);margin-top:8px;";
             }
-            setTimeout(() => { btnEl.classList.remove("btn-sync-success"); }, 4000);
+            setTimeout(() => {
+                btnEl.innerHTML        = origHTML;
+                btnEl.style.background = "";
+                btnEl.style.color      = "";
+            }, 2500);
         } catch (error) {
             console.error("SYNC FATAL ERROR:", error);
             btnEl.disabled   = false;
