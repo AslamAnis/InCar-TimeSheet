@@ -700,7 +700,7 @@
         const btn = document.getElementById("btnPinLogin");
         err.style.display = "none";
 
-        // Set your desired 4-digit PIN here
+        // Set 4-digit PIN here
         if (pin === "2026") { 
             try {
                 btn.textContent = "Unlocking...";
@@ -1119,10 +1119,8 @@
     }
 
     async function syncToSheets(period, btnEl, _viewBtnId, statusElId) {
-        const webhookUrl = localStorage.getItem("incar_sheets_webhook") || "";
-        if (!webhookUrl) {
-            alert("Configure your Google Apps Script Webhook URL in Settings → Cloud Sync first.");
-            return;
+        // Hardcoded to work universally across all devices and browsers
+        const webhookUrl = "https://script.google.com/macros/s/AKfycbyA_bRLwrq1LiMWPb_ajnB12RChl9nPkiINaAeb3qJnY9Yp13kbK8P3YyTcpYszgIwG/exec";
         }
 
         const statusEl = statusElId ? document.getElementById(statusElId) : null;
