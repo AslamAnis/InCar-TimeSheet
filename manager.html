@@ -363,29 +363,9 @@
 <body>
 
 <!-- ═══════════════════════════════════════════════════════
-     LOGIN SCREEN
-════════════════════════════════════════════════════════ -->
-<div id="loginScreen">
-    <div class="login-card">
-        <p class="login-brand">InCar Detailing</p>
-        <h1 class="login-title">Manager Sign In</h1>
-        <p class="login-subtitle">Authenticate with your manager credentials.</p>
-        <div class="login-field">
-            <label>Email</label>
-            <input type="email" id="emailInput" placeholder="manager@incardetailing.com" autocomplete="username">
-        </div>
-        <div class="login-field">
-            <label>Password</label>
-            <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <button class="btn-login" id="btnEmailLogin" onclick="doEmailLogin()">&#128274; Sign In</button>
-        <div id="loginError"></div>
-    </div>
-</div>
-<!-- ═══════════════════════════════════════════════════════
      PIN LOCK SCREEN
 ════════════════════════════════════════════════════════ -->
-<div id="pinScreen" style="display:none; min-height:100vh; align-items:center; justify-content:center; padding:24px;">
+<div id="pinScreen" style="display:flex; min-height:100vh; align-items:center; justify-content:center; padding:24px;">
     <div class="login-card" style="text-align: center;">
         <p class="login-brand">InCar Detailing</p>
         <h1 class="login-title">Kiosk Locked</h1>
@@ -572,8 +552,8 @@
                 <div class="webhook-row">
                     <div class="form-group">
                         <input type="url" id="webhookUrl" class="ctrl-input"
-                               placeholder="https://script.google.com/macros/s/AKfycbyaBo9rvqiSGONwaEWITQydJnN0_yp6iMG29B4Nw2KhPDcayJRsz6QBtYeaQAYjC0-l/exec"
-                               oninput="saveWebhookUrl()">
+                               placeholder="Webhook URL is hardcoded — no configuration needed."
+                               disabled style="opacity:0.5;cursor:not-allowed;">
                     </div>
                 </div>
 
@@ -616,11 +596,7 @@
              orderBy, query, Timestamp }
                                        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth,
-             signInWithEmailAndPassword,
-             signOut,
-             onAuthStateChanged,
-             setPersistence,
-             browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+             signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     /* ── Firebase init ─────────────────────────────────────────────────────── */
     const firebaseConfig = {
@@ -635,8 +611,8 @@
     const db   = getFirestore(app);
     const auth = getAuth(app);
 
-    // Auth persists across sessions — manager logs in once per device
-    setPersistence(auth, browserLocalPersistence).catch(console.error);
+    // Anonymous sign-in so Firestore rules are satisfied without a UI login
+    signInAnonymously(auth).catch(console.error);
 
     /* ── Constants ─────────────────────────────────────────────────────────── */
     const EMPLOYEE_NAMES = ["Vishwajith", "Vimukthi", "Farhan", "Nadith", "Izac", "Wishvajith", "Aslam", "Karthick", "Aymen", "Viknesh"];
@@ -700,84 +676,37 @@
 
     const getRate = name => hourlyRates[name] ?? 25;
 
-    /* ── Auth ──────────────────────────────────────────────────────────────── */
-    onAuthStateChanged(auth, async user => {
-        if (user) {
-            // User is logged into Firebase, but we show the PIN screen first!
-            document.getElementById("loginScreen").style.display = "none";
-            document.getElementById("pinScreen").style.display   = "flex"; 
-            document.getElementById("dashboard").style.display   = "none";
+    /* ── PIN Unlock ────────────────────────────────────────────────────────── */
+    window.unlockKiosk = async function () {
+        const pin    = document.getElementById("kioskPinInput").value;
+        const errEl  = document.getElementById("pinError");
+        if (pin === "2026") {
+            document.getElementById("pinScreen").style.display  = "none";
+            document.getElementById("dashboard").style.display  = "block";
+            document.getElementById("kioskPinInput").value      = "";
+            errEl.style.display = "none";
             await loadData();
         } else {
-            // Not logged in at all - show the Email/Password screen
-            document.getElementById("loginScreen").style.display = "flex";
-            document.getElementById("pinScreen").style.display   = "none";
-            document.getElementById("dashboard").style.display   = "none";
-        }
-    });
-    
-    window.unlockKiosk = function() {
-        const pin = document.getElementById("kioskPinInput").value;
-        if (pin === "2026") {
-            document.getElementById("pinScreen").style.display = "none";
-            document.getElementById("dashboard").style.display = "block";
-            document.getElementById("kioskPinInput").value = ""; // Clear for next time
-            document.getElementById("pinError").style.display = "none";
-        } else {
-            document.getElementById("pinError").style.display = "block";
+            errEl.textContent   = "Wrong PIN. Try again.";
+            errEl.style.display = "block";
             document.getElementById("kioskPinInput").value = "";
         }
     };
 
-    // Let the manager hit "Enter" on their keyboard to unlock
-    document.getElementById("kioskPinInput").addEventListener("keydown", e => { 
-        if (e.key === "Enter") window.unlockKiosk(); 
+    document.getElementById("kioskPinInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") window.unlockKiosk();
     });
 
-    window.doEmailLogin = async function () {
-        const email    = document.getElementById("emailInput").value.trim();
-        const password = document.getElementById("passwordInput").value;
-        const err      = document.getElementById("loginError");
-        const btn      = document.getElementById("btnEmailLogin");
-        err.style.display = "none";
-
-        if (!email || !password) {
-            err.textContent   = "Please enter your email and password.";
-            err.style.display = "block";
-            return;
-        }
-
-        try {
-            btn.textContent = "Signing in…";
-            btn.disabled    = true;
-            await signInWithEmailAndPassword(auth, email, password);
-            // onAuthStateChanged handles the transition to pinScreen automatically
-        } catch (e) {
-            const badCred = ["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found"];
-            err.textContent   = badCred.includes(e.code) ? "Invalid email or password." : "Sign-in failed. Try again.";
-            err.style.display = "block";
-            btn.innerHTML     = "&#128274; Sign In";
-            btn.disabled      = false;
-        }
-    };
-
-    document.getElementById("emailInput").addEventListener("keydown", e => {
-        if (e.key === "Enter") document.getElementById("passwordInput").focus();
-    });
-
-    document.getElementById("passwordInput").addEventListener("keydown", e => {
-        if (e.key === "Enter") window.doEmailLogin();
-    });
-
-    window.doLogout = async function () {
-        await signOut(auth);
-        // onAuthStateChanged will show loginScreen automatically
+    window.doLogout = function () {
+        document.getElementById("dashboard").style.display = "none";
+        document.getElementById("pinScreen").style.display = "flex";
+        document.getElementById("kioskPinInput").value     = "";
+        document.getElementById("pinError").style.display  = "none";
     };
 
     /* ── Data Loading ──────────────────────────────────────────────────────── */
     async function loadData() {
         populateEmployeeDropdowns();
-        loadWebhookUrl();
         await Promise.all([loadRates(), loadLogs()]);
         populateRatesForm();
         populateArchiveDropdown();
@@ -1170,9 +1099,7 @@
     }
 
     async function syncToSheets(period, btnEl, _viewBtnId, statusElId) {
-        // Hardcoded to work universally across all devices and browsers
-        const webhookUrl = "https://script.google.com/macros/s/AKfycbyA_bRLwrq1LiMWPb_ajnB12RChl9nPkiINaAeb3qJnY9Yp13kbK8P3YyTcpYszgIwG/exec";
-        }
+        const webhookUrl = "https://script.google.com/macros/s/AKfycbxemEeT0o8AO0xhxY0ik81ene-jFpmqAjGmSc10lUE9QZ4Jym1JuBo2SdjBq3Q5rRrd/exec";
 
         const statusEl = statusElId ? document.getElementById(statusElId) : null;
         const origHTML = btnEl.innerHTML;
@@ -1227,17 +1154,8 @@
         syncToSheets(PAY_PERIODS[idx], document.getElementById("btnArchiveSync"), "btnViewSheetsArchive", "syncStatusLabel");
     };
 
-    /* ── Webhook URL persistence ─────────────────────────────────────────────── */
-    function loadWebhookUrl() {
-        const url = localStorage.getItem("incar_sheets_webhook") || "";
-        document.getElementById("webhookUrl").value = url;
-    }
-    window.saveWebhookUrl = function () {
-        localStorage.setItem("incar_sheets_webhook", document.getElementById("webhookUrl").value.trim());
-    };
-
     /* ── Settings Modal ─────────────────────────────────────────────────────── */
-    window.openSettings  = () => { document.getElementById("settingsModal").classList.add("open"); loadWebhookUrl(); };
+    window.openSettings  = () => { document.getElementById("settingsModal").classList.add("open"); };
     window.closeSettings = () => document.getElementById("settingsModal").classList.remove("open");
     window.closeSettingsOnBackdrop = e => { if (e.target === document.getElementById("settingsModal")) window.closeSettings(); };
     document.addEventListener("keydown", e => {
