@@ -378,8 +378,22 @@
         <div id="loginError"></div>
     </div>
 </div>
-
-
+<!-- ═══════════════════════════════════════════════════════
+     PIN LOCK SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="pinScreen" style="display:none; min-height:100vh; align-items:center; justify-content:center; padding:24px;">
+    <div class="login-card" style="text-align: center;">
+        <p class="login-brand">InCar Detailing</p>
+        <h1 class="login-title">Kiosk Locked</h1>
+        <p class="login-subtitle">Enter 4-digit PIN to access dashboard.</p>
+        <div class="login-field">
+            <input type="password" id="kioskPinInput" placeholder="••••" maxlength="4"
+                   style="text-align:center; font-size: 28px; letter-spacing: 12px; font-weight: 700; background: var(--bg-input); border: 1px solid var(--accent-border); color: white;">
+        </div>
+        <button class="btn-login" onclick="unlockKiosk()">&#128274; Unlock</button>
+        <div id="pinError" style="margin-top:14px; font-size:12px; color:var(--status-error); display:none;">Incorrect PIN.</div>
+    </div>
+</div>
 <!-- ═══════════════════════════════════════════════════════
      DASHBOARD
 ════════════════════════════════════════════════════════ -->
@@ -685,13 +699,35 @@
     /* ── Auth ──────────────────────────────────────────────────────────────── */
     onAuthStateChanged(auth, async user => {
         if (user) {
+            // User is logged into Firebase, but we show the PIN screen first!
             document.getElementById("loginScreen").style.display = "none";
-            document.getElementById("dashboard").style.display   = "block";
+            document.getElementById("pinScreen").style.display   = "flex"; 
+            document.getElementById("dashboard").style.display   = "none";
             await loadData();
         } else {
+            // Not logged in at all - show the Email/Password screen
             document.getElementById("loginScreen").style.display = "flex";
+            document.getElementById("pinScreen").style.display   = "none";
             document.getElementById("dashboard").style.display   = "none";
         }
+    });
+    
+    window.unlockKiosk = function() {
+        const pin = document.getElementById("kioskPinInput").value;
+        if (pin === "2026") {
+            document.getElementById("pinScreen").style.display = "none";
+            document.getElementById("dashboard").style.display = "block";
+            document.getElementById("kioskPinInput").value = ""; // Clear for next time
+            document.getElementById("pinError").style.display = "none";
+        } else {
+            document.getElementById("pinError").style.display = "block";
+            document.getElementById("kioskPinInput").value = "";
+        }
+    };
+
+    // Let the manager hit "Enter" on their keyboard to unlock
+    document.getElementById("kioskPinInput").addEventListener("keydown", e => { 
+        if (e.key === "Enter") window.unlockKiosk(); 
     });
 
     window.doPinLogin = async function () {
@@ -1119,10 +1155,8 @@
     }
 
     async function syncToSheets(period, btnEl, _viewBtnId, statusElId) {
-        const webhookUrl = localStorage.getItem("incar_sheets_webhook") || "";
-        if (!webhookUrl) {
-            alert("Configure your Google Apps Script Webhook URL in Settings → Cloud Sync first.");
-            return;
+        // Hardcoded to work universally across all devices and browsers
+        const webhookUrl = "https://script.google.com/macros/s/AKfycbyA_bRLwrq1LiMWPb_ajnB12RChl9nPkiINaAeb3qJnY9Yp13kbK8P3YyTcpYszgIwG/exec";
         }
 
         const statusEl = statusElId ? document.getElementById(statusElId) : null;
