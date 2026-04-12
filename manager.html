@@ -366,15 +366,19 @@
      LOGIN SCREEN
 ════════════════════════════════════════════════════════ -->
 <div id="loginScreen">
-    <div class="login-card" style="text-align: center;">
+    <div class="login-card">
         <p class="login-brand">InCar Detailing</p>
-        <h1 class="login-title">Manager Access</h1>
-        <p class="login-subtitle">Enter 4-Digit Kiosk PIN</p>
+        <h1 class="login-title">Manager Sign In</h1>
+        <p class="login-subtitle">Authenticate with your manager credentials.</p>
         <div class="login-field">
-            <input type="password" id="pinInput" placeholder="••••" maxlength="4" 
-                   style="text-align:center; font-size: 28px; letter-spacing: 12px; font-weight: 700;">
+            <label>Email</label>
+            <input type="email" id="emailInput" placeholder="manager@incardetailing.com" autocomplete="username">
         </div>
-        <button class="btn-login" id="btnPinLogin" onclick="doPinLogin()">&#128274; Unlock</button>
+        <div class="login-field">
+            <label>Password</label>
+            <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="btn-login" id="btnEmailLogin" onclick="doEmailLogin()">&#128274; Sign In</button>
         <div id="loginError"></div>
     </div>
 </div>
@@ -730,34 +734,45 @@
         if (e.key === "Enter") window.unlockKiosk(); 
     });
 
-    window.doPinLogin = async function () {
-        const pin = document.getElementById("pinInput").value;
-        const err = document.getElementById("loginError");
-        const btn = document.getElementById("btnPinLogin");
+    window.doEmailLogin = async function () {
+        const email    = document.getElementById("emailInput").value.trim();
+        const password = document.getElementById("passwordInput").value;
+        const err      = document.getElementById("loginError");
+        const btn      = document.getElementById("btnEmailLogin");
         err.style.display = "none";
 
-        // Set 4-digit PIN here
-        if (pin === "2026") { 
-            try {
-                btn.textContent = "Unlocking...";
-                // Insert the actual email and password you set up in Firebase here
-                await signInWithEmailAndPassword(auth, "manager@incardetailing.com", "123456");
-            } catch (e) {
-                err.textContent = "System error. Check master credentials."; 
-                err.style.display = "block";
-                btn.innerHTML = "&#128274; Unlock";
-            }
-        } else {
-            err.textContent = "Incorrect PIN."; 
+        if (!email || !password) {
+            err.textContent   = "Please enter your email and password.";
             err.style.display = "block";
-            document.getElementById("pinInput").value = "";
+            return;
+        }
+
+        try {
+            btn.textContent = "Signing in…";
+            btn.disabled    = true;
+            await signInWithEmailAndPassword(auth, email, password);
+            // onAuthStateChanged handles the transition to pinScreen automatically
+        } catch (e) {
+            const badCred = ["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found"];
+            err.textContent   = badCred.includes(e.code) ? "Invalid email or password." : "Sign-in failed. Try again.";
+            err.style.display = "block";
+            btn.innerHTML     = "&#128274; Sign In";
+            btn.disabled      = false;
         }
     };
 
-    // Allow hitting "Enter" to submit the PIN
-    document.getElementById("pinInput").addEventListener("keydown", e => { 
-        if (e.key === "Enter") window.doPinLogin(); 
+    document.getElementById("emailInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") document.getElementById("passwordInput").focus();
     });
+
+    document.getElementById("passwordInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") window.doEmailLogin();
+    });
+
+    window.doLogout = async function () {
+        await signOut(auth);
+        // onAuthStateChanged will show loginScreen automatically
+    };
 
     /* ── Data Loading ──────────────────────────────────────────────────────── */
     async function loadData() {
