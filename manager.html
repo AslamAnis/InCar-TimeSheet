@@ -1119,8 +1119,10 @@
     }
 
     async function syncToSheets(period, btnEl, _viewBtnId, statusElId) {
-        // Hardcoded to work universally across all devices and browsers
-        const webhookUrl = "https://script.google.com/macros/s/AKfycbyA_bRLwrq1LiMWPb_ajnB12RChl9nPkiINaAeb3qJnY9Yp13kbK8P3YyTcpYszgIwG/exec";
+        const webhookUrl = localStorage.getItem("incar_sheets_webhook") || "";
+        if (!webhookUrl) {
+            alert("Configure your Google Apps Script Webhook URL in Settings → Cloud Sync first.");
+            return;
         }
 
         const statusEl = statusElId ? document.getElementById(statusElId) : null;
