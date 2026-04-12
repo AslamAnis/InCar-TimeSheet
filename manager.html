@@ -7,7 +7,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
         /* ═══ CSS VARIABLES ═══════════════════════════════════════════════════════ */
@@ -39,8 +39,8 @@
             --radius-card:         12px;
             --radius-btn:          8px;
             --radius-input:        8px;
-            --font-header:         'Montserrat', sans-serif;
-            --font-body:           'Open Sans', sans-serif;
+            --font-header:         'Inter', 'Montserrat', sans-serif;
+            --font-body:           'Inter', sans-serif;
             --font-mono:           'Courier New', monospace;
             --transition-speed:    0.3s;
             --shadow-card:         0 8px 32px rgba(0,0,0,0.6);
@@ -325,6 +325,28 @@
         .correction-grid .full-width { grid-column:1/-1; }
         .time-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
+        /* Duration picker — segmented HH/MM input */
+        .duration-picker {
+            display:flex; align-items:center; gap:8px;
+            background:var(--bg-input); border:1px solid var(--accent-border);
+            border-radius:var(--radius-input); padding:6px 14px;
+            transition:border-color .3s, box-shadow .3s;
+        }
+        .duration-picker:focus-within {
+            border-color:var(--accent-border-focus);
+            box-shadow:0 0 0 3px rgba(192,192,192,.12);
+        }
+        .dur-seg {
+            width:52px; padding:6px 4px; text-align:center;
+            font-family:var(--font-header); font-size:22px; font-weight:700;
+            color:var(--text-header); background:transparent; border:none; outline:none;
+            color-scheme:dark; appearance:textfield; -moz-appearance:textfield;
+        }
+        .dur-seg::-webkit-inner-spin-button,
+        .dur-seg::-webkit-outer-spin-button { -webkit-appearance:none; }
+        .dur-colon { font-family:var(--font-header); font-size:22px; font-weight:700; color:var(--text-muted); line-height:1; }
+        .dur-label { font-family:var(--font-body); font-size:11px; font-weight:500; color:var(--text-muted); letter-spacing:.5px; }
+
         /* ═══ SETTINGS MODAL ═══════════════════════════════════════════════════════ */
         #settingsModal .modal-panel { max-width:540px; }
         .modal-tabs { display:flex; border-bottom:1px solid var(--accent-border); flex-shrink:0; }
@@ -389,9 +411,17 @@
             <div class="title-sm">Manager Dashboard</div>
         </div>
         <div class="dash-header-right">
-            <button class="btn-icon-circle" onclick="openSettings()" title="Settings &amp; Archive">&#9881;</button>
-            <a href="index.html" style="font-family:var(--font-header);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);text-decoration:none;transition:color .3s" onmouseover="this.style.color='var(--accent-silver)'" onmouseout="this.style.color='var(--text-muted)'">&#8592; Portal</a>
-            <button class="btn-logout" onclick="doLogout()">Log Out</button>
+            <button class="btn-icon-circle" onclick="openSettings()" title="Settings &amp; Archive">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8"  cy="6"  r="2" fill="var(--bg-card)" stroke="currentColor"/><circle cx="16" cy="12" r="2" fill="var(--bg-card)" stroke="currentColor"/><circle cx="10" cy="18" r="2" fill="var(--bg-card)" stroke="currentColor"/></svg>
+            </button>
+            <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-header);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);text-decoration:none;transition:color .3s" onmouseover="this.style.color='var(--accent-silver)'" onmouseout="this.style.color='var(--text-muted)'">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                Portal
+            </a>
+            <button class="btn-logout" onclick="doLogout()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+            </button>
         </div>
     </header>
 
@@ -429,13 +459,16 @@
             </ul>
             <div class="action-row">
                 <button class="btn btn-gold" id="btnMarkPaid" onclick="markAsPaid()" disabled>
-                    &#128274; Close Period &amp; Mark Paid
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Close Period &amp; Mark Paid
                 </button>
                 <button class="btn btn-ghost" onclick="openCorrection()">
-                    &#43; Add Correction
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Correction
                 </button>
                 <button class="btn btn-teal" id="btnSyncCurrent" onclick="syncCurrentPeriod()">
-                    &#9729; Sync to Sheets
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                    Sync to Sheets
                 </button>
                 <button type="button" id="btnViewSheetsCurrent" class="btn btn-view-sheets"
         onclick="openMasterSheet()">
@@ -482,7 +515,10 @@
 <div class="modal-backdrop" id="correctionModal" onclick="closeCorrectionOnBackdrop(event)">
     <div class="modal-panel">
         <div class="modal-header">
-            <span class="modal-header-title">&#9998; Manual Correction</span>
+            <span class="modal-header-title" style="display:inline-flex;align-items:center;gap:8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Manual Correction
+            </span>
             <button class="modal-close" onclick="closeCorrection()">&#215;</button>
         </div>
         <div class="modal-body">
@@ -503,12 +539,19 @@
                     <input type="time" id="corrClockIn" class="ctrl-input" value="09:00">
                 </div>
                 <div class="form-group">
-                    <label for="corrClockOut">Clock-Out Time</label>
-                    <input type="time" id="corrClockOut" class="ctrl-input" value="17:00">
+                    <label>Shift Duration</label>
+                    <div class="duration-picker">
+                        <input type="number" id="corrDurHrs"  class="dur-seg" min="0" max="23" value="8"  placeholder="00">
+                        <span class="dur-label">hrs</span>
+                        <span class="dur-colon">:</span>
+                        <input type="number" id="corrDurMins" class="dur-seg" min="0" max="59" value="0"  placeholder="00">
+                        <span class="dur-label">min</span>
+                    </div>
                 </div>
             </div>
             <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="saveCorrection()">
-                &#128190; Save Both Records
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Save Both Records
             </button>
             <p class="form-feedback" id="corrFeedback"></p>
         </div>
@@ -522,12 +565,21 @@
 <div class="modal-backdrop" id="settingsModal" onclick="closeSettingsOnBackdrop(event)">
     <div class="modal-panel">
         <div class="modal-header">
-            <span class="modal-header-title">&#9881; Settings &amp; Archive</span>
+            <span class="modal-header-title" style="display:inline-flex;align-items:center;gap:8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="6" r="2" fill="var(--bg-card)"/><circle cx="16" cy="12" r="2" fill="var(--bg-card)"/><circle cx="10" cy="18" r="2" fill="var(--bg-card)"/></svg>
+                Settings &amp; Archive
+            </span>
             <button class="modal-close" onclick="closeSettings()">&#215;</button>
         </div>
         <div class="modal-tabs">
-            <button class="modal-tab active" id="tabBtnRates"   onclick="switchTab('rates')"  >&#128178; Manage Rates</button>
-            <button class="modal-tab"         id="tabBtnArchive" onclick="switchTab('archive')">&#9729; Cloud Sync</button>
+            <button class="modal-tab active" id="tabBtnRates"   onclick="switchTab('rates')"  >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Manage Rates
+            </button>
+            <button class="modal-tab"         id="tabBtnArchive" onclick="switchTab('archive')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px" aria-hidden="true"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                Cloud Sync
+            </button>
         </div>
         <div class="modal-body">
 
@@ -537,7 +589,10 @@
                     Set hourly rates (AUD). Saved to Firestore <code style="font-family:var(--font-mono);font-size:11px;background:#111;padding:1px 5px;border-radius:3px;">settings/rates</code> and applied immediately.
                 </p>
                 <div class="rates-grid" id="ratesGrid"></div>
-                <button class="btn btn-primary" onclick="saveRates()">&#128190; Save Rates</button>
+                <button class="btn btn-primary" onclick="saveRates()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    Save Rates
+                </button>
                 <p class="form-feedback" id="ratesFeedback"></p>
             </div>
 
@@ -564,7 +619,8 @@
                 </select>
                 <div class="action-row">
                     <button class="btn btn-teal" id="btnArchiveSync" onclick="syncArchivePeriod()">
-                        &#9729; Sync Selected Period
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                        Sync Selected Period
                     </button>
                     <button type="button" id="btnViewSheetsArchive" class="btn btn-view-sheets"
         onclick="openMasterSheet()">
@@ -1012,30 +1068,30 @@
     window.closeCorrectionOnBackdrop = e => { if (e.target === document.getElementById("correctionModal")) window.closeCorrection(); };
 
     window.saveCorrection = async function () {
-        const employee  = document.getElementById("corrEmployee").value;
-        const dateVal   = document.getElementById("corrDate").value;
-        const clockIn   = document.getElementById("corrClockIn").value;
-        const clockOut  = document.getElementById("corrClockOut").value;
-        const fb        = document.getElementById("corrFeedback");
+        const employee = document.getElementById("corrEmployee").value;
+        const dateVal  = document.getElementById("corrDate").value;
+        const clockIn  = document.getElementById("corrClockIn").value;
+        const durHrs   = parseInt(document.getElementById("corrDurHrs").value,  10) || 0;
+        const durMins  = parseInt(document.getElementById("corrDurMins").value, 10) || 0;
+        const fb       = document.getElementById("corrFeedback");
         fb.className = ""; fb.textContent = "";
 
-        if (!dateVal || !clockIn || !clockOut) {
+        if (!dateVal || !clockIn) {
             fb.textContent = "Please fill in all fields."; fb.className = "form-feedback error"; return;
+        }
+        if (durHrs === 0 && durMins === 0) {
+            fb.textContent = "Duration must be greater than zero."; fb.className = "form-feedback error"; return;
         }
 
         const inDate  = new Date(`${dateVal}T${clockIn}:00`);
-        const outDate = new Date(`${dateVal}T${clockOut}:00`);
-
-        if (outDate <= inDate) {
-            fb.textContent = "Clock-Out time must be after Clock-In time."; fb.className = "form-feedback error"; return;
-        }
+        const outDate = new Date(inDate.getTime() + (durHrs * 60 + durMins) * 60000);
 
         try {
             const inStr  = getAUTimeString(inDate);
             const outStr = getAUTimeString(outDate);
 
             // Batch write: both records atomically
-            const batch  = writeBatch(db);
+            const batch = writeBatch(db);
             batch.set(doc(collection(db, "timeLogs")), {
                 employee, action: "Clocked In",  time: inStr,  timestamp: Timestamp.fromDate(inDate)
             });
@@ -1046,9 +1102,10 @@
 
             fb.textContent = `Saved: ${employee} — ${inStr} → ${outStr}`;
             fb.className   = "form-feedback success";
-            document.getElementById("corrDate").value    = "";
-            document.getElementById("corrClockIn").value = "09:00";
-            document.getElementById("corrClockOut").value= "17:00";
+            document.getElementById("corrDate").value     = "";
+            document.getElementById("corrClockIn").value  = "09:00";
+            document.getElementById("corrDurHrs").value   = "8";
+            document.getElementById("corrDurMins").value  = "0";
             await window.loadLogs();
         } catch (e) {
             console.error("saveCorrection:", e);
@@ -1057,7 +1114,8 @@
     };
 
     /* ── Google Sheets Sync ─────────────────────────────────────────────────── */
-    function buildSyncPayload(period) {
+    // checklistState: Map<name, isChecked> captured from the live DOM (null for archive mode)
+    function buildSyncPayload(period, checklistState) {
         const { start, end } = period;
         const days    = Array.from({ length: 14 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
         const dayKeys = days.map(d => d.toLocaleDateString("en-CA"));
@@ -1086,19 +1144,26 @@
         // Only employees who have logs this period; preserve EMPLOYEE_NAMES order
         const employees = EMPLOYEE_NAMES.filter(n => grouped[n]);
         const rows = employees.map(name => {
-            const byDay        = computeDailyHours(grouped[name]);
-            const rate         = getRate(name);
-            const dayValues    = dayKeys.map(k => byDay[k] ? +byDay[k].toFixed(2) : 0);
-            const totalHours   = +dayKeys.reduce((s, k) => s + (byDay[k] || 0), 0).toFixed(2);
-            const totalPayable = +(totalHours * rate).toFixed(2);
-            const isPaid       = (grouped[name] || []).some(l => l.paymentStatus === "paid");
-            return { values: [name, rate, ...dayValues, totalHours, totalPayable], isPaid };
+            const byDay            = computeDailyHours(grouped[name]);
+            const rate             = getRate(name);
+            const dayValues        = dayKeys.map(k => byDay[k] ? +byDay[k].toFixed(2) : 0);
+            const totalHours       = +dayKeys.reduce((s, k) => s + (byDay[k] || 0), 0).toFixed(2);
+            const totalPayable     = +(totalHours * rate).toFixed(2);
+            const isPaidInDatabase = (grouped[name] || []).some(l => l.paymentStatus === "paid");
+            // isChecked: live DOM circle state for current-period sync; falls back to DB state for archive
+            const isChecked = checklistState ? (checklistState.get(name) ?? false) : isPaidInDatabase;
+            return {
+                name, hours: totalHours, payable: totalPayable,
+                isPaidInDatabase, isChecked,
+                values: [name, rate, ...dayValues, totalHours, totalPayable]
+            };
         });
 
         return { sheetName, mainTitle, week1Label, week2Label, headers, rows };
     }
 
-    async function syncToSheets(period, btnEl, _viewBtnId, statusElId) {
+    // checklistState: Map<name, isChecked> | null (null = archive mode, filter to isPaidInDatabase only)
+    async function syncToSheets(period, btnEl, _viewBtnId, statusElId, checklistState) {
         const webhookUrl = "https://script.google.com/macros/s/AKfycbxemEeT0o8AO0xhxY0ik81ene-jFpmqAjGmSc10lUE9QZ4Jym1JuBo2SdjBq3Q5rRrd/exec";
 
         const statusEl = statusElId ? document.getElementById(statusElId) : null;
@@ -1109,7 +1174,13 @@
         if (statusEl) { statusEl.style.display = "none"; statusEl.textContent = ""; }
 
         try {
-            const payload = buildSyncPayload(period);
+            const payload = buildSyncPayload(period, checklistState);
+
+            // Archive mode: only send rows that are confirmed paid in the database
+            if (checklistState === null) {
+                payload.rows = payload.rows.filter(r => r.isPaidInDatabase);
+            }
+
             // text/plain avoids CORS preflight on Google Apps Script
             const res = await fetch(webhookUrl, {
                 method: "POST",
@@ -1120,17 +1191,14 @@
 
             // ── Success ────────────────────────────────────────────────────────
             btnEl.disabled  = false;
-            btnEl.innerHTML = "&#10003; Data Synced!";
+            btnEl.innerHTML = origHTML;
             btnEl.classList.add("btn-sync-success");
             btnEl.style.opacity = "";
             if (statusEl) {
                 statusEl.textContent   = `✓ Synced: ${payload.mainTitle}`;
                 statusEl.style.cssText = "display:block;font-size:11px;color:var(--status-success);margin-top:8px;";
             }
-            setTimeout(() => {
-                btnEl.innerHTML = origHTML;
-                btnEl.classList.remove("btn-sync-success");
-            }, 4000);
+            setTimeout(() => { btnEl.classList.remove("btn-sync-success"); }, 4000);
         } catch (e) {
             console.error("syncToSheets:", e);
             btnEl.disabled  = false;
@@ -1144,14 +1212,22 @@
             }
         }
     }
+
     window.syncCurrentPeriod = function () {
-        syncToSheets(CUR_PERIOD, document.getElementById("btnSyncCurrent"), "btnViewSheetsCurrent", null);
+        // Capture live visual state of every checklist circle from the DOM
+        const checklistState = new Map();
+        document.querySelectorAll("#checklistItems .checklist-item").forEach(li => {
+            const name = li.querySelector(".cl-name")?.textContent?.trim();
+            if (name) checklistState.set(name, li.classList.contains("checked"));
+        });
+        syncToSheets(CUR_PERIOD, document.getElementById("btnSyncCurrent"), "btnViewSheetsCurrent", null, checklistState);
     };
 
     window.syncArchivePeriod = function () {
         const idx = parseInt(document.getElementById("archiveSelect").value, 10);
         if (isNaN(idx) || !PAY_PERIODS[idx]) { alert("Please select a past period first."); return; }
-        syncToSheets(PAY_PERIODS[idx], document.getElementById("btnArchiveSync"), "btnViewSheetsArchive", "syncStatusLabel");
+        // Archive sync: null checklistState = only paid-in-DB records, no DOM state needed
+        syncToSheets(PAY_PERIODS[idx], document.getElementById("btnArchiveSync"), "btnViewSheetsArchive", "syncStatusLabel", null);
     };
 
     /* ── Settings Modal ─────────────────────────────────────────────────────── */
