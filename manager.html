@@ -1085,21 +1085,18 @@
         }
 
         try {
-            const inStr  = inDate.toLocaleString("en-AU");
-            const outStr = outDate.toLocaleString("en-AU");
-
-            // DD/MM/YYYY — derived from the actual Date objects so overnight outDate gets the next day
-            const inDateStr  = `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
-            const outDateStr = `${String(outDate.getDate()).padStart(2, "0")}/${String(outDate.getMonth() + 1).padStart(2, "0")}/${outDate.getFullYear()}`;
+            const TZ     = "Australia/Melbourne";
+            const inStr  = inDate.toLocaleString("en-AU",  { timeZone: TZ });
+            const outStr = outDate.toLocaleString("en-AU", { timeZone: TZ });
 
             const batch = writeBatch(db);
             batch.set(doc(collection(db, "timeLogs")), {
-                action: "Clocked In",  employee, paymentStatus: "unpaid", type: "manual",
-                time: inStr,  timestamp: Timestamp.fromDate(inDate),  date: inDateStr
+                employee, action: "Clocked In",  time: inStr,  timestamp: Timestamp.fromDate(inDate),
+                paymentStatus: "unpaid", type: "manual"
             });
             batch.set(doc(collection(db, "timeLogs")), {
-                action: "Clocked Out", employee, paymentStatus: "unpaid", type: "manual",
-                time: outStr, timestamp: Timestamp.fromDate(outDate), date: outDateStr
+                employee, action: "Clocked Out", time: outStr, timestamp: Timestamp.fromDate(outDate),
+                paymentStatus: "unpaid", type: "manual"
             });
             await batch.commit();
 
