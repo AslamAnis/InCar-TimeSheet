@@ -1061,7 +1061,7 @@
 
     window.saveCorrection = async function () {
         const employee    = document.getElementById("corrEmployee").value;
-        const dateVal     = document.getElementById("corrDate").value;
+        const dateVal     = document.getElementById("corrDate").value;   // already "YYYY-MM-DD"
         const clockInVal  = document.getElementById("corrClockIn").value;
         const clockOutVal = document.getElementById("corrClockOut").value;
         const fb          = document.getElementById("corrFeedback");
@@ -1079,22 +1079,39 @@
             outDate = new Date(outDate.getTime() + 24 * 60 * 60 * 1000);
         }
 
+        // Total duration in whole minutes — used by sync and math functions
+        const totalMins = Math.round((outDate.getTime() - inDate.getTime()) / 60000);
+
         try {
             const inStr  = getAUTimeString(inDate);
             const outStr = getAUTimeString(outDate);
 
+            // Two documents so computeHours/computeDailyHours can pair them by action.
+            // date (YYYY-MM-DD string) and mins are added for buildSyncPayload compatibility.
             const batch = writeBatch(db);
             batch.set(doc(collection(db, "timeLogs")), {
-                employee, action: "Clocked In",  time: inStr,  timestamp: Timestamp.fromDate(inDate),
-                paymentStatus: "unpaid", type: "manual"
+                employee,
+                action:        "Clocked In",
+                time:          inStr,
+                timestamp:     Timestamp.fromDate(inDate),
+                date:          dateVal,
+                mins:          totalMins,
+                paymentStatus: "unpaid",
+                type:          "manual"
             });
             batch.set(doc(collection(db, "timeLogs")), {
-                employee, action: "Clocked Out", time: outStr, timestamp: Timestamp.fromDate(outDate),
-                paymentStatus: "unpaid", type: "manual"
+                employee,
+                action:        "Clocked Out",
+                time:          outStr,
+                timestamp:     Timestamp.fromDate(outDate),
+                date:          dateVal,
+                mins:          totalMins,
+                paymentStatus: "unpaid",
+                type:          "manual"
             });
             await batch.commit();
 
-            fb.textContent = `Saved: ${employee} — ${inStr} → ${outStr}`;
+            fb.textContent = `Saved: ${employee} — ${inStr} → ${outStr} (${totalMins} min)`;
             fb.className   = "form-feedback success";
             document.getElementById("corrDate").value     = "";
             document.getElementById("corrClockIn").value  = "09:00";
