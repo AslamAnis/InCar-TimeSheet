@@ -633,7 +633,7 @@
     import { getFirestore,
              collection, getDocs, addDoc, deleteDoc, doc,
              getDoc, setDoc, writeBatch,
-             where, orderBy, query, Timestamp }
+             orderBy, query, Timestamp }
                                        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth,
              signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -767,22 +767,11 @@
         } catch (e) { console.warn("loadRates:", e); }
     }
 
-window.loadLogs = async function () {
+    window.loadLogs = async function () {
         const tb = document.getElementById("logTableBody");
         tb.innerHTML = `<tr class="state-row"><td colspan="4"><span class="spinner"></span> Loading records…</td></tr>`;
         try {
-            const { start, end } = CUR_PERIOD;
-            
-            // ALARM 1: Tell us what exact dates the Bouncer is guarding
-            console.log(`🚨 BOUNCER CHECK: Asking Firebase for logs between:`, start, `AND`, end);
-
-            const snap = await getDocs(query(
-                collection(db, "timeLogs"),
-                where("timestamp", ">=", Timestamp.fromDate(start)),
-                where("timestamp", "<=", Timestamp.fromDate(end)),
-                orderBy("timestamp", "desc")
-            ));
-            
+            const snap = await getDocs(query(collection(db, "timeLogs"), orderBy("timestamp", "desc")));
             allLogs = [];
             snap.forEach(ds => {
                 const d = ds.data();
@@ -795,10 +784,6 @@ window.loadLogs = async function () {
                     date: d.timestamp ? d.timestamp.toDate() : new Date(d.time)
                 });
             });
-            
-            // ALARM 2: Tell us exactly what Firebase sent back
-            console.log(`🚨 BOUNCER PASSED: Firebase returned ${allLogs.length} logs.`, allLogs);
-            
             renderDashboard();
         } catch (e) {
             console.error("loadLogs:", e);
