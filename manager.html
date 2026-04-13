@@ -1061,45 +1061,50 @@
 
     window.saveCorrection = async function () {
         const employee    = document.getElementById("corrEmployee").value;
-        const dateVal     = document.getElementById("corrDate").value;     // "YYYY-MM-DD" from input — used as-is
-        const clockInVal  = document.getElementById("corrClockIn").value;  // "HH:MM"
-        const clockOutVal = document.getElementById("corrClockOut").value; // "HH:MM"
+        const dateVal     = document.getElementById("corrDate").value;
+        const clockInVal  = document.getElementById("corrClockIn").value;
+        const clockOutVal = document.getElementById("corrClockOut").value;
         const fb          = document.getElementById("corrFeedback");
         fb.className = ""; fb.textContent = "";
 
-        if (!employee || !dateVal || !clockInVal || !clockOutVal) {
+        if (!dateVal || !clockInVal || !clockOutVal) {
             fb.textContent = "Please fill in all fields."; fb.className = "form-feedback error"; return;
         }
 
-        // Integer arithmetic on HH:MM — no Date objects, no timezone parsing risk
-        const [inH,  inM ] = clockInVal.split(":").map(Number);
-        const [outH, outM] = clockOutVal.split(":").map(Number);
-        let totalMins = (outH * 60 + outM) - (inH * 60 + inM);
+        let inDate  = new Date(`${dateVal}T${clockInVal}:00`);
+        let outDate = new Date(`${dateVal}T${clockOutVal}:00`);
 
-        // Overnight: end-time before start-time means the shift crossed midnight
-        if (totalMins <= 0) totalMins += 1440;
+        // Overnight shift: if clock-out is at or before clock-in, it crossed midnight
+        if (outDate <= inDate) {
+            outDate = new Date(outDate.getTime() + 24 * 60 * 60 * 1000);
+        }
 
         try {
-            // Same v9 modular syntax used by every other write in this file
-            await addDoc(collection(db, "timeLogs"), {
-                employee,
-                date:          dateVal,   // strict "YYYY-MM-DD" string
-                mins:          totalMins, // integer
-                paymentStatus: "unpaid",
-                type:          "manual"
-            });
+            const inStr     = getAUTimeString(inDate);
+            const outStr    = getAUTimeString(outDate);
+            const inDateStr  = inDate.toLocaleDateString("en-CA");
+            const outDateStr = outDate.toLocaleDateString("en-CA");
 
-            fb.textContent = `Saved: ${employee} — ${dateVal}, ${clockInVal}–${clockOutVal} (${totalMins} min)`;
+            const batch = writeBatch(db);
+            batch.set(doc(collection(db, "timeLogs")), {
+                action: "Clocked In",  employee, paymentStatus: "unpaid", type: "manual",
+                time: inStr,  timestamp: Timestamp.fromDate(inDate),  date: inDateStr
+            });
+            batch.set(doc(collection(db, "timeLogs")), {
+                action: "Clocked Out", employee, paymentStatus: "unpaid", type: "manual",
+                time: outStr, timestamp: Timestamp.fromDate(outDate), date: outDateStr
+            });
+            await batch.commit();
+
+            fb.textContent = `Saved: ${employee} — ${inStr} → ${outStr}`;
             fb.className   = "form-feedback success";
             document.getElementById("corrDate").value     = "";
             document.getElementById("corrClockIn").value  = "09:00";
             document.getElementById("corrClockOut").value = "17:00";
             window.closeCorrection();
             await loadData();
-        } catch (error) {
-            console.error(error);
-            alert("Firebase Error: " + error.message);
-            fb.textContent = "Save failed — see alert for details."; fb.className = "form-feedback error";
+        } catch (e) {
+            alert("Firebase Error: " + e.message);
         }
     };
 
@@ -1128,9 +1133,8 @@
         const yr     = start.toLocaleDateString("en-AU", { year:  "numeric", timeZone: "Australia/Melbourne" });
         const moShrt = w1End.toLocaleDateString("en-AU", { month: "short" });
         const mo2    = w2End.toLocaleDateString("en-AU", { month: "short" });
-        const periodPart = start.getDate() <= 15 ? "P1" : "P2";
-        const sheetName  = `${moFull.toUpperCase()} ${periodPart} ${yr}`;
-        const mainTitle  = `InCar Detailing Payroll (${moFull} ${periodPart} ${yr})`;
+        const sheetName  = `${moFull.toUpperCase()} ${yr}`;
+        const mainTitle  = `InCar Detailing Payroll (${moFull} ${yr})`;
         const week1Label = `Week 1 (${ordinal(days[0].getDate())}–${ordinal(w1End.getDate())} ${moShrt})`;
         const week2Label = `Week 2 (${ordinal(days[7].getDate())}–${ordinal(w2End.getDate())} ${mo2})`;
 
