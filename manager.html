@@ -1059,56 +1059,86 @@
     window.closeCorrection = () => document.getElementById("correctionModal").classList.remove("open");
     window.closeCorrectionOnBackdrop = e => { if (e.target === document.getElementById("correctionModal")) window.closeCorrection(); };
 
-    window.saveCorrection = async function () {
-        const employee    = document.getElementById("corrEmployee").value;
-        const dateVal     = document.getElementById("corrDate").value;
-        const clockInVal  = document.getElementById("corrClockIn").value;
-        const clockOutVal = document.getElementById("corrClockOut").value;
-        const fb          = document.getElementById("corrFeedback");
-        fb.className = ""; fb.textContent = "";
+window.saveCorrection = async function () {
+    const employee    = document.getElementById("corrEmployee").value;
+    const dateVal     = document.getElementById("corrDate").value; // Grabs "YYYY-MM-DD"
+    const clockInVal  = document.getElementById("corrClockIn").value;
+    const clockOutVal = document.getElementById("corrClockOut").value;
+    const fb          = document.getElementById("corrFeedback");
+    
+    fb.className = ""; fb.textContent = "";
 
-        if (!employee || !dateVal || !clockInVal || !clockOutVal) {
-            fb.textContent = "Please fill in all fields."; fb.className = "form-feedback error"; return;
-        }
+    if (!employee || !dateVal || !clockInVal || !clockOutVal) {
+        fb.textContent = "Please fill in all fields."; fb.className = "form-feedback error"; return;
+    }
 
-        const [year, month, day] = dateVal.split("-");
-        const [inH,  inM]        = clockInVal.split(":");
-        const [outH, outM]       = clockOutVal.split(":");
+    // Safely map to numbers so the calendar doesn't hallucinate timezones
+    const [year, month, day] = dateVal.split("-").map(Number);
+    const [inH,  inM]        = clockInVal.split(":").map(Number);
+    const [outH, outM]       = clockOutVal.split(":").map(Number);
 
-        const startDate = new Date(year, month - 1, day, inH, inM);
-        const endDate   = new Date(year, month - 1, day, outH, outM);
+    const startDate = new Date(year, month - 1, day, inH, inM);
+    const endDate   = new Date(year, month - 1, day, outH, outM);
 
-        if (endDate < startDate) {
-            endDate.setDate(endDate.getDate() + 1);
-        }
+    // Handle overnight shifts seamlessly
+    if (endDate < startDate) {
+        endDate.setDate(endDate.getDate() + 1);
+    }
 
-        try {
-            const TZ      = "Australia/Melbourne";
-            const inStr   = startDate.toLocaleString("en-AU", { timeZone: TZ });
-            const outStr  = endDate.toLocaleString("en-AU",   { timeZone: TZ });
+    try {
+        const TZ = "Australia/Melbourne";
+        const inStr  = startDate.toLocaleString("en-AU", { timeZone: TZ });
+        const outStr = endDate.toLocaleString("en-AU", { timeZone: TZ });
+        
+        // We forge the exact string format your bouncer looks for
+        const auDateStr = startDate.toLocaleDateString("en-AU", { timeZone: TZ }); 
 
-            const batch = writeBatch(db);
-            batch.set(doc(collection(db, "timeLogs")), {
-                employee, action: "Clocked In",  time: inStr,  timestamp: Timestamp.fromDate(startDate),
-                paymentStatus: "unpaid", type: "manual"
-            });
-            batch.set(doc(collection(db, "timeLogs")), {
-                employee, action: "Clocked Out", time: outStr, timestamp: Timestamp.fromDate(endDate),
-                paymentStatus: "unpaid", type: "manual"
-            });
-            await batch.commit();
+        const batch = writeBatch(db);
+        
+        // CRITICAL CHECK: If your actual Firebase database collection is called "logs", 
+        // change "timeLogs" to "logs" right here:
+        const dbCollectionName = "timeLogs"; 
 
-            fb.textContent = `Saved: ${employee} — ${inStr} → ${outStr}`;
-            fb.className   = "form-feedback success";
-            document.getElementById("corrDate").value     = "";
-            document.getElementById("corrClockIn").value  = "09:00";
-            document.getElementById("corrClockOut").value = "17:00";
-            window.closeCorrection();
-            await loadData();
-        } catch (e) {
-            alert("Firebase Error: " + e.message);
-        }
-    };
+        batch.set(doc(collection(db, dbCollectionName)), {
+            employee: employee, 
+            action: "Clocked In",  
+            time: inStr,  
+            date: dateVal,         // Force the YYYY-MM-DD string
+            dateStr: auDateStr,    // Force the DD/MM/YYYY string
+            timestamp: Timestamp.fromDate(startDate),
+            paymentStatus: "unpaid", 
+            type: "manual"
+        });
+
+        batch.set(doc(collection(db, dbCollectionName)), {
+            employee: employee, 
+            action: "Clocked Out", 
+            time: outStr, 
+            date: dateVal,         // Force the YYYY-MM-DD string
+            dateStr: auDateStr,    // Force the DD/MM/YYYY string
+            timestamp: Timestamp.fromDate(endDate),
+            paymentStatus: "unpaid", 
+            type: "manual"
+        });
+
+        await batch.commit();
+
+        fb.textContent = `Saved: ${employee} — ${inStr} → ${outStr}`;
+        fb.className   = "form-feedback success";
+        
+        // Reset the form
+        document.getElementById("corrDate").value     = "";
+        document.getElementById("corrClockIn").value  = "09:00";
+        document.getElementById("corrClockOut").value = "17:00";
+        window.closeCorrection();
+        
+        // Refresh the dashboard
+        await loadData();
+    } catch (e) {
+        alert("Firebase Error: " + e.message);
+        console.error(e);
+    }
+};
 
     /* ── Google Sheets Sync ─────────────────────────────────────────────────── */
     // checklistState: Map<name, isChecked> captured from the live DOM (null for archive mode)
