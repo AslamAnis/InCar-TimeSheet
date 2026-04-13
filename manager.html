@@ -1231,11 +1231,6 @@ window.saveCorrection = async function () {
         try {
             const payload = buildSyncPayload(period, checklistState);
 
-            // Archive mode: only send rows that are confirmed paid in the database
-            if (checklistState === null) {
-                payload.rows = payload.rows.filter(r => r.isPaidInDatabase);
-            }
-
             // text/plain avoids CORS preflight on Google Apps Script
             const res = await fetch(webhookUrl, {
                 method: "POST",
