@@ -659,11 +659,16 @@
 
     const PAY_PERIODS = (() => {
         const arr = [], lim = new Date(); lim.setDate(lim.getDate() + 90);
-        let s = new Date(2024, 0, 1); // Anchor: Mon 2024-01-01
+        let s = new Date(2024, 0, 1, 0, 0, 0, 0); // Anchor: Mon 2024-01-01 local midnight
         while (s <= lim) {
-            const e = new Date(s); e.setDate(s.getDate() + 13); e.setHours(23, 59, 59, 999);
-            arr.push({ start: new Date(s), end: new Date(e) });
-            s.setDate(s.getDate() + 14);
+            // Extract components from the current cursor so each iteration starts
+            // from a clean local-midnight value — prevents DST drift accumulating
+            // across hundreds of setDate() mutations.
+            const y = s.getFullYear(), mo = s.getMonth(), d = s.getDate();
+            const start = new Date(y, mo, d,      0,  0,  0,   0);
+            const end   = new Date(y, mo, d + 13, 23, 59, 59, 999);
+            arr.push({ start, end });
+            s = new Date(y, mo, d + 14, 0, 0, 0, 0);
         }
         return arr;
     })();
@@ -762,17 +767,22 @@
         } catch (e) { console.warn("loadRates:", e); }
     }
 
-    window.loadLogs = async function () {
+window.loadLogs = async function () {
         const tb = document.getElementById("logTableBody");
         tb.innerHTML = `<tr class="state-row"><td colspan="4"><span class="spinner"></span> Loading records…</td></tr>`;
         try {
             const { start, end } = CUR_PERIOD;
+            
+            // ALARM 1: Tell us what exact dates the Bouncer is guarding
+            console.log(`🚨 BOUNCER CHECK: Asking Firebase for logs between:`, start, `AND`, end);
+
             const snap = await getDocs(query(
                 collection(db, "timeLogs"),
                 where("timestamp", ">=", Timestamp.fromDate(start)),
                 where("timestamp", "<=", Timestamp.fromDate(end)),
                 orderBy("timestamp", "desc")
             ));
+            
             allLogs = [];
             snap.forEach(ds => {
                 const d = ds.data();
@@ -785,6 +795,10 @@
                     date: d.timestamp ? d.timestamp.toDate() : new Date(d.time)
                 });
             });
+            
+            // ALARM 2: Tell us exactly what Firebase sent back
+            console.log(`🚨 BOUNCER PASSED: Firebase returned ${allLogs.length} logs.`, allLogs);
+            
             renderDashboard();
         } catch (e) {
             console.error("loadLogs:", e);
@@ -797,7 +811,7 @@
         const { start, end } = CUR_PERIOD;
         document.getElementById("periodDates").textContent = `${fmtShort(start)} – ${fmtShort(end)}`;
 
-        const periodLogs  = allLogs; // timestamp boundaries already applied server-side
+        const periodLogs  = allLogs.filter(l => l.date >= start && l.date <= end);
         currentPeriodLogs = periodLogs;
 
         const hasLogs = periodLogs.length > 0;
