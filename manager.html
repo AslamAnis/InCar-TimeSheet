@@ -1214,8 +1214,10 @@ window.saveCorrection = async function () {
         const yr     = start.toLocaleDateString("en-AU", { year:  "numeric", timeZone: "Australia/Melbourne" });
         const moShrt = w1End.toLocaleDateString("en-AU", { month: "short" });
         const mo2    = w2End.toLocaleDateString("en-AU", { month: "short" });
-        const sheetName  = `${moFull.toUpperCase()} ${yr}`;
-        const mainTitle  = `InCar Detailing Payroll (${moFull} ${yr})`;
+        const pNumber       = start.getDate() <= 15 ? "P1" : "P2";
+        const dynamicSheetName = `${moFull} ${pNumber} ${yr}`;
+        const sheetName  = dynamicSheetName;
+        const mainTitle  = dynamicSheetName;
         const week1Label = `Week 1 (${ordinal(days[0].getDate())}–${ordinal(w1End.getDate())} ${moShrt})`;
         const week2Label = `Week 2 (${ordinal(days[7].getDate())}–${ordinal(w2End.getDate())} ${mo2})`;
 
