@@ -633,7 +633,7 @@
     import { getFirestore,
              collection, getDocs, addDoc, deleteDoc, doc,
              getDoc, setDoc, writeBatch,
-             orderBy, query, Timestamp }
+             where, orderBy, query, Timestamp }
                                        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth,
              signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -766,7 +766,13 @@
         const tb = document.getElementById("logTableBody");
         tb.innerHTML = `<tr class="state-row"><td colspan="4"><span class="spinner"></span> Loading records…</td></tr>`;
         try {
-            const snap = await getDocs(query(collection(db, "timeLogs"), orderBy("timestamp", "desc")));
+            const { start, end } = CUR_PERIOD;
+            const snap = await getDocs(query(
+                collection(db, "timeLogs"),
+                where("timestamp", ">=", Timestamp.fromDate(start)),
+                where("timestamp", "<=", Timestamp.fromDate(end)),
+                orderBy("timestamp", "desc")
+            ));
             allLogs = [];
             snap.forEach(ds => {
                 const d = ds.data();
@@ -791,7 +797,7 @@
         const { start, end } = CUR_PERIOD;
         document.getElementById("periodDates").textContent = `${fmtShort(start)} – ${fmtShort(end)}`;
 
-        const periodLogs  = allLogs.filter(l => l.date >= start && l.date <= end);
+        const periodLogs  = allLogs; // timestamp boundaries already applied server-side
         currentPeriodLogs = periodLogs;
 
         const hasLogs = periodLogs.length > 0;
