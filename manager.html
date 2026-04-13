@@ -1061,7 +1061,7 @@
 
     window.saveCorrection = async function () {
         const employee    = document.getElementById("corrEmployee").value;
-        const dateVal     = document.getElementById("corrDate").value;     // "YYYY-MM-DD" — used as-is
+        const dateVal     = document.getElementById("corrDate").value;     // "YYYY-MM-DD" from input — used as-is
         const clockInVal  = document.getElementById("corrClockIn").value;  // "HH:MM"
         const clockOutVal = document.getElementById("corrClockOut").value; // "HH:MM"
         const fb          = document.getElementById("corrFeedback");
@@ -1071,33 +1071,35 @@
             fb.textContent = "Please fill in all fields."; fb.className = "form-feedback error"; return;
         }
 
-        // Parse HH:MM strings as plain integers — no Date objects, no timezone risk
+        // Integer arithmetic on HH:MM — no Date objects, no timezone parsing risk
         const [inH,  inM ] = clockInVal.split(":").map(Number);
         const [outH, outM] = clockOutVal.split(":").map(Number);
         let totalMins = (outH * 60 + outM) - (inH * 60 + inM);
 
-        // Overnight shift: negative result means clock-out crossed midnight
+        // Overnight: end-time before start-time means the shift crossed midnight
         if (totalMins <= 0) totalMins += 1440;
 
         try {
+            // Same v9 modular syntax used by every other write in this file
             await addDoc(collection(db, "timeLogs"), {
                 employee,
                 date:          dateVal,   // strict "YYYY-MM-DD" string
-                mins:          totalMins, // integer minutes
+                mins:          totalMins, // integer
                 paymentStatus: "unpaid",
                 type:          "manual"
             });
 
-            fb.textContent = `Saved: ${employee} on ${dateVal} — ${clockInVal} → ${clockOutVal} (${totalMins} min)`;
+            fb.textContent = `Saved: ${employee} — ${dateVal}, ${clockInVal}–${clockOutVal} (${totalMins} min)`;
             fb.className   = "form-feedback success";
             document.getElementById("corrDate").value     = "";
             document.getElementById("corrClockIn").value  = "09:00";
             document.getElementById("corrClockOut").value = "17:00";
             window.closeCorrection();
             await loadData();
-        } catch (e) {
-            console.error("saveCorrection error:", e);
-            fb.textContent = "Save failed. Check console."; fb.className = "form-feedback error";
+        } catch (error) {
+            console.error(error);
+            alert("Firebase Error: " + error.message);
+            fb.textContent = "Save failed — see alert for details."; fb.className = "form-feedback error";
         }
     };
 
