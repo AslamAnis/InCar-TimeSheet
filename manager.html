@@ -1351,29 +1351,48 @@ window.saveCorrection = async function () {
     };
 
     /* ── Archive Dropdown ───────────────────────────────────────────────────── */
-    function populateArchiveDropdown() {
-        const sel  = document.getElementById("archiveSelect");
-        const past = PAY_PERIODS.filter(p => p.end < CUR_PERIOD.start);
-        if (!past.length) {
-            const o = document.createElement("option"); o.disabled = true; o.textContent = "No past periods yet"; sel.appendChild(o); return;
-        }
-        const groups = {};
-        past.forEach((p, idx) => {
-            const key = fmtMonAbbr(p.start);
-            if (!groups[key]) groups[key] = [];
-            groups[key].push({ p, idx });
-        });
-        Object.entries(groups).reverse().forEach(([monthLabel, items]) => {
-            const grp = document.createElement("optgroup"); grp.label = monthLabel;
-            items.forEach(({ p, idx }, local) => {
-                const o = document.createElement("option"); o.value = idx;
-                const mo = p.end.toLocaleDateString("en-AU", { month: "short" });
-                o.textContent = `Period ${local + 1} (${ordinal(p.start.getDate())}–${ordinal(p.end.getDate())} ${mo})`;
-                grp.appendChild(o);
-            });
-            sel.appendChild(grp);
-        });
+function populateArchiveDropdown() {
+    const sel  = document.getElementById("archiveSelect");
+    
+    // Reset the dropdown so it stays clean
+    sel.innerHTML = '<option value="" disabled selected>Select past period...</option>';
+    
+    const past = PAY_PERIODS.filter(p => p.end < CUR_PERIOD.start);
+    if (!past.length) {
+        const o = document.createElement("option"); o.disabled = true; o.textContent = "No past periods yet"; sel.appendChild(o); return;
     }
+    
+    const groups = {};
+    past.forEach((p, idx) => {
+        const key = fmtMonAbbr(p.start);
+        if (!groups[key]) groups[key] = [];
+        groups[key].push({ p, idx });
+    });
+    
+    Object.entries(groups).reverse().forEach(([monthLabel, items]) => {
+        const grp = document.createElement("optgroup"); grp.label = monthLabel;
+        items.forEach(({ p, idx }, local) => {
+            const o = document.createElement("option"); o.value = idx;
+            const mo = p.end.toLocaleDateString("en-AU", { month: "short" });
+            o.textContent = `Period ${local + 1} (${ordinal(p.start.getDate())}–${ordinal(p.end.getDate())} ${mo})`;
+            grp.appendChild(o);
+        });
+        sel.appendChild(grp);
+    });
+
+    // 🔥 THE MISSING WIRE: Listen for clicks and wake up the Bouncer 🔥
+    sel.onchange = async function(e) {
+        const selectedIdx = e.target.value;
+        if (selectedIdx === "") return;
+        
+        // 1. Safely update the background dates to the exact period you clicked
+        CUR_PERIOD.start = past[selectedIdx].start;
+        CUR_PERIOD.end   = past[selectedIdx].end;
+        
+        // 2. Wake up the Bouncer and tell him to fetch the new dates
+        await window.loadLogs();
+    };
+}
 
     /* ── Employee Dropdowns ─────────────────────────────────────────────────── */
     function populateEmployeeDropdowns() {
