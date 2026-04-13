@@ -105,6 +105,15 @@
         .period-status-badge.active { background:rgba(76,175,80,.12); color:var(--green); border:1px solid rgba(76,175,80,.3); }
         .period-status-badge.paid   { background:rgba(255,193,7,.1);  color:#FFC107;     border:1px solid rgba(255,193,7,.3); }
 
+        /* ═══ PERIOD NAVIGATION ══════════════════════════════════════════════════ */
+        .period-nav-center { flex:1; text-align:center; min-width:0; }
+        .nav-btn { width:34px; height:34px; border-radius:6px; background:rgba(255,255,255,.05); color:var(--text-muted); border:1px solid var(--accent-border); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .2s, color .2s, border-color .2s; }
+        .nav-btn:hover { background:rgba(255,255,255,.11); color:var(--text-header); border-color:var(--accent-silver); }
+        .today-btn { padding:7px 14px; border-radius:6px; background:#3B82F6; color:#fff; border:none; cursor:pointer; font-family:var(--font-header); font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; flex-shrink:0; transition:background .2s; }
+        .today-btn:hover:not(:disabled) { background:#2563EB; }
+        .today-btn:disabled { background:#222; color:#444; cursor:not-allowed; }
+        .is-current-label { font-family:var(--font-header); font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#3B82F6; margin-top:3px; }
+
         /* ═══ LEDGER CARDS ═════════════════════════════════════════════════════════ */
         .ledger-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; animation:fadeUp .45s ease both; }
         @media (max-width:560px) { .ledger-row { grid-template-columns:1fr; } }
@@ -419,11 +428,17 @@
 
         <!-- Period Banner -->
         <div class="period-banner">
-            <div>
-                <div class="period-banner-label">Current Pay Period</div>
+            <button class="nav-btn" onclick="changePeriod(-1)" title="Previous period">&#8592;</button>
+            <div class="period-nav-center">
+                <div class="period-banner-label">Pay Period</div>
                 <div class="period-banner-dates" id="periodDates">—</div>
+                <span class="is-current-label" id="isCurrentBadge" style="display:none;">CURRENT PERIOD</span>
             </div>
-            <span class="period-status-badge active" id="periodStatusBadge">Active</span>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                <button class="nav-btn" onclick="changePeriod(1)" title="Next period">&#8594;</button>
+                <button class="today-btn" id="btnToday" onclick="jumpToToday()">Today</button>
+                <span class="period-status-badge active" id="periodStatusBadge">Active</span>
+            </div>
         </div>
 
         <!-- Ledger Summary -->
@@ -674,8 +689,9 @@
     })();
 
     const today      = new Date();
-    const CUR_IDX    = (() => { const i = PAY_PERIODS.findIndex(p => today >= p.start && today <= p.end); return i >= 0 ? i : PAY_PERIODS.length - 1; })();
-    const CUR_PERIOD = PAY_PERIODS[CUR_IDX];
+    const TODAY_IDX  = (() => { const i = PAY_PERIODS.findIndex(p => today.getTime() >= p.start.getTime() && today.getTime() <= p.end.getTime()); return i >= 0 ? i : PAY_PERIODS.length - 1; })();
+    let   viewIdx    = TODAY_IDX;
+    let   CUR_PERIOD = PAY_PERIODS[viewIdx];
 
     /* ── Config ─────────────────────────────────────────────────────────────── */
     const MASTER_SHEET_URL = "https://docs.google.com/spreadsheets/d/1XbxS4PjkmO1BurqvL2RDXnOKyBn5SbvrrTXIGEah9vE/edit?gid=0#gid=0"; // ← paste your Google Sheet URL here
@@ -749,12 +765,40 @@
         document.getElementById("pinError").style.display  = "none";
     };
 
+    /* ── Timeline Navigation ───────────────────────────────────────────────── */
+    function updateUIAndLoad() {
+        CUR_PERIOD = PAY_PERIODS[viewIdx];
+        document.getElementById("periodDates").textContent = `${fmtShort(CUR_PERIOD.start)} – ${fmtShort(CUR_PERIOD.end)}`;
+        const isCurrent = viewIdx === TODAY_IDX;
+        document.getElementById("isCurrentBadge").style.display = isCurrent ? "block" : "none";
+        const todayBtn = document.getElementById("btnToday");
+        if (todayBtn) todayBtn.disabled = isCurrent;
+        window.loadLogs();
+    }
+
+    window.changePeriod = function (direction) {
+        const next = viewIdx + direction;
+        if (next < 0 || next >= PAY_PERIODS.length) return;
+        viewIdx = next;
+        updateUIAndLoad();
+    };
+
+    window.jumpToToday = function () {
+        viewIdx = TODAY_IDX;
+        updateUIAndLoad();
+    };
+
     /* ── Data Loading ──────────────────────────────────────────────────────── */
     async function loadData() {
         populateEmployeeDropdowns();
         await Promise.all([loadRates(), loadLogs()]);
         populateRatesForm();
         populateArchiveDropdown();
+        // Sync nav UI to the initial (today's) period state
+        const isCurrent = viewIdx === TODAY_IDX;
+        document.getElementById("isCurrentBadge").style.display = isCurrent ? "block" : "none";
+        const todayBtn = document.getElementById("btnToday");
+        if (todayBtn) todayBtn.disabled = isCurrent;
     }
 
     async function loadRates() {
@@ -1360,17 +1404,11 @@ function populateArchiveDropdown() {
         sel.appendChild(grp);
     });
 
-    // 🔥 THE MISSING WIRE: Listen for clicks and wake up the Bouncer 🔥
-    sel.onchange = async function(e) {
-        const selectedIdx = e.target.value;
-        if (selectedIdx === "") return;
-        
-        // 1. Safely update the background dates to the exact period you clicked
-        CUR_PERIOD.start = past[selectedIdx].start;
-        CUR_PERIOD.end   = past[selectedIdx].end;
-        
-        // 2. Wake up the Bouncer and tell him to fetch the new dates
-        await window.loadLogs();
+    sel.onchange = function (e) {
+        const idx = parseInt(e.target.value, 10);
+        if (isNaN(idx) || !PAY_PERIODS[idx]) return;
+        viewIdx = idx;
+        updateUIAndLoad();
     };
 }
 
