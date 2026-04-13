@@ -1067,35 +1067,33 @@
         const fb          = document.getElementById("corrFeedback");
         fb.className = ""; fb.textContent = "";
 
-        if (!dateVal || !clockInVal || !clockOutVal) {
+        if (!employee || !dateVal || !clockInVal || !clockOutVal) {
             fb.textContent = "Please fill in all fields."; fb.className = "form-feedback error"; return;
         }
 
-        // Parse components explicitly — avoids UTC-vs-local ambiguity of new Date("YYYY-MM-DD")
-        const [year, month, day] = dateVal.split("-").map(Number);
-        const [inH,  inM]        = clockInVal.split(":").map(Number);
-        const [outH, outM]       = clockOutVal.split(":").map(Number);
+        const [year, month, day] = dateVal.split("-");
+        const [inH,  inM]        = clockInVal.split(":");
+        const [outH, outM]       = clockOutVal.split(":");
 
-        let inDate  = new Date(year, month - 1, day, inH,  inM,  0);
-        let outDate = new Date(year, month - 1, day, outH, outM, 0);
+        const startDate = new Date(year, month - 1, day, inH, inM);
+        const endDate   = new Date(year, month - 1, day, outH, outM);
 
-        // Overnight shift: if clock-out is at or before clock-in, it crossed midnight
-        if (outDate <= inDate) {
-            outDate = new Date(outDate.getTime() + 24 * 60 * 60 * 1000);
+        if (endDate < startDate) {
+            endDate.setDate(endDate.getDate() + 1);
         }
 
         try {
-            const TZ     = "Australia/Melbourne";
-            const inStr  = inDate.toLocaleString("en-AU",  { timeZone: TZ });
-            const outStr = outDate.toLocaleString("en-AU", { timeZone: TZ });
+            const TZ      = "Australia/Melbourne";
+            const inStr   = startDate.toLocaleString("en-AU", { timeZone: TZ });
+            const outStr  = endDate.toLocaleString("en-AU",   { timeZone: TZ });
 
             const batch = writeBatch(db);
             batch.set(doc(collection(db, "timeLogs")), {
-                employee, action: "Clocked In",  time: inStr,  timestamp: Timestamp.fromDate(inDate),
+                employee, action: "Clocked In",  time: inStr,  timestamp: Timestamp.fromDate(startDate),
                 paymentStatus: "unpaid", type: "manual"
             });
             batch.set(doc(collection(db, "timeLogs")), {
-                employee, action: "Clocked Out", time: outStr, timestamp: Timestamp.fromDate(outDate),
+                employee, action: "Clocked Out", time: outStr, timestamp: Timestamp.fromDate(endDate),
                 paymentStatus: "unpaid", type: "manual"
             });
             await batch.commit();
