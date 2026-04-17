@@ -1367,56 +1367,56 @@ window.saveCorrection = async function () {
         };
     }
 
-    // checklistState: Map<name, isChecked> | null (null = archive mode, filter to isPaidInDatabase only)
-    async function syncToSheets(period, btnEl, _viewBtnId, statusElId, checklistState) {
-        const webhookUrl = "https://script.google.com/macros/s/AKfycbztXxB4iei1es1snOmojSBYtt3qBJgkWP4fJJ-7lo_Bah_bj3B2Q-E1HSTk8u3LqNgy/exec";
+    async function syncToSheets(period, btnEl, _viewBtnId, statusElId) {
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxxOdFt_H-vcFHOTV1cD3cSdt_ozoCtE9Y8D4lm4qAiY60_JzAhmZKLEn8iPQTz-vk/exec";
 
         const statusEl = statusElId ? document.getElementById(statusElId) : null;
         const origHTML = btnEl.innerHTML;
-        btnEl.disabled = true;
+        btnEl.disabled    = true;
         btnEl.textContent = "Syncing…";
         btnEl.style.opacity = "0.7";
         if (statusEl) { statusEl.style.display = "none"; statusEl.textContent = ""; }
 
         try {
-            const payload = buildSyncPayload(period, checklistState);
+            const payload = buildSyncPayload(period);
 
-            // text/plain avoids CORS preflight on Google Apps Script
-            const res = await fetch(webhookUrl, {
+            // no-cors bypasses the redirect/CORS block Google Apps Script causes.
+            // The response will be opaque (unreadable) — success is inferred from
+            // the fetch not throwing.
+            await fetch(WEBHOOK_URL, {
                 method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(payload)
+                mode:   "no-cors",
+                body:   JSON.stringify(payload)
             });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-            // ── Success ────────────────────────────────────────────────────────
+            // ── Success (fire-and-forget) ──────────────────────────────────────
             btnEl.disabled         = false;
             btnEl.style.opacity    = "";
-            btnEl.innerHTML        = "&#10004; Synced!";
+            btnEl.innerHTML        = "&#10004; Sent!";
             btnEl.style.background = "#10B981";
             btnEl.style.color      = "#ffffff";
             if (statusEl) {
-                statusEl.textContent   = `✓ Synced: ${payload.mainTitle}`;
+                statusEl.textContent   = `✓ Sync request sent for: ${payload.mainTitle}`;
                 statusEl.style.cssText = "display:block;font-size:11px;color:var(--status-success);margin-top:8px;";
             }
+            alert(`Sync request sent! Check your Google Sheet in a few seconds.\n\nSheet: ${payload.sheetName}`);
             setTimeout(() => {
                 btnEl.innerHTML        = origHTML;
                 btnEl.style.background = "";
                 btnEl.style.color      = "";
-            }, 2500);
+            }, 3000);
+
         } catch (error) {
-            console.error("SYNC FATAL ERROR:", error);
-            btnEl.disabled   = false;
+            console.error("SYNC ERROR:", error);
+            btnEl.disabled      = false;
             btnEl.style.opacity = "";
-            // Turn button red with warning text
-            btnEl.innerHTML  = "&#9888; Sync Failed";
+            btnEl.innerHTML     = "&#9888; Sync Failed";
             btnEl.style.background = "#F44336";
             btnEl.style.color      = "#ffffff";
             if (statusEl) {
                 statusEl.textContent   = "Sync failed — check console for details.";
                 statusEl.style.cssText = "display:block;font-size:11px;color:#e57373;margin-top:8px;";
             }
-            // Revert button to original state after 4 seconds
             setTimeout(() => {
                 btnEl.innerHTML        = origHTML;
                 btnEl.style.background = "";
@@ -1426,20 +1426,13 @@ window.saveCorrection = async function () {
     }
 
     window.syncCurrentPeriod = function () {
-        // Capture live visual state of every checklist circle from the DOM
-        const checklistState = new Map();
-        document.querySelectorAll("#checklistItems .checklist-item").forEach(li => {
-            const name = li.querySelector(".cl-name")?.textContent?.trim();
-            if (name) checklistState.set(name, li.classList.contains("checked"));
-        });
-        syncToSheets(CUR_PERIOD, document.getElementById("btnSyncCurrent"), "btnViewSheetsCurrent", null, checklistState);
+        syncToSheets(CUR_PERIOD, document.getElementById("btnSyncCurrent"), null, null);
     };
 
     window.syncArchivePeriod = function () {
         const idx = parseInt(document.getElementById("archiveSelect").value, 10);
         if (isNaN(idx) || !PAY_PERIODS[idx]) { alert("Please select a past period first."); return; }
-        // Archive sync: null checklistState = only paid-in-DB records, no DOM state needed
-        syncToSheets(PAY_PERIODS[idx], document.getElementById("btnArchiveSync"), "btnViewSheetsArchive", "syncStatusLabel", null);
+        syncToSheets(PAY_PERIODS[idx], document.getElementById("btnArchiveSync"), null, "syncStatusLabel");
     };
 
     /* ── Settings Modal ─────────────────────────────────────────────────────── */
