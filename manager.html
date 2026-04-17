@@ -1369,7 +1369,7 @@ window.saveCorrection = async function () {
 
     // checklistState: Map<name, isChecked> | null (null = archive mode, filter to isPaidInDatabase only)
     async function syncToSheets(period, btnEl, _viewBtnId, statusElId, checklistState) {
-        const webhookUrl = "https://script.google.com/macros/s/AKfycbzeFcSyIXAWu0MfaKxnyBAHUodXxz7l94zRxxS5QSkRIvLlNeF9efIZZeXiKbE9S6ZA/exec";
+        const webhookUrl = "https://script.google.com/macros/s/AKfycbztXxB4iei1es1snOmojSBYtt3qBJgkWP4fJJ-7lo_Bah_bj3B2Q-E1HSTk8u3LqNgy/exec";
 
         const statusEl = statusElId ? document.getElementById(statusElId) : null;
         const origHTML = btnEl.innerHTML;
