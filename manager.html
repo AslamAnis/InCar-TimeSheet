@@ -1285,39 +1285,59 @@ window.saveCorrection = async function () {
     /* ── Google Sheets Sync ─────────────────────────────────────────────────── */
     function buildSyncPayload(period) {
         const { start, end, isPayWeek } = period;
-        const days    = Array.from({ length: 7 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
-        const dayKeys = days.map(d => d.toLocaleDateString("en-CA"));
 
+        const COL_COUNT = 11;
+        const fill      = n => Array(n).fill("");
+
+        // Generate the 7 day keys for filtering and column mapping
+        const days    = Array.from({ length: 7 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
+        const dayKeys = days.map(d => d.toLocaleDateString("en-CA"));  // ["2026-04-20", ...]
+
+        // Filter logs strictly within this week's boundaries
         const pLogs   = allLogs.filter(l => l.date >= start && l.date <= end);
         const grouped = {};
         pLogs.forEach(l => { if (!grouped[l.employee]) grouped[l.employee] = []; grouped[l.employee].push(l); });
 
+        // Period metadata
         const weekNum   = Math.ceil(start.getDate() / 7);
         const monthName = start.toLocaleDateString("en-AU", { month: "long" });
         const yr        = start.getFullYear();
+        const sMonth    = start.toLocaleDateString("en-AU", { month: "short" });
+        const eMonth    = end.toLocaleDateString("en-AU", { month: "short" });
         const sheetName = `${monthName} W${weekNum} ${yr}`;
         const mainTitle = isPayWeek ? `${sheetName} (DUE)` : sheetName;
+        const subHeader = `Week ${weekNum} (${ordinal(start.getDate())} ${sMonth} – ${ordinal(end.getDate())} ${eMonth} ${yr})`;
 
-        const headers = ["Employee", "Rate ($/hr)",
+        // ── Build the 2D data array ────────────────────────────────────────────
+        const data = [];
+        data.push([mainTitle,  ...fill(COL_COUNT - 1)]);   // Row 1: merged title
+        data.push([subHeader,  ...fill(COL_COUNT - 1)]);   // Row 2: merged sub-header
+        data.push([                                         // Row 3: column headers
+            "Employee", "Rate ($/hr)",
             "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday",
-            "Total Hours", "Total Payable ($)"];
+            "Total Hours", "Total Payable ($)"
+        ]);
 
-        const checkedElements = document.querySelectorAll('#checklistItems .checklist-item.checked .cl-name');
-        const visuallyCheckedNames = Array.from(checkedElements).map(el => el.textContent.trim());
+        // Capture visually-checked names for paid styling
+        const checkedEls = document.querySelectorAll('#checklistItems .checklist-item.checked .cl-name');
+        const visuallyPaid = new Set(Array.from(checkedEls).map(el => el.textContent.trim()));
+        const isPaidMap = {};
 
         const employees = EMPLOYEE_NAMES.filter(n => grouped[n]);
-        const rows = employees.map(name => {
+        employees.forEach(name => {
             const byDay        = computeDailyHours(grouped[name]);
+            // Rate: use hourlyRate snapshot from a clock-out log, fallback to current profile
             const rate         = getEffectiveRate(name, grouped[name]);
             const dayValues    = dayKeys.map(k => byDay[k] ? +byDay[k].toFixed(2) : 0);
             const totalHours   = +dayKeys.reduce((s, k) => s + (byDay[k] || 0), 0).toFixed(2);
             const totalPayable = +(totalHours * rate).toFixed(2);
-            const isPaid = visuallyCheckedNames.includes(name) || (grouped[name] || []).some(l => l.paymentStatus === "paid");
-            return { values: [name, rate, ...dayValues, totalHours, totalPayable], isPaid };
+            const isPaid       = visuallyPaid.has(name) || grouped[name].some(l => l.paymentStatus === "paid");
+            isPaidMap[name]    = isPaid;
+            data.push([name, rate, ...dayValues, totalHours, totalPayable]);
         });
 
-        // Extra summary rows for pay weeks
-        let extraRows = [];
+        // Pay week: append blank separator + 14-day total row
+        let payPeriodTotal = null;
         if (isPayWeek) {
             const periodIdx = PAY_PERIODS.findIndex(p => p.start.getTime() === start.getTime());
             if (periodIdx > 0) {
@@ -1325,19 +1345,26 @@ window.saveCorrection = async function () {
                 const prevLogs    = allLogs.filter(l => l.date >= prev.start && l.date <= prev.end);
                 const prevGrouped = {};
                 prevLogs.forEach(l => { if (!prevGrouped[l.employee]) prevGrouped[l.employee] = []; prevGrouped[l.employee].push(l); });
-                const { results: prevResults } = computeHours(prevGrouped);
-                const prevTotal = Object.entries(prevResults).reduce((s, [n, m]) => s + (m / 60) * getEffectiveRate(n, prevGrouped[n] || []), 0);
-
-                const { results: curResults } = computeHours(grouped);
-                const curTotal = Object.entries(curResults).reduce((s, [n, m]) => s + (m / 60) * getEffectiveRate(n, grouped[n] || []), 0);
-
-                extraRows = [
-                    { label: "Pay Period Total (14 Days)", value: +(curTotal + prevTotal).toFixed(2) }
-                ];
+                const { results: pR } = computeHours(prevGrouped);
+                const prevTotal = Object.entries(pR).reduce((s, [n, m]) => s + (m / 60) * getEffectiveRate(n, prevGrouped[n] || []), 0);
+                const { results: cR } = computeHours(grouped);
+                const curTotal  = Object.entries(cR).reduce((s, [n, m]) => s + (m / 60) * getEffectiveRate(n, grouped[n] || []), 0);
+                payPeriodTotal  = +(curTotal + prevTotal).toFixed(2);
+                data.push(fill(COL_COUNT));                                                // blank separator
+                data.push(["Pay Period Total (14 Days)", ...fill(COL_COUNT - 2), payPeriodTotal]);
             }
         }
 
-        return { sheetName, mainTitle, headers, rows, extraRows };
+        return {
+            sheetName,
+            mainTitle,
+            data,
+            isPaidMap,
+            isPayWeek: !!isPayWeek,
+            colCount: COL_COUNT,
+            dataStartRow: 4,
+            payPeriodTotal
+        };
     }
 
     // checklistState: Map<name, isChecked> | null (null = archive mode, filter to isPaidInDatabase only)
