@@ -670,8 +670,7 @@
     import { initializeApp }           from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore,
              collection, getDocs, addDoc, deleteDoc, doc,
-             getDoc, setDoc, writeBatch,
-             orderBy, query, Timestamp }
+             getDoc, setDoc, writeBatch, Timestamp }
                                        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth,
              signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -854,7 +853,9 @@
         const tb = document.getElementById("logTableBody");
         tb.innerHTML = `<tr class="state-row"><td colspan="4"><span class="spinner"></span> Loading records…</td></tr>`;
         try {
-            const snap = await getDocs(query(collection(db, "timeLogs"), orderBy("timestamp", "desc")));
+            // Plain collection read — no orderBy, no where() — requires zero Firestore indexes.
+            // Sorting is done client-side below to avoid 400 "index required" errors.
+            const snap = await getDocs(collection(db, "timeLogs"));
             allLogs = [];
             snap.forEach(ds => {
                 const d = ds.data();
@@ -868,6 +869,8 @@
                     date: d.timestamp ? d.timestamp.toDate() : new Date(d.time)
                 });
             });
+            // Sort newest-first so renderTable receives logs in the expected order
+            allLogs.sort((a, b) => b.date - a.date);
             renderDashboard();
         } catch (e) {
             console.error("loadLogs:", e);
@@ -1368,7 +1371,7 @@ window.saveCorrection = async function () {
     }
 
     async function syncToSheets(period, btnEl, _viewBtnId, statusElId) {
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxxOdFt_H-vcFHOTV1cD3cSdt_ozoCtE9Y8D4lm4qAiY60_JzAhmZKLEn8iPQTz-vk/exec";
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw2cOd1EGw69jRU6KJ3o6Zla5ilq6ooctD6pGLH9fDMeI4n9bSG00eb69KM_fnJRT9j/exec";
 
         const statusEl = statusElId ? document.getElementById(statusElId) : null;
         const origHTML = btnEl.innerHTML;
@@ -1389,17 +1392,16 @@ window.saveCorrection = async function () {
                 body:   JSON.stringify(payload)
             });
 
-            // ── Success (fire-and-forget) ──────────────────────────────────────
+            // ── Success (fire-and-forget — no alert, silent button feedback) ────
             btnEl.disabled         = false;
             btnEl.style.opacity    = "";
-            btnEl.innerHTML        = "&#10004; Sent!";
+            btnEl.innerHTML        = "&#10004; Synced!";
             btnEl.style.background = "#10B981";
             btnEl.style.color      = "#ffffff";
             if (statusEl) {
-                statusEl.textContent   = `✓ Sync request sent for: ${payload.mainTitle}`;
+                statusEl.textContent   = `✓ Synced: ${payload.sheetName}`;
                 statusEl.style.cssText = "display:block;font-size:11px;color:var(--status-success);margin-top:8px;";
             }
-            alert(`Sync request sent! Check your Google Sheet in a few seconds.\n\nSheet: ${payload.sheetName}`);
             setTimeout(() => {
                 btnEl.innerHTML        = origHTML;
                 btnEl.style.background = "";
