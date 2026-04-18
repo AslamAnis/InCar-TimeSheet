@@ -1168,7 +1168,7 @@
             const row = btnEl.closest("tr");
             row.style.transition = "opacity .3s"; row.style.opacity = "0";
             setTimeout(() => row.remove(), 320);
-        } catch (e) { console.error("Delete:", e); alert("Could not delete record."); }
+        } catch (e) { console.error("Delete:", e); }
     };
 
     /* ── Mark as Paid ───────────────────────────────────────────────────────── */
@@ -1192,7 +1192,7 @@
             unpaid.forEach(l => { l.paymentStatus = "paid"; });
             renderDashboard();
         } catch (e) {
-            console.error("markAsPaid:", e); alert("Failed to mark as paid.");
+            console.error("markAsPaid:", e);
             btn.disabled = false; btn.innerHTML = "&#128274; Close Period &amp; Mark Paid";
         }
     };
@@ -1280,8 +1280,7 @@ window.saveCorrection = async function () {
         // Refresh the dashboard
         await loadData();
     } catch (e) {
-        alert("Firebase Error: " + e.message);
-        console.error(e);
+        console.error("Firebase Error:", e);
     }
 };
 
@@ -1289,7 +1288,7 @@ window.saveCorrection = async function () {
     function buildSyncPayload(period) {
         const { start, end, isPayWeek } = period;
 
-        const COL_COUNT = 11;
+        const COL_COUNT = 12;
         const fill      = n => Array(n).fill("");
 
         // Generate the 7 day keys for filtering and column mapping
@@ -1318,7 +1317,7 @@ window.saveCorrection = async function () {
         data.push([                                         // Row 3: column headers
             "Employee", "Rate ($/hr)",
             "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday",
-            "Total Hours", "Total Payable ($)"
+            "Total Hours", "Total Payable ($)", "Payment Status"
         ]);
 
         // Capture visually-checked names for paid styling
@@ -1336,7 +1335,7 @@ window.saveCorrection = async function () {
             const totalPayable = +(totalHours * rate).toFixed(2);
             const isPaid       = visuallyPaid.has(name) || grouped[name].some(l => l.paymentStatus === "paid");
             isPaidMap[name]    = isPaid;
-            data.push([name, rate, ...dayValues, totalHours, totalPayable]);
+            data.push([name, rate, ...dayValues, totalHours, totalPayable, isPaid ? "paid" : "unpaid"]);
         });
 
         // Pay week: append blank separator + 14-day total row
@@ -1371,60 +1370,42 @@ window.saveCorrection = async function () {
     }
 
     async function syncToSheets(period, btnEl, _viewBtnId, statusElId) {
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw2cOd1EGw69jRU6KJ3o6Zla5ilq6ooctD6pGLH9fDMeI4n9bSG00eb69KM_fnJRT9j/exec";
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwymvOxYM9EovXu1hUN7HgbgJ_1aZ4w6jtMxgpvdk9CvotGqRXzoGpjtdwBBh2Ur6RD/execv";
 
         const statusEl = statusElId ? document.getElementById(statusElId) : null;
         const origHTML = btnEl.innerHTML;
         btnEl.disabled    = true;
-        btnEl.textContent = "Syncing…";
+        btnEl.textContent = "Processing Sync...";
         btnEl.style.opacity = "0.7";
         if (statusEl) { statusEl.style.display = "none"; statusEl.textContent = ""; }
 
         try {
             const payload = buildSyncPayload(period);
 
-            // no-cors bypasses the redirect/CORS block Google Apps Script causes.
-            // The response will be opaque (unreadable) — success is inferred from
-            // the fetch not throwing.
             console.log("DEBUG PAYLOAD:", payload);
-            await fetch(WEBHOOK_URL, {
+            fetch(WEBHOOK_URL, {
                 method: "POST",
                 mode:   "no-cors",
                 body:   JSON.stringify(payload)
             });
 
-            // ── Success (fire-and-forget — no alert, silent button feedback) ────
-            btnEl.disabled         = false;
-            btnEl.style.opacity    = "";
-            btnEl.innerHTML        = "&#10004; Synced!";
-            btnEl.style.background = "#10B981";
-            btnEl.style.color      = "#ffffff";
             if (statusEl) {
                 statusEl.textContent   = `✓ Synced: ${payload.sheetName}`;
                 statusEl.style.cssText = "display:block;font-size:11px;color:var(--status-success);margin-top:8px;";
             }
-            setTimeout(() => {
-                btnEl.innerHTML        = origHTML;
-                btnEl.style.background = "";
-                btnEl.style.color      = "";
-            }, 3000);
 
         } catch (error) {
             console.error("SYNC ERROR:", error);
-            btnEl.disabled      = false;
-            btnEl.style.opacity = "";
-            btnEl.innerHTML     = "&#9888; Sync Failed";
-            btnEl.style.background = "#F44336";
-            btnEl.style.color      = "#ffffff";
             if (statusEl) {
                 statusEl.textContent   = "Sync failed — check console for details.";
                 statusEl.style.cssText = "display:block;font-size:11px;color:#e57373;margin-top:8px;";
             }
+        } finally {
             setTimeout(() => {
-                btnEl.innerHTML        = origHTML;
-                btnEl.style.background = "";
-                btnEl.style.color      = "";
-            }, 4000);
+                btnEl.disabled      = false;
+                btnEl.style.opacity = "";
+                btnEl.innerHTML     = origHTML;
+            }, 3000);
         }
     }
 
@@ -1434,7 +1415,7 @@ window.saveCorrection = async function () {
 
     window.syncArchivePeriod = function () {
         const idx = parseInt(document.getElementById("archiveSelect").value, 10);
-        if (isNaN(idx) || !PAY_PERIODS[idx]) { alert("Please select a past period first."); return; }
+        if (isNaN(idx) || !PAY_PERIODS[idx]) { console.warn("No past period selected for archive sync."); return; }
         syncToSheets(PAY_PERIODS[idx], document.getElementById("btnArchiveSync"), null, "syncStatusLabel");
     };
 
