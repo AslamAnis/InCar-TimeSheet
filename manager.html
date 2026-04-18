@@ -1172,7 +1172,7 @@
     };
 
     /* ── Mark as Paid ───────────────────────────────────────────────────────── */
-    window.markAsPaid = window.closeCurrentPeriod = async function () {
+    window.markAsPaid = async function () {
         const unpaid = currentPeriodLogs.filter(l => l.paymentStatus !== "paid");
         if (!unpaid.length) return;
         if (!confirm(
@@ -1191,18 +1191,6 @@
             }
             unpaid.forEach(l => { l.paymentStatus = "paid"; });
             renderDashboard();
-
-            // Auto-sync after closing the period
-            btn.textContent = "Period Closed!";
-            btn.style.background = "#10B981";
-            btn.style.color      = "#ffffff";
-            const syncBtn = document.getElementById("btnSyncCurrent");
-            if (syncBtn) syncToSheets(CUR_PERIOD, syncBtn, null, null);
-            setTimeout(() => {
-                btn.style.background = "";
-                btn.style.color      = "";
-                btn.innerHTML        = "&#128274; Close Period &amp; Mark Paid";
-            }, 2000);
         } catch (e) {
             console.error("markAsPaid:", e);
             btn.disabled = false; btn.innerHTML = "&#128274; Close Period &amp; Mark Paid";
@@ -1364,9 +1352,8 @@ window.saveCorrection = async function () {
                 const { results: cR } = computeHours(grouped);
                 const curTotal  = Object.entries(cR).reduce((s, [n, m]) => s + (m / 60) * getEffectiveRate(n, grouped[n] || []), 0);
                 payPeriodTotal  = +(curTotal + prevTotal).toFixed(2);
-                const allPaidInView = employees.length > 0 && employees.every(n => isPaidMap[n]);
                 data.push(fill(COL_COUNT));                                                // blank separator
-                data.push(["Pay Period Total (14 Days)", "", "", "", "", "", "", "", "", "", payPeriodTotal, allPaidInView ? "paid" : ""]);
+                data.push(["Pay Period Total (14 Days)", "", "", "", "", "", "", "", "", "", payPeriodTotal, ""]);
             }
         }
 
